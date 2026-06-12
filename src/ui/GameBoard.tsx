@@ -11,6 +11,7 @@ import type { GameState, Move } from '../engine'
 import { buildLayout, destinationCell } from './layout'
 import { Board } from './Board'
 import { Pitons } from './Pitons'
+import { PLAYER_HEX } from './colors'
 
 interface Props {
   state: GameState
@@ -33,8 +34,10 @@ export function GameBoard({ state, moves, onPick }: Props) {
     >
       <Board state={state} layout={layout} />
 
-      {/* legal-move target markers — a hollow ring on each destination cell */}
-      <g className="move-targets">
+      {/* legal-move target markers — a hollow ring on each destination cell,
+          tinted the moving player's color (via currentColor) so it doesn't read
+          as the green player's mark */}
+      <g className="move-targets" style={{ color: PLAYER_HEX[state.players[state.turn].color] }}>
         {moves.map((m, i) => {
           const cell = destinationCell(m.to, state.turn, layout)
           return (

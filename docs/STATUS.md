@@ -5,12 +5,14 @@
 > This file is current + next + a decision log — keep it short.
 
 ## Mission of the moment
-**Milestone 3 (SVG board rendering) is COMPLETE.** The `src/ui/` layer now
-renders a static Parcheesi cross from the engine geometry and draws every piton
-at its `PitonPosition` (nest / track / lane / HOME), with a 2–4 player selector.
-Engine core (Milestone 2) stays done — 67 tests green, build + lint clean. Next
-up: **Milestone 4 — the interaction loop** (roll button + dice, highlight
-`legalMoves`, click-to-move, capture/win banner).
+**Milestone 4 (the interaction loop) is COMPLETE.** The game is now playable
+hot-seat: a Roll button drives `rollDie`/`applyRoll`, legal pitons + their target
+cells highlight, click-to-move calls `applyMove`, and a HUD surfaces turn /
+capture / extra-roll / forfeit / penalty / winner. `src/ui/` stays rules-free —
+all decisions come from the engine. 67 engine tests green, build + lint clean.
+Next up: **Milestone 5 — the variant layer** (the cabin ruleset is already the
+shipped `Ruleset`; a later pass can add a second variant with no UI change), plus
+the M6 polish backlog (rectangular cells; the forfeit-notice wart below).
 
 ## Where the build stands
 - ✅ Milestone 1 — scaffold (Vite + React + TS, own repo).
@@ -38,8 +40,23 @@ up: **Milestone 4 — the interaction loop** (roll button + dice, highlight
     overlay, `<GameBoard>` (memoizes the layout). Colors per arm in `colors.ts`.
   - ✅ `App` picks player count (2–4) and renders the current `GameState`. UI is
     rules-free — it only reads engine state (no `applyMove` yet; that's M4).
-- 🔜 Milestone 4 — interaction loop (`src/ui/`): roll, legal-move highlight,
-  click-to-move, capture/win banner.
+- ✅ Milestone 4 — interaction loop (`src/ui/`). DONE.
+  - ✅ `useGame` reducer ([`src/ui/useGame.ts`](../src/ui/useGame.ts)) holds the
+    live `GameState`, driven only via `applyRoll`/`applyMove`. The die is rolled
+    in the handler (RNG injected) so the reducer stays pure. It derives two
+    view-only bits by *observing* state diffs (no rule duplication): `rolled`
+    (the die chip, which survives an immediate forfeit where the engine clears
+    `lastRoll`) and `notice` (capture / extra roll / forfeit / 3rd-6 penalty /
+    winner).
+  - ✅ `<Hud>` (turn indicator, die chip, Roll button, notice/winner line);
+    `<GameBoard>`/`<Pitons>` thread `legalMoves` + `onPick` down — movable pitons
+    get a pulsing halo, destination cells a dashed ring tinted the *mover's*
+    color (so it can't be mistaken for the green player). `destinationCell` in
+    `layout.ts` maps a move target → cell.
+  - ✅ Player-count pills became a **new-game** trigger now that state is live.
+  - ✅ Layout polish: compact header row (title left, new-game right), board
+    sized by `min(width, viewport-height)` so it stays square + fully visible
+    and no longer resized on every roll (the old flex-shrink-to-content bug).
 - Cabin house rules **collected** (2026-06-11) and recorded in
   [rules-and-lineage.md](rules-and-lineage.md).
 - `Ruleset` / `GameState` types **widened** to express the cabin mechanics
@@ -100,26 +117,33 @@ home-mouth is the next player's lane entry. Full detail in
   is unaffected: its penalty fires before the playability check.)
 
 ## Next session — start here
-**Task: Milestone 4 — the interaction loop (`src/ui/`).** The board renders
-state (M3 done); now wire user intents back through the engine. Architecture rule
-(CLAUDE.md): `src/ui/` holds **no rules** — it reads engine state and calls
-`rollDie`/`applyRoll`/`legalMoves`/`applyMove`, nothing more.
-- Suggested baby-steps: (1) hold the live `GameState` in a `useReducer` in `App`
-  (currently `createGame` via `useMemo` — read-only); (2) a roll button + dice
-  display driving `rollDie`/`applyRoll`; (3) compute `legalMoves`, highlight the
-  movable pitons / target cells on the board, click to `applyMove`; (4) capture
-  feedback + turn indicator + winner banner; (5) handle the extra-turn-on-6 and
-  the no-legal-move forfeit in the turn flow.
-- The render seam is `<GameBoard>`; `buildLayout` already maps every index →
-  cell, so highlighting is "draw a marker at `layout.trackCells[sq]` /
-  `laneCells[p][step]`". Add an `onPick(move)` callback path from `<Pitons>` up.
-- Watch the open rule detail: an unplayable bonus 6 (see below) — the engine
-  already decides this; the UI just surfaces whose turn it is.
+The game is **playable hot-seat** (M4 done). Candidate next tasks, pick one:
+- **Milestone 5 — variant layer.** The cabin ruleset is already the shipped
+  `Ruleset`; the engine is variant-agnostic, so this is mostly proving a second
+  variant (e.g. canonical Parcheesi) drops in with **no UI change**. Likely a
+  ruleset-picker in the header alongside the player-count pills.
+- **M6 polish backlog** (any of):
+  - **Rectangular cells** — the board uses a uniform square grid; the reference
+    board draws cells as rectangles along each arm. Contained refactor of
+    [`src/ui/layout.ts`](../src/ui/layout.ts) + renderers; engine untouched. See
+    [board-model.md](board-model.md).
+  - **Forfeit-notice wart** (found 2026-06-12) — the HUD notice describes what
+    happened to the player who *just rolled* ("Red rolled 3 — no legal move,
+    turn passes") while the turn indicator already shows the **next** player,
+    which momentarily reads as confusing. No engine bug (the forfeit is real and
+    `applyRoll` advances the turn atomically). Considered fix: gate the handoff
+    behind an explicit "Pass/Continue" click (an `awaitingPass` view flag in
+    `useGame`) so the indicator never changes silently. Deferred — accept as-is
+    for now.
+
+- The render seam is `<GameBoard>`; `buildLayout` maps every index → cell, and
+  `destinationCell` maps a move target → cell. `src/ui/` holds **no rules** — it
+  reads engine state and calls `rollDie`/`applyRoll`/`legalMoves`/`applyMove`.
 - Run `npm test` (engine still green) + `npm run build`; `npm run dev` for the UI.
 
 > Tip: to eyeball layout/render changes without the dev server, the throwaway
-> pattern used this session works well — a one-off vitest that builds the layout
-> (or `renderToStaticMarkup`s `<GameBoard>` with a doctored state) to an SVG in
+> pattern works well — a one-off vitest that builds the layout (or
+> `renderToStaticMarkup`s `<GameBoard>` with a doctored state) to an SVG in
 > `references/`, then `node scripts/render-board.mjs <in.svg> <out.png>`. Delete
 > the artifacts after.
 
@@ -127,6 +151,22 @@ Revisit the two non-blocking open rule details above with the friend at some
 point (capture-on-safe is closed; unplayable 1st/2nd 6 is still open).
 
 ## Decision log
+- **2026-06-12** — **Milestone 4 done → the game is playable.** The interaction
+  loop lives entirely in `src/ui/`, rules-free: a `useGame` `useReducer` holds
+  the live `GameState` and drives it only through `applyRoll`/`applyMove`. Key
+  call: the reducer derives its two view-only fields (`rolled` die chip,
+  `notice`) by **observing before/after engine state** — e.g. it tells the 3rd-6
+  penalty from an ordinary forfeit by seeing the roller gain a piton in its nest,
+  never by re-checking the rule. The die is rolled in the click handler (RNG
+  injected) so the reducer is a pure `(view, action)`. Highlighting reuses the
+  `buildLayout` seam (movable-piton halo + `destinationCell` target rings tinted
+  the mover's color). Player-count pills became a new-game trigger. Two UX
+  refinements landed alongside: a compact header row (title left / new-game
+  right) freeing vertical space, and a board sized by `min(width, viewport-
+  height)` — fixing a flex-shrink-to-content bug where the variable-length notice
+  resized the whole board on every roll. Known wart deferred: the forfeit notice
+  references the previous player while the indicator shows the next (see Next
+  session).
 - **2026-06-12** — **Board model documented to stop drift.** Added
   [board-model.md](board-model.md) as the canonical engine-indices↔screen
   reference (one-arm diagram, safe-square table, seating convention, the "don't

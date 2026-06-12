@@ -16,22 +16,23 @@ function App() {
 
   return (
     <main className="app-shell board-shell">
-      <h1>Jeu de piton</h1>
-
-      <div className="controls" role="group" aria-label="new game — player count">
-        <span className="muted">New game</span>
-        {[2, 3, 4].map((n) => (
-          <button
-            key={n}
-            type="button"
-            className={n === game.players.length ? 'pill pill-on' : 'pill'}
-            aria-pressed={n === game.players.length}
-            onClick={() => dispatch({ type: 'newGame', playerCount: n })}
-          >
-            {n}
-          </button>
-        ))}
-      </div>
+      <header className="app-header">
+        <h1>Jeu de piton</h1>
+        <div className="controls" role="group" aria-label="new game — player count">
+          <span className="muted">New game</span>
+          {[2, 3, 4].map((n) => (
+            <button
+              key={n}
+              type="button"
+              className={n === game.players.length ? 'pill pill-on' : 'pill'}
+              aria-pressed={n === game.players.length}
+              onClick={() => dispatch({ type: 'newGame', playerCount: n })}
+            >
+              {n}
+            </button>
+          ))}
+        </div>
+      </header>
 
       <Hud
         game={game}
