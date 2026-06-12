@@ -18,9 +18,12 @@
  * passage, and no square may hold two pitons. RUNG 4 adds CAPTURE: landing
  * exactly on a lone enemy off a safe square is legal and sends it back to its
  * nest (`Move.captures`); an ally or a safe enemy still blocks the landing.
- * The 6's extra turn (rung 5) and the lane / exact-HOME / win (rung 6) are
- * still deferred: a move that would carry a piton off the track into its home
- * lane is simply not offered yet. Earlier rung 2 covers ENTRY (nest → entry).
+ * RUNG 5 wires up THE 6's turn consequences: rolling the `extraTurnOn` face
+ * keeps the turn with the same player (an extra roll) and bumps the streak,
+ * until the `extraTurnStreakLimit`th consecutive one — which is "not played" at
+ * all: `applyRoll` pre-empts it, nesting the player's most-advanced track piton
+ * (`lose-leading`) and passing the turn. The lane / exact-HOME / win (rung 6)
+ * stays deferred. Earlier rung 2 covers ENTRY (nest → entry square).
  */
 
 import type { GameState, Move, PitonPosition } from './types'
@@ -165,9 +168,62 @@ export function legalMoves(state: GameState, roll: number): Move[] {
 }
 
 /**
+ * Is `roll` the penalized streak roll — the `extraTurnStreakLimit`th consecutive
+ * extra-turn face — under a `lose-leading` ruleset? Such a roll is "not played":
+ * `applyRoll` resolves the penalty instead of generating any move. (`'none'`
+ * penalty variants instead just stop granting further extra turns; that is
+ * handled in `grantsExtraTurn`, not here.)
+ */
+function penalizedStreakRoll(state: GameState, roll: number): boolean {
+  const { extraTurnOn, extraTurnStreakLimit, streakPenalty } = state.ruleset
+  return (
+    streakPenalty === 'lose-leading' &&
+    extraTurnOn !== null &&
+    extraTurnStreakLimit !== null &&
+    roll === extraTurnOn &&
+    state.extraTurnStreak + 1 >= extraTurnStreakLimit
+  )
+}
+
+/**
+ * Send the current player's most-advanced piton still on the shared track back
+ * to its nest (the `lose-leading` penalty). Pitons in the home lane or finished
+ * are immune, so only `kind: 'track'` pitons are eligible; if the player has
+ * none out, this is a no-op.
+ */
+function loseLeadingTrackPiton(state: GameState): GameState {
+  const entryIndex = state.geometry.entryIndices[state.turn]
+  let leadId: string | null = null
+  let leadProgress = -1
+  for (const piton of state.players[state.turn].pitons) {
+    if (piton.position.kind !== 'track') continue
+    const prog = progressOf(piton.position, entryIndex, state.geometry)!
+    if (prog > leadProgress) {
+      leadProgress = prog
+      leadId = piton.id
+    }
+  }
+  return leadId === null ? state : setPositions(state, { [leadId]: { kind: 'nest' } })
+}
+
+/**
+ * Does the roll just played (`state.lastRoll`) earn another turn? True when it
+ * is the `extraTurnOn` face and the streak cap has not been reached. (For the
+ * `lose-leading` variant the capped roll never reaches here — `applyRoll`
+ * intercepts it — so this guard only bites under a `'none'` penalty.)
+ */
+function grantsExtraTurn(state: GameState): boolean {
+  const { extraTurnOn, extraTurnStreakLimit } = state.ruleset
+  if (extraTurnOn === null || state.lastRoll !== extraTurnOn) return false
+  if (extraTurnStreakLimit !== null && state.extraTurnStreak + 1 >= extraTurnStreakLimit) {
+    return false
+  }
+  return true
+}
+
+/**
  * Advance to the next player and reset to `awaiting-roll`. The consecutive
- * extra-turn streak resets when the turn changes hands. (Extra turns that keep
- * the turn with the same player land in rung 5; for now every move passes.)
+ * extra-turn streak resets when the turn changes hands.
  */
 function passTurn(state: GameState): GameState {
   return {
@@ -180,14 +236,20 @@ function passTurn(state: GameState): GameState {
 }
 
 /**
- * Apply a roll in the `awaiting-roll` phase. If the roll has at least one legal
- * move, enter `awaiting-move` with the roll recorded. If it has none, the turn
- * is forfeited immediately (forced-move: passing is only allowed when nothing
- * can move) and play passes to the next player.
+ * Apply a roll in the `awaiting-roll` phase.
+ *
+ *  - A penalized streak roll (the 3rd consecutive 6) is "not played": resolve
+ *    the `lose-leading` penalty and pass the turn — no move is offered.
+ *  - Otherwise, if the roll has a legal move, enter `awaiting-move` with the
+ *    roll recorded; if it has none, the turn is forfeited immediately
+ *    (forced-move: passing is only allowed when nothing can move).
  */
 export function applyRoll(state: GameState, roll: number): GameState {
   if (state.phase !== 'awaiting-roll') {
     throw new Error(`applyRoll requires phase 'awaiting-roll', got '${state.phase}'`)
+  }
+  if (penalizedStreakRoll(state, roll)) {
+    return passTurn(loseLeadingTrackPiton(state))
   }
   if (legalMoves(state, roll).length === 0) {
     return passTurn(state)
@@ -213,10 +275,10 @@ function setPositions(
 
 /**
  * Apply a chosen move and hand play on. Moves the piton to `move.to`, sends any
- * captured piton back to its nest, then passes the turn.
+ * captured piton back to its nest, then either grants the same player another
+ * roll (if the roll just played earns an extra turn — a 6) or passes the turn.
  *
- * Turn handoff here is provisional: the 6's extra turn + streak penalty (rung 5)
- * and win detection (rung 6) will hook in before `passTurn`.
+ * Win detection (rung 6) will hook in before the handoff.
  */
 export function applyMove(state: GameState, move: Move): GameState {
   if (state.phase !== 'awaiting-move') {
@@ -224,5 +286,15 @@ export function applyMove(state: GameState, move: Move): GameState {
   }
   const updates: Record<string, PitonPosition> = { [move.pitonId]: move.to }
   if (move.captures) updates[move.captures] = { kind: 'nest' }
-  return passTurn(setPositions(state, updates))
+  const moved = setPositions(state, updates)
+
+  if (grantsExtraTurn(state)) {
+    return {
+      ...moved,
+      phase: 'awaiting-roll',
+      lastRoll: null,
+      extraTurnStreak: state.extraTurnStreak + 1,
+    }
+  }
+  return passTurn(moved)
 }

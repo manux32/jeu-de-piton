@@ -206,6 +206,71 @@ describe('legalMoves — capture (rung 4)', () => {
   })
 })
 
+describe('the 6 — extra turn & streak penalty (rung 5)', () => {
+  const moveFor = (state: GameState, roll: number, id: string) =>
+    legalMoves(state, roll).find((m) => m.pitonId === id)!
+
+  it('keeps the turn with the same player and bumps the streak on a 6', () => {
+    const placed = place(createGame(JEU_DE_PITON), 'red-0', { kind: 'track', square: 0 })
+    const rolled = applyRoll(placed, 6)
+    const next = applyMove(rolled, moveFor(rolled, 6, 'red-0'))
+
+    expect(next.turn).toBe(0) // same player rolls again
+    expect(next.phase).toBe('awaiting-roll')
+    expect(next.extraTurnStreak).toBe(1)
+    expect(next.players[0].pitons.find((p) => p.id === 'red-0')?.position).toEqual({
+      kind: 'track',
+      square: 12, // a 6 moved twelve
+    })
+  })
+
+  it('resets the streak and passes the turn on a non-6 after two 6s', () => {
+    let s = place(createGame(JEU_DE_PITON), 'red-0', { kind: 'track', square: 0 })
+    s = applyMove(applyRoll(s, 6), moveFor(applyRoll(s, 6), 6, 'red-0')) // → sq 12, streak 1
+    s = applyMove(applyRoll(s, 6), moveFor(applyRoll(s, 6), 6, 'red-0')) // → sq 24, streak 2
+    expect(s.extraTurnStreak).toBe(2)
+    expect(s.turn).toBe(0)
+
+    s = applyMove(applyRoll(s, 3), moveFor(applyRoll(s, 3), 3, 'red-0')) // a 3 ends the run
+    expect(s.turn).toBe(1)
+    expect(s.extraTurnStreak).toBe(0)
+    expect(s.players[0].pitons.find((p) => p.id === 'red-0')?.position).toEqual({
+      kind: 'track',
+      square: 27,
+    })
+  })
+
+  it('penalizes the 3rd consecutive 6: not played, leading track piton nested, turn passes', () => {
+    let s = place(createGame(JEU_DE_PITON), 'red-0', { kind: 'track', square: 10 })
+    s = place(s, 'red-1', { kind: 'track', square: 3 })
+    s = { ...s, extraTurnStreak: 2 } // two 6s already played this turn
+
+    const next = applyRoll(s, 6)
+
+    // The most-advanced track piton (red-0, further along) goes back to the nest...
+    expect(next.players[0].pitons.find((p) => p.id === 'red-0')?.position).toEqual({
+      kind: 'nest',
+    })
+    // ...the trailing one is untouched, and the 6 is never played (turn passes).
+    expect(next.players[0].pitons.find((p) => p.id === 'red-1')?.position).toEqual({
+      kind: 'track',
+      square: 3,
+    })
+    expect(next.turn).toBe(1)
+    expect(next.phase).toBe('awaiting-roll')
+    expect(next.extraTurnStreak).toBe(0)
+  })
+
+  it('penalty with no track piton to lose just passes the turn', () => {
+    // All pitons still nested; the 3rd 6 simply forfeits with nothing to lose.
+    const s = { ...createGame(JEU_DE_PITON), extraTurnStreak: 2 }
+    const next = applyRoll(s, 6)
+
+    expect(next.turn).toBe(1)
+    expect(next.players[0].pitons.every((p) => p.position.kind === 'nest')).toBe(true)
+  })
+})
+
 describe('applyRoll', () => {
   it('enters awaiting-move and records the roll when a move exists', () => {
     const state = applyRoll(createGame(JEU_DE_PITON), 5)
