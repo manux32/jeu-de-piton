@@ -7,6 +7,10 @@
  * engine's — is the single place that turns those indices into positions on the
  * cross, so every SVG component reads from one source of truth.
  *
+ * ⇒ Before changing anything here, read docs/board-model.md (the canonical
+ *   index↔screen reference) and check against references/board-render.png. The
+ *   `SAFE_PHASE` / `SEAT_ROTATION` constants below are pinned there.
+ *
  * ──────────────────────────────────────────────────────────────────────────
  * The grid
  * ──────────────────────────────────────────────────────────────────────────

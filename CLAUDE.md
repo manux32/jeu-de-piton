@@ -8,6 +8,9 @@ root glue at [`../../CLAUDE.md`](../../CLAUDE.md).
 - **Where we stand + next steps + decisions** → [docs/STATUS.md](docs/STATUS.md)
 - **Plan, architecture, milestones** → [docs/PLAN.md](docs/PLAN.md)
 - **Game lineage + canonical rules + cabin house-rules** → [docs/rules-and-lineage.md](docs/rules-and-lineage.md)
+- **Board model: engine indices ↔ screen, seating, how a piton travels** →
+  [docs/board-model.md](docs/board-model.md) — read before touching board
+  geometry or `src/ui/` layout (it's where past sessions drifted).
 - This is its own independent git repo (`manux32/jeu-de-piton`), nested under the
   home work-tree but ignored by the parent allowlist repo.
 

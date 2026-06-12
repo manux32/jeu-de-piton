@@ -77,6 +77,12 @@ variant #2 — **no UI changes needed to add a variant.** That's the payoff.
 5. **Variant layer** — the cabin variant ships as the first `Ruleset`; a later
    pass can add a second variant (e.g. canonical Parcheesi) — no UI changes.
 6. *(later)* polish, optional animation; confirm remaining open rule details.
+   - **Polish backlog — rectangular cells.** The board currently uses a uniform
+     square cell grid; the reference board draws cells as rectangles whose long
+     side runs along each arm. Supported by a contained refactor of
+     [`src/ui/layout.ts`](../src/ui/layout.ts) + the renderers (the engine and
+     index→cell logic are untouched; the 90° rotation model carries the
+     orientation automatically). See [board-model.md](board-model.md).
 
 The cabin house rules are now **collected** (2026-06-11) and live in
 [rules-and-lineage.md](rules-and-lineage.md); the `Ruleset` type has been widened

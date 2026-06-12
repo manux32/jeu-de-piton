@@ -127,6 +127,15 @@ Revisit the two non-blocking open rule details above with the friend at some
 point (capture-on-safe is closed; unplayable 1st/2nd 6 is still open).
 
 ## Decision log
+- **2026-06-12** — **Board model documented to stop drift.** Added
+  [board-model.md](board-model.md) as the canonical engine-indices↔screen
+  reference (one-arm diagram, safe-square table, seating convention, the "don't
+  drift" list of mistakes corrected this session) after a session that re-derived
+  the screen mapping wrong. Wired pointers from CLAUDE.md (session-start
+  orientation) and `src/ui/layout.ts`. Layout fixes landed: `SAFE_PHASE`/
+  `SEAT_ROTATION` split (player 0 seated South → 2P is North–South), mouths on
+  tip-middles, nests on the start-column corner, safe squares black. Rectangular-
+  cell rendering filed as milestone-6 polish.
 - **2026-06-12** — **Milestone 3 done; index→screen mapping pinned** in
   [`src/ui/layout.ts`](../src/ui/layout.ts). The cross drops onto a **19×19 cell
   grid** (`sideLen = (trackLength/4 − 1)/2 = 8`, `gridSize = 2·sideLen+3`). The
