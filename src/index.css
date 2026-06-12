@@ -166,3 +166,85 @@ code {
   background: #faf8f2;
   box-shadow: var(--shadow);
 }
+
+/* --- HUD ----------------------------------------------------------------- */
+.hud {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+}
+
+.hud-turn,
+.hud-roll {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.swatch {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+}
+
+.die {
+  font: 600 22px/1 var(--mono);
+  min-width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text-h);
+}
+
+.pill:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.hud-notice {
+  flex-basis: 100%;
+  min-height: 1.2em;
+  font-size: 15px;
+  color: var(--text);
+}
+.hud-win {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+/* --- board interaction --------------------------------------------------- */
+.piton-movable {
+  cursor: pointer;
+}
+.piton-halo {
+  pointer-events: none;
+  animation: piton-pulse 1.2s ease-in-out infinite;
+}
+@keyframes piton-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+.move-target {
+  fill: rgba(0, 0, 0, 0.04);
+  stroke: #4b8b5a;
+  stroke-width: 0.06;
+  stroke-dasharray: 0.18 0.14;
+  cursor: pointer;
+}
+.move-target:hover {
+  fill: rgba(75, 139, 90, 0.18);
+}

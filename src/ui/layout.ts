@@ -42,7 +42,7 @@
  * log in docs/STATUS.md.
  */
 
-import type { BoardGeometry } from '../engine'
+import type { BoardGeometry, PitonPosition } from '../engine'
 
 /** A cell on the board grid, in cell units (not pixels). */
 export interface Cell {
@@ -170,5 +170,26 @@ export function buildLayout(
     laneCells,
     nestCells,
     homeCell: { col: centre, row: centre },
+  }
+}
+
+/**
+ * The grid cell a move *destination* maps to, for the given player. Covers the
+ * positions a move can land on — a shared-track square, a step in the player's
+ * own lane, or HOME. (`nest` never occurs as a destination, so it returns the
+ * HOME cell defensively.) Used to mark legal-move targets on the board.
+ */
+export function destinationCell(
+  pos: PitonPosition,
+  playerIndex: number,
+  layout: BoardLayout,
+): Cell {
+  switch (pos.kind) {
+    case 'track':
+      return layout.trackCells[pos.square]
+    case 'lane':
+      return layout.laneCells[playerIndex][pos.step]
+    default:
+      return layout.homeCell
   }
 }
