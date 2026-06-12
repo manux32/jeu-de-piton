@@ -15,10 +15,12 @@
  * RUNG 3 adds PLAIN TRACK MOVEMENT: a piton already on the shared track walks
  * `step` squares (a 6 moves 12 via `rollStepOverrides`), respecting the cabin
  * passing rules — allies block passage, an occupied safe square blocks all
- * passage, and no square may hold two pitons. Capture (rung 4), the 6's extra
- * turn (rung 5), and the lane / exact-HOME / win (rung 6) are still deferred:
- * a move that would carry a piton off the track into its home lane is simply
- * not offered yet. Earlier rung 2 covers ENTRY (nest → entry square).
+ * passage, and no square may hold two pitons. RUNG 4 adds CAPTURE: landing
+ * exactly on a lone enemy off a safe square is legal and sends it back to its
+ * nest (`Move.captures`); an ally or a safe enemy still blocks the landing.
+ * The 6's extra turn (rung 5) and the lane / exact-HOME / win (rung 6) are
+ * still deferred: a move that would carry a piton off the track into its home
+ * lane is simply not offered yet. Earlier rung 2 covers ENTRY (nest → entry).
  */
 
 import type { GameState, Move, PitonPosition } from './types'
@@ -32,20 +34,23 @@ export function rollDie(rng: () => number = Math.random): number {
   return Math.floor(rng() * 6) + 1
 }
 
-/** The index of the player whose piton sits on absolute track `square`, or null. */
-function occupantOf(state: GameState, square: number): number | null {
+/** The piton (its owner index + id) sitting on absolute track `square`, or null. */
+function pitonOnSquare(
+  state: GameState,
+  square: number,
+): { player: number; id: string } | null {
   for (let i = 0; i < state.players.length; i++) {
-    const here = state.players[i].pitons.some(
+    const here = state.players[i].pitons.find(
       (p) => p.position.kind === 'track' && p.position.square === square,
     )
-    if (here) return i
+    if (here) return { player: i, id: here.id }
   }
   return null
 }
 
 /** Is any piton (any owner) sitting on this absolute track square? */
 function squareOccupied(state: GameState, square: number): boolean {
-  return occupantOf(state, square) !== null
+  return pitonOnSquare(state, square) !== null
 }
 
 /** How many squares `roll` advances a piton (face value unless overridden). */
@@ -54,17 +59,16 @@ function rollStep(state: GameState, roll: number): number {
 }
 
 /**
- * Walk the squares a piton crosses moving from progress `p0` (exclusive) to
- * `p1` (inclusive) and report whether the cabin passing rules forbid the move.
- * Both endpoints are assumed to lie on the shared track (lane entry is rung 6).
+ * Walk the squares a piton *crosses* moving from progress `p0` (exclusive) to
+ * `p1` (exclusive of the destination) and report whether the cabin passing
+ * rules forbid passing through any of them. The landing square `p1` itself is
+ * judged separately by `resolveLanding` — this is only about transit.
  *
- *  - destination occupied → blocked (no stacking; capturing a lone enemy is
- *    rung 4, so for now even a capturable enemy just blocks the landing);
  *  - an ALLY crossed en route → blocked (you may not pass your own piton);
  *  - an occupied SAFE square crossed en route → blocked (it blocks everyone);
  *  - a lone enemy on a non-safe square en route → passed freely.
  */
-function pathBlocked(
+function passageBlocked(
   state: GameState,
   entryIndex: number,
   p0: number,
@@ -72,16 +76,37 @@ function pathBlocked(
 ): boolean {
   const { trackLength } = state.geometry
   const { safeSquares } = state.ruleset
-  for (let k = p0 + 1; k <= p1; k++) {
+  for (let k = p0 + 1; k < p1; k++) {
     const square = (entryIndex + k) % trackLength
-    const occupant = occupantOf(state, square)
+    const occupant = pitonOnSquare(state, square)
     if (occupant === null) continue
-    if (k === p1) return true // destination occupied (capture is rung 4)
-    if (occupant === state.turn) return true // can't pass your own piton
+    if (occupant.player === state.turn) return true // can't pass your own piton
     if (safeSquares.includes(square)) return true // occupied safe square blocks all
     // else: a lone enemy on a non-safe square — pass freely
   }
   return false
+}
+
+/**
+ * Decide what landing on the destination square means. Returns the move's
+ * `captures` value (a piton id, or null for an empty landing) when the landing
+ * is legal, or `'blocked'` when it isn't.
+ *
+ *  - empty square → legal, no capture;
+ *  - an ALLY → blocked (no stacking on your own);
+ *  - an enemy on a SAFE square → blocked (immune — no capture there);
+ *  - a lone enemy off a safe square → capture (its id), if capture is enabled.
+ */
+function resolveLanding(
+  state: GameState,
+  square: number,
+): string | null | 'blocked' {
+  const occupant = pitonOnSquare(state, square)
+  if (occupant === null) return null
+  if (occupant.player === state.turn) return 'blocked' // land on own piton
+  if (state.ruleset.safeSquares.includes(square)) return 'blocked' // enemy is safe
+  if (!state.ruleset.captureEnabled) return 'blocked'
+  return occupant.id // capture the lone enemy
 }
 
 /**
@@ -122,13 +147,17 @@ export function legalMoves(state: GameState, roll: number): Move[] {
     const p0 = progressOf(piton.position, entryIndex, state.geometry)!
     const p1 = p0 + step
     if (p1 >= state.geometry.trackPathLength) continue // lane entry → rung 6
-    if (pathBlocked(state, entryIndex, p0, p1)) continue
+    if (passageBlocked(state, entryIndex, p0, p1)) continue
+
+    const destSquare = (entryIndex + p1) % state.geometry.trackLength
+    const captures = resolveLanding(state, destSquare)
+    if (captures === 'blocked') continue
 
     moves.push({
       pitonId: piton.id,
       from: piton.position,
       to: positionAt(p1, entryIndex, state.geometry)!, // p1 is in track range
-      captures: null,
+      captures,
     })
   }
 

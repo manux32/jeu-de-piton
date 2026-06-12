@@ -136,12 +136,6 @@ describe('legalMoves — track movement (rung 3)', () => {
     expect(forPiton(state, 5, 'red-0')[0].to).toEqual({ kind: 'track', square: 9 })
   })
 
-  it('cannot land on a lone enemy yet — capture is rung 4', () => {
-    let state = place(createGame(JEU_DE_PITON), 'red-0', { kind: 'track', square: 0 })
-    state = place(state, 'blue-0', { kind: 'track', square: 3 })
-    expect(forPiton(state, 3, 'red-0')).toEqual([])
-  })
-
   it('defers a move that would enter the home lane to rung 6', () => {
     // trackPathLength is 64; from square 60 a 5 overshoots into the lane...
     const state = place(createGame(JEU_DE_PITON), 'red-0', { kind: 'track', square: 60 })
@@ -161,6 +155,54 @@ describe('legalMoves — track movement (rung 3)', () => {
     })
     expect(next.turn).toBe(1)
     expect(next.phase).toBe('awaiting-roll')
+  })
+})
+
+describe('legalMoves — capture (rung 4)', () => {
+  const forPiton = (state: GameState, roll: number, id: string) =>
+    legalMoves(state, roll).filter((m) => m.pitonId === id)
+
+  it('captures a lone enemy landed on off a safe square', () => {
+    // Square 3 is not safe; red-0 + 3 lands exactly on blue-0 → capture.
+    let state = place(createGame(JEU_DE_PITON), 'red-0', { kind: 'track', square: 0 })
+    state = place(state, 'blue-0', { kind: 'track', square: 3 })
+    expect(forPiton(state, 3, 'red-0')).toEqual([
+      {
+        pitonId: 'red-0',
+        from: { kind: 'track', square: 0 },
+        to: { kind: 'track', square: 3 },
+        captures: 'blue-0',
+      },
+    ])
+  })
+
+  it('cannot capture an enemy standing on a safe square', () => {
+    // Square 7 is safe; landing on blue-0 there is forbidden (it is immune).
+    let state = place(createGame(JEU_DE_PITON), 'red-0', { kind: 'track', square: 2 })
+    state = place(state, 'blue-0', { kind: 'track', square: 7 })
+    expect(forPiton(state, 5, 'red-0')).toEqual([])
+  })
+
+  it('never "captures" an ally — landing on your own is just blocked', () => {
+    let state = place(createGame(JEU_DE_PITON), 'red-0', { kind: 'track', square: 0 })
+    state = place(state, 'red-1', { kind: 'track', square: 3 })
+    expect(forPiton(state, 3, 'red-0')).toEqual([])
+  })
+
+  it('applyMove sends the captured enemy back to its nest', () => {
+    let placed = place(createGame(JEU_DE_PITON), 'red-0', { kind: 'track', square: 0 })
+    placed = place(placed, 'blue-0', { kind: 'track', square: 3 })
+    const rolled = applyRoll(placed, 3)
+    const move = legalMoves(rolled, 3).find((m) => m.captures === 'blue-0')!
+    const next = applyMove(rolled, move)
+
+    expect(next.players[0].pitons.find((p) => p.id === 'red-0')?.position).toEqual({
+      kind: 'track',
+      square: 3,
+    })
+    expect(next.players[1].pitons.find((p) => p.id === 'blue-0')?.position).toEqual({
+      kind: 'nest',
+    })
   })
 })
 
