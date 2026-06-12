@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "bash",
+            "statusMessage": "Loading global memory index",
+            "command": "p=\"$HOME/.claude/memory/MEMORY.md\"; if [ -f \"$p\" ]; then printf '## Global personal memory (from ~/.claude/memory/MEMORY.md)\\nPortable cross-project prefs & working-style. Summaries only — read a memory file body before relying on it.\\n\\n'; cat \"$p\"; fi"
+          }
+        ]
+      }
+    ]
+  }
+}
