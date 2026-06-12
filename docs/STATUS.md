@@ -46,9 +46,11 @@ own start). The 12 safe squares are also pinned — see below.
    in [`src/engine/moves.ts`](../src/engine/moves.ts); a 5 enters onto the entry
    square, no legal move → turn forfeits. `Move` type added. RNG injected for
    determinism. (Turn handoff is provisional — extra-turn/win hook in later.)
-3. 🔜 **Plain track movement** — path-aware step with ally-blocking, safe-square
-   blocking, no-stacking. *(safe squares now pinned — see below; unblocked.)*
-4. **Capture** — landing on a lone enemy off a safe square → nest.
+3. ✅ **Plain track movement** — path-aware step in
+   [`src/engine/moves.ts`](../src/engine/moves.ts): `rollStep` (6→12), `pathBlocked`
+   walks the crossed squares enforcing ally-blocking (pass + land), occupied
+   safe-square blocking, no-stacking. Lane-entry moves deferred to rung 6.
+4. 🔜 **Capture** — landing on a lone enemy off a safe square → nest.
 5. **The 6** — moves 12, grants another roll, 3rd-consecutive-6 streak penalty.
 6. **Lane + exact HOME + win** — lane turn-off, exact landing, all-four-home.
 7. ✅ Safe squares + `homeEntryOffset` pinned 2026-06-12 (see decision log).
@@ -65,15 +67,17 @@ home-mouth is the next player's lane entry. Full detail in
   there at all).
 
 ## Next session — start here
-**Task: rung 3 — plain track movement (jeu de piton).** Extend `legalMoves` in
-[`src/engine/moves.ts`](../src/engine/moves.ts) to move pitons already on the
-track: convert the roll to a step count (`rollStepOverrides`, so a 6 → 12),
-walk the progress line with `progressOf`/`positionAt`, and apply the path-aware
-rules — **allies block** passage (and landing), **safe squares block all
-passage** (`safeSquares` now pinned), **no stacking** (`maxPerSquare: 1`). Stop
-before capture (rung 4), the 6's extra turn (rung 5), and the lane/HOME/win
-(rung 6) — but the path walk should already respect the lane boundary. Cover the
-blocking rules with fixture states. Run `npm test`; the board is
+**Task: rung 4 — capture (jeu de piton).** In
+[`src/engine/moves.ts`](../src/engine/moves.ts), turn the deferred "destination
+occupied → blocked" case into a capture: landing **exactly** on a **lone enemy**
+off a **safe square** is legal and sends that enemy back to its nest. Concretely,
+in `pathBlocked` (or its caller) the destination check should distinguish: ally
+→ still blocked; enemy on a non-safe square → **legal, with `captures` set** to
+that piton's id; enemy on a safe square → still blocked (no capture there). Set
+`Move.captures` to the captured piton's id so the existing `applyMove` (already
+nests `move.captures`) does the rest — confirm it does. Leave the 6's extra turn
+(rung 5) and lane/HOME/win (rung 6) deferred. Add fixtures: capture off a safe
+square, no-capture on a safe square, ally still blocks. Run `npm test`; board is
 `npm run render:board`.
 
 ## Decision log
