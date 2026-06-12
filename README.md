@@ -11,9 +11,11 @@ engine framework — the game is turn-based discrete state, not real-time.
 - **Game lineage + canonical rules + house-rules** → [docs/rules-and-lineage.md](docs/rules-and-lineage.md)
 - **Current status + next steps** → [docs/STATUS.md](docs/STATUS.md)
 
-> Status: **engine core complete** (Milestone 2). Board model + full jeu-de-piton
-> rules live in [`src/engine/`](src/engine/), unit-tested with Vitest (`npm test`,
-> 67 passing); SVG rendering (Milestone 3) is next — no UI yet.
+> Status: **playable hot-seat** (Milestone 4 done). The pure rules core lives in
+> [`src/engine/`](src/engine/), unit-tested with Vitest (`npm test`, 67 passing);
+> the SVG board + interaction loop (roll, highlight legal moves, click-to-move,
+> capture/win) live in [`src/ui/`](src/ui/). Next: a second rule variant + polish
+> — see [docs/STATUS.md](docs/STATUS.md).
 
 ## Develop
 
@@ -21,6 +23,7 @@ engine framework — the game is turn-based discrete state, not real-time.
 npm install
 npm run dev      # local dev server
 npm run build    # type-check + production build
+npm test         # engine unit tests (Vitest)
 ```
 
 ## Layout

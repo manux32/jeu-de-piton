@@ -1,13 +1,13 @@
 /**
- * jeu-de-piton — engine domain model (DRAFT)
+ * jeu-de-piton — engine domain model
  *
  * This is the pure rules core: plain TypeScript, no React/DOM imports, ever.
- * Everything here is data + (eventually) pure functions over it, so the whole
- * thing is unit-testable without rendering anything.
+ * Everything here is data + pure functions over it (in board.ts / state.ts /
+ * moves.ts), so the whole thing is unit-testable without rendering anything.
  *
- * These types are a first sketch to make the architecture concrete — expect to
- * refine them when we actually build the engine next session. Nothing here is
- * load-bearing yet.
+ * These types are load-bearing: they back the implemented engine (Milestone 2)
+ * and are the contract the UI reads via `src/engine/index.ts`. The `Ruleset`
+ * knobs below are what make rule variants config, not code branches.
  */
 
 import type { BoardGeometry } from './board'
