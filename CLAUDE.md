@@ -35,4 +35,6 @@ the repo root). Fast-moving status → [docs/STATUS.md](docs/STATUS.md).
 Node was installed via winget mid-2026; if `node`/`npm` aren't on a fresh
 shell's PATH, refresh from the machine env. Corporate TLS interception on this
 network means npm registry calls need Node's `--use-system-ca`
-(`NODE_OPTIONS=--use-system-ca`).
+(`NODE_OPTIONS=--use-system-ca`). General picture (TLS interception, cert-pinning
+vs trust-store, winget) lives in the KB →
+[`../../knowledge/machine-quirks.md`](../../knowledge/machine-quirks.md).
