@@ -34,20 +34,22 @@ Drawn as the seated player sees it: they sit at the **tip** (bottom), HOME is
 inward (top). "Right column" = the player's right hand.
 
 ```
-                    ┌──────────┐
-                    │   HOME    │         centre / finish
-            ┌───────┼─────┬─────┼───────┐
-   inner →  │ track │lane6│track │        lane step 6 (nearest HOME)
-            │ track │lane5│track │
-            │ track │lane4│track │
-            │ MID ● │lane3│track │        MID ● = mid-arm safe   (start + 7)
-            │ track │lane2│STRT ●│        STRT● = start / nest-exit (start + 0),
-            │ track │lane1│track │                on the player's RIGHT column, also safe
-            │ track │lane0│track │        lane step 0 (mouth-adjacent)
-   outer →  └───────┼─────┼─────┴───────┐
-                    │MOUTH ●│             tip-middle = home-lane MOUTH (start − 5):
-                    └───────┘             a SAFE *track* square, NOT a lane cell
-   nest sits in the corner on the player's START side (here: bottom-right)
+                     ┌────────┐
+                     │  HOME  │           centre / finish
+        ┌──────┬──────────────┬──────┐
+ pos 7  │ trk  │    lane 6    │ trk  │    inner (nearest HOME)
+ pos 6  │ trk  │    lane 5    │ trk  │
+ pos 5  │ trk  │    lane 4    │ trk  │
+ pos 4  │ MID● │    lane 3    │ STRT●│    STRT● = this player's start (right col)
+ pos 3  │ trk  │    lane 2    │ trk  │    MID●  = a mid-arm safe (left col, see note)
+ pos 2  │ trk  │    lane 1    │ trk  │
+ pos 1  │ trk  │    lane 0    │ trk  │    lane step 0 (mouth-adjacent)
+ pos 0  │ trk  │    MOUTH●    │ trk  │    tip row: MOUTH (tip-middle), flanked by track
+        └──────┴──────────────┴──────┘
+   Each side column has 8 cells (pos 0 = tip … pos 7 = inner). The middle column
+   is also 8: the MOUTH (a safe *track* square) at the tip + the 7 private lane
+   cells (step 0 nearest the mouth … step 6 nearest HOME). START is ~5th from the
+   tip on the player's RIGHT column; the nest is in the corner on that side.
 ```
 
 Key spatial facts a renderer must honour (all four were mistakes once — see
@@ -71,12 +73,16 @@ their arm are:
 
 | Safe square | Index | Where it sits | Note |
 | --- | --- | --- | --- |
-| **start** | `S + 0` | right side column | nest-exit; the colored entry |
-| **mid-arm** | `S + 7` | a side column | — |
+| **start** | `S + 0` | own arm, right side column | nest-exit; the colored entry |
+| **mid-arm** | `S + 7` | the **next** arm's near side column | — |
 | **home-mouth** | `S + 12` | the **next** arm's tip-middle | = that next player's lane MOUTH |
 
-So a player's **own** mouth is `S − 5` (≡ `S + 63`), which is some *other*
-player's `S + 12`. The mouth being `start − 5` is the engine's
+Only `S + 0` is on the player's own arm; `S + 7` and `S + 12` land on the next
+(CCW) arm. So a player's **own** mouth is `S − 5` (≡ `S + 63`) — some *other*
+player's `S + 12` — and the mid-arm safe you *see* on a given arm's left column
+is the **previous** player's `+7`. Net: **each arm shows three safe cells** — its
+own mouth (tip-middle), its player's start (right column), and one neighbour's
+mid-arm (left column). The mouth being `start − 5` is the engine's
 `homeEntryOffset: 4` (`trackPathLength: 64`) seen on the board.
 
 Rendered as a **black fill** (not blue — that would clash with blue players'
