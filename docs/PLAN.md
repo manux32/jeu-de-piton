@@ -1,8 +1,9 @@
 # jeu-de-piton — game plan
 
-> Durable plan written at scaffold time. The build is now underway (Milestone 2,
-> the engine core, is nearly complete — see [STATUS.md](STATUS.md) for live
-> progress); treat the milestones below as a sketch, not a contract.
+> Durable plan written at scaffold time. The build is underway (Milestone 2, the
+> engine core, is **complete**; Milestone 3, SVG rendering, is next — see
+> [STATUS.md](STATUS.md) for live progress); treat the milestones below as a
+> sketch, not a contract.
 
 ## What this is
 
@@ -69,9 +70,9 @@ variant #2 — **no UI changes needed to add a variant.** That's the payoff.
 
 ## Milestones (rough)
 
-1. **Scaffold** — Vite + React + TS, own git repo, `CLAUDE.md` + `docs/`. ✅ *(this session)*
-2. **Engine core** — state model + **jeu de piton (cabin) rules** + unit tests. No UI.
-3. **Board rendering** — SVG board reflecting engine state; pick player count.
+1. **Scaffold** — Vite + React + TS, own git repo, `CLAUDE.md` + `docs/`. ✅
+2. **Engine core** — state model + **jeu de piton (cabin) rules** + unit tests. No UI. ✅
+3. **Board rendering** — SVG board reflecting engine state; pick player count. 🔜
 4. **Interaction loop** — roll, highlight legal moves, click to move, captures, win.
 5. **Variant layer** — the cabin variant ships as the first `Ruleset`; a later
    pass can add a second variant (e.g. canonical Parcheesi) — no UI changes.
