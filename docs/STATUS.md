@@ -47,15 +47,16 @@ own start). The 12 safe squares are also pinned — see below.
    square, no legal move → turn forfeits. `Move` type added. RNG injected for
    determinism. (Turn handoff is provisional — extra-turn/win hook in later.)
 3. ✅ **Plain track movement** — path-aware step in
-   [`src/engine/moves.ts`](../src/engine/moves.ts): `rollStep` (6→12), `pathBlocked`
-   walks the crossed squares enforcing ally-blocking (pass + land), occupied
-   safe-square blocking, no-stacking. Lane-entry moves deferred to rung 6.
+   [`src/engine/moves.ts`](../src/engine/moves.ts): `rollStep` (6→12),
+   `passageBlocked` walks the crossed squares enforcing ally-blocking (pass +
+   land), occupied safe-square blocking, no-stacking. Lane moves deferred to 6.
 4. ✅ **Capture** — landing on a lone enemy off a safe square sets
    `Move.captures` (→ nest); ally / safe-square enemy still blocks. In
    [`src/engine/moves.ts`](../src/engine/moves.ts) via `resolveLanding`.
-5. 🔜 **The 6** — moves 12 (done), grants another roll, 3rd-consecutive-6
-   streak penalty (`lose-leading`).
-6. **Lane + exact HOME + win** — lane turn-off, exact landing, all-four-home.
+5. ✅ **The 6** — moves 12, grants another roll (turn stays + `extraTurnStreak++`
+   in `applyMove`), 3rd-consecutive-6 penalty in `applyRoll`
+   (`penalizedStreakRoll` → `loseLeadingTrackPiton`, not played, turn passes).
+6. 🔜 **Lane + exact HOME + win** — lane turn-off, exact landing, all-four-home.
 7. ✅ Safe squares + `homeEntryOffset` pinned 2026-06-12 (see decision log).
 
 ## Safe squares — PINNED (2026-06-12, from the board + friend's confirmation)
@@ -69,27 +70,39 @@ home-mouth is the next player's lane entry. Full detail in
 - ~~Capture edge case on a safe/entry square~~ — handled in rung 4: an enemy on a
   safe square can't be landed on (no capture there), so the edge case can't
   arise. Closed unless real play surprises us.
+- **Unplayable 1st/2nd 6** (added rung 5): if a 6 you *could* otherwise replay
+  has no legal move (12-move blocked everywhere), the engine currently treats it
+  as an ordinary forfeit — no extra turn, streak not bumped. Confirm with the
+  friend whether an unplayable 6 should still grant the bonus roll. (The *3rd* 6
+  is unaffected: its penalty fires before the playability check.)
 
 ## Next session — start here
-**Task: rung 5 — the 6's extra turn + streak penalty (jeu de piton).** The 6
-already moves 12 (rung 3) and capture is in (rung 4); now wire up the *turn
-consequences* of a 6. Today `applyMove` always `passTurn`s — make it conditional
-on the roll:
-- **Extra turn:** when `lastRoll === ruleset.extraTurnOn` (6), after applying the
-  move the turn **stays** with the same player (back to `awaiting-roll`), and
-  `extraTurnStreak` increments instead of resetting. A non-6 passes as today.
-- **Streak penalty (`extraTurnStreakLimit: 3`, `streakPenalty: 'lose-leading'`):**
-  the **3rd consecutive 6 is not played** — instead the player loses their
-  **most-advanced piton still on the shared track** (highest `progress` among
-  `kind: 'track'`; lane/finished pitons are immune) back to its nest, then the
-  turn passes. This likely belongs in `applyRoll` (the penalty pre-empts the
-  move: a 3rd-6 roll should yield no move and trigger the loss) — think through
-  whether it's an `applyRoll` or `applyMove` concern before coding. Watch the
-  ordering: streak counts consecutive 6s *by the same player this turn sequence*;
-  it resets on a non-6 and on turn handoff (`passTurn` already zeroes it).
-- Leave lane/HOME/win (rung 6) deferred. Add fixtures: a 6 keeps the turn + bumps
-  the streak; two 6s then a non-6; the 3rd-6 penalty nests the leading track
-  piton and passes. Run `npm test`; board is `npm run render:board`.
+**Task: rung 6 — lane + exact HOME + win (jeu de piton).** The last rung: let
+pitons turn off the shared track into their private home lane, reach HOME by
+exact count, and win. The coordinate math is already in
+[`src/engine/board.ts`](../src/engine/board.ts) — `positionAt` returns a `lane`
+position, a `finished` position at `finishProgress`, or `null` for an overshoot.
+- **Stop deferring lane moves.** In `legalMoves`' track-movement loop, drop the
+  `if (p1 >= trackPathLength) continue` guard and let `positionAt(p1, …)` produce
+  the destination: a `lane` step, `finished` (HOME), or `null` (overshoot past
+  HOME → not a legal move, satisfying `exactHomeEntry`). The path walk must now
+  cover lane squares too — but lanes are **private**, so only the moving player's
+  own pitons can block there (no enemies, no captures, no safe squares in-lane).
+  Check `passageBlocked`/`resolveLanding` handle progress ≥ `trackPathLength`
+  correctly (an ally already in the lane still blocks pass+land; everything else
+  is clear). `progressOf` already maps a `lane` piton's progress, so an ally in
+  the lane is comparable on the same line.
+- **Win.** After `applyMove`, if all of a player's pitons are `finished`, set
+  `winner` + `phase: 'game-over'` instead of handing on. `legalMoves` already
+  returns `[]` at `game-over`. Decide interaction with the extra-turn grant (a
+  winning move shouldn't also "grant another roll").
+- Fixtures: track→lane turn-off, exact HOME landing (`finished`), an overshoot
+  that's illegal, an ally blocking inside the lane, and all-four-home → winner.
+  Run `npm test`; board is `npm run render:board`.
+
+After rung 6 the engine core (Milestone 2) is complete → on to Milestone 3
+(SVG board rendering). Revisit the two non-blocking open rule details above with
+the friend at some point.
 
 ## Decision log
 - **2026-06-12** — **Safe squares + `homeEntryOffset` pinned** from the board and
