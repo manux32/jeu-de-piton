@@ -9,10 +9,10 @@ A 2D, browser-based version of the cross-and-circle race game played by friends
 at the cabin in the woods. The game is a folk descendant of **Pachisi**, the
 ancient Indian race game, by way of **Parcheesi** — the same family as Ludo,
 Petits Chevaux, and the Québécois **Tock**. Our family's version is on the
-**dice** branch (not the card-based Tock branch): each player has 4–5 *pitons*
+**dice** branch (not the card-based Tock branch): each player has 4 *pitons*
 (pawns), and you must roll a **5** to bring a piton onto the board — the
 signature Parcheesi entry rule. Full lineage and rules: see
-[docs/rules-and-lineage.md](docs/rules-and-lineage.md).
+[rules-and-lineage.md](rules-and-lineage.md).
 
 "Piton" is Québec slang for *pion* (token). The board is a cross; we built a
 physical one by hand at the cabin. Rules have drifted across generations and
@@ -46,7 +46,7 @@ game" actually work.
   model, game state, legal-move generation, applying a move, captures, win
   detection. Pure functions over a state object → **fully unit-testable** with no
   rendering. Draft domain types already sketched in
-  [`src/engine/types.ts`](src/engine/types.ts).
+  [`src/engine/types.ts`](../src/engine/types.ts).
 - **`src/ui/`** — React + SVG. Renders engine state, sends user intents (rolled
   the die, clicked a piton) back to the engine, shows whose turn it is. Holds no
   rules.
@@ -56,19 +56,33 @@ pitons each, which rolls let you enter, capture rules, safe squares,
 extra-turn-on-N, …). Canonical Parcheesi is variant #1; the cabin rules become
 variant #2 — **no UI changes needed to add a variant.** That's the payoff.
 
+> **Design consequence from the collected cabin rules** (see
+> [rules-and-lineage.md](rules-and-lineage.md)): our variant has *passing* rules
+> — you can't move past your own piton, and a piton on a safe square blocks
+> everyone. That means move generation/validation is **path-based**, not
+> destination-only: the engine must inspect every square a piton crosses, not
+> just where it lands. The engine is built path-aware from the start so the
+> canonical (destination-only) variant is just the permissive special case.
+
 ## Milestones (rough)
 
 1. **Scaffold** — Vite + React + TS, own git repo, `CLAUDE.md` + `docs/`. ✅ *(this session)*
 2. **Engine core** — state model + canonical Parcheesi rules + unit tests. No UI.
 3. **Board rendering** — SVG board reflecting engine state; pick player count.
 4. **Interaction loop** — roll, highlight legal moves, click to move, captures, win.
-5. **Variant layer** — formalize the `Ruleset` config; stub a second variant.
-6. *(later)* the real cabin house rules; polish, optional animation.
+5. **Variant layer** — formalize the `Ruleset` config; wire up the cabin variant.
+6. *(later)* polish, optional animation; confirm remaining open rule details.
+
+The cabin house rules are now **collected** (2026-06-11) and live in
+[rules-and-lineage.md](rules-and-lineage.md); the `Ruleset` type has been widened
+to express them. A few secondary details remain to confirm — see the "Still
+open" list in that doc.
 
 ## Open questions (to resolve when building)
 
-- Exact cabin house rules — **pending**: collect from the family (piton count
-  4 vs 5, capture/safe-square specifics, doubles behaviour, what happens on
-  exact-vs-overshoot into HOME, etc.).
 - Test runner choice (Vitest is the natural fit with Vite) — decide at milestone 2.
 - Board coordinate system / track indexing scheme — design at milestone 2.
+- Movement **direction** (cabin = counter-clockwise) is treated as a board-layout
+  concern: the engine moves along increasing track index; the SVG layer maps
+  index → screen position, so direction never branches the rules core. Confirm
+  this holds when we design the coordinate system.

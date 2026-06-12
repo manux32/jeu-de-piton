@@ -7,8 +7,9 @@ and Tock). "Piton" is Québec slang for the token/pawn (*pion*).
 Built with **Vite + React + TypeScript**, board rendered as **SVG**. No game
 engine framework — the game is turn-based discrete state, not real-time.
 
-- **What & why, architecture, milestones** → [PLAN.md](PLAN.md)
+- **What & why, architecture, milestones** → [docs/PLAN.md](docs/PLAN.md)
 - **Game lineage + canonical rules + house-rules** → [docs/rules-and-lineage.md](docs/rules-and-lineage.md)
+- **Current status + next steps** → [docs/STATUS.md](docs/STATUS.md)
 
 > Status: **scaffold only.** The engine and UI are built in the next session.
 

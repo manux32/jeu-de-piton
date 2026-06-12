@@ -5,8 +5,9 @@ file is the durable routing for the project; it loads on top of the home-tree
 root glue at [`../../CLAUDE.md`](../../CLAUDE.md).
 
 ## Orientation — read at session start
-- **Plan, architecture, milestones** → [PLAN.md](PLAN.md)
-- **Game lineage + canonical rules + house-rules to collect** → [docs/rules-and-lineage.md](docs/rules-and-lineage.md)
+- **Where we stand + next steps + decisions** → [docs/STATUS.md](docs/STATUS.md)
+- **Plan, architecture, milestones** → [docs/PLAN.md](docs/PLAN.md)
+- **Game lineage + canonical rules + cabin house-rules** → [docs/rules-and-lineage.md](docs/rules-and-lineage.md)
 - This is its own independent git repo (`manux32/jeu-de-piton`), nested under the
   home work-tree but ignored by the parent allowlist repo.
 
@@ -15,8 +16,9 @@ root glue at [`../../CLAUDE.md`](../../CLAUDE.md).
   isolation. Rule variants are `Ruleset` config objects, not code branches.
 - **`src/ui/`** = React + SVG presentation. Renders engine state, sends intents
   back, holds no rules.
-- Rationale and the full plan live in [PLAN.md](PLAN.md) — don't re-litigate the
-  engine/UI split or the no-Phaser decision without revisiting it there.
+- Rationale and the full plan live in [docs/PLAN.md](docs/PLAN.md) — don't
+  re-litigate the engine/UI split or the no-Phaser decision without revisiting
+  it there.
 
 ## Shared knowledge base
 Cross-cutting home knowledge lives in the shared KB one level up — start at
@@ -26,8 +28,8 @@ Cross-cutting home knowledge lives in the shared KB one level up — start at
 - [`../../knowledge/toolchain.md`](../../knowledge/toolchain.md) — installed tooling
 
 Durable cross-project knowledge belongs in the KB, not here. Project-specific
-docs belong in [docs/](docs/). Fast-moving status → a `STATUS.md` here if/when
-the project warrants one.
+docs all live under [docs/](docs/) (only this `CLAUDE.md` and `README.md` sit at
+the repo root). Fast-moving status → [docs/STATUS.md](docs/STATUS.md).
 
 ## This-machine note
 Node was installed via winget mid-2026; if `node`/`npm` aren't on a fresh
