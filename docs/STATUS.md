@@ -5,19 +5,22 @@
 > This file is current + next + a decision log — keep it short.
 
 ## Mission of the moment
-Build Milestone 2 — the engine core. The board coordinate model is in; next is
-state init + path-aware move generation for **jeu de piton (the cabin variant)**
-— the game we actually play, and the simpler core (one die vs canonical's two).
+Finish Milestone 2 — the engine core for **jeu de piton (the cabin variant)**.
+Five of six baby-step rungs are in (createGame → entry → track movement →
+capture → the 6); only **rung 6 — lane + exact HOME + win** remains, then the
+core is done and Milestone 3 (SVG rendering) begins. 59 engine tests green.
 
 ## Where the build stands
 - ✅ Milestone 1 — scaffold (Vite + React + TS, own repo).
-- 🔄 Milestone 2 — engine core (state model + canonical Parcheesi rules + tests).
+- 🔄 Milestone 2 — engine core (state model + jeu de piton rules + tests).
   - ✅ Test runner: **Vitest** added (`npm test` / `npm run test:watch`,
     `vitest.config.ts`, node env).
   - ✅ Board coordinate model: [`src/engine/board.ts`](../src/engine/board.ts)
     + 19 passing tests. The keystone *progress-coordinate* scheme is pinned
     (see below). Exported via `src/engine/index.ts`.
-  - 🔜 State init → roll → legal moves (path-aware) → apply → capture → win.
+  - ✅ State init + roll + legal moves (path-aware) + apply + capture + the 6 —
+    rungs 1–5 in [`src/engine/`](../src/engine/) (`state.ts`, `moves.ts`).
+  - 🔜 Lane turn-off + exact HOME + win — rung 6, the last (see next-session).
 - Cabin house rules **collected** (2026-06-11) and recorded in
   [rules-and-lineage.md](rules-and-lineage.md).
 - `Ruleset` / `GameState` types **widened** to express the cabin mechanics
@@ -105,6 +108,13 @@ After rung 6 the engine core (Milestone 2) is complete → on to Milestone 3
 the friend at some point.
 
 ## Decision log
+- **2026-06-12** — **The 6's turn consequences split by phase.** The extra-turn
+  *grant* lives in `applyMove` (after a move, a 6 keeps the turn + bumps
+  `extraTurnStreak`); the 3rd-6 *penalty* lives in `applyRoll`, because that 6 is
+  "**not played**" — there is no move to apply, so it's a roll-time event with a
+  side effect (nest the most-advanced track piton), distinct from an ordinary
+  no-move forfeit. `legalMoves` stays a pure movement query and is left out of
+  it. Surfaced one new open question (unplayable 1st/2nd 6 — see above).
 - **2026-06-12** — **Safe squares + `homeEntryOffset` pinned** from the board and
   the friend who owns the rules. Travel is counter-clockwise; you start on your
   own arm. Counts of 7 then 5 from a start (and a 12 landing on the next player's

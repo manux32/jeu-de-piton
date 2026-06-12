@@ -1,7 +1,8 @@
 # jeu-de-piton — game plan
 
-> Preliminary plan written at scaffold time. The build happens in a later
-> session; treat milestones as a sketch, not a contract.
+> Durable plan written at scaffold time. The build is now underway (Milestone 2,
+> the engine core, is nearly complete — see [STATUS.md](STATUS.md) for live
+> progress); treat the milestones below as a sketch, not a contract.
 
 ## What this is
 

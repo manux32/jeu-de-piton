@@ -131,5 +131,11 @@ So the concrete `Ruleset` numbers are `trackLength: 68`, `laneLength: 7`,
 ### Still open / to confirm later
 - ~~Exact track indices of the 12 safe squares + 4 entry squares~~ — **PINNED
   2026-06-12** (see the indices above; `homeEntryOffset: 4` confirmed too).
-- Capture specifics **on** a safe/entry square (a safe square can't be landed on
-  by an enemy at all, so capture there shouldn't arise — confirm no edge case).
+- ~~Capture specifics **on** a safe/entry square~~ — **RESOLVED 2026-06-12** in
+  the engine (rung 4): an enemy on a safe square can't be landed on, so capture
+  there never arises. Confirm with real play if a surprise turns up.
+- **Unplayable bonus 6** — when a 6 (which normally grants another roll) has no
+  legal move, does the player still get the bonus roll, or is it an ordinary
+  forfeit? The engine currently treats it as a plain forfeit (no extra turn,
+  streak not bumped). To confirm with the friend. (A 3rd consecutive 6 is
+  unaffected — its penalty fires regardless of playability.)
