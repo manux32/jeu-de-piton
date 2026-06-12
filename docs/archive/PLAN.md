@@ -1,10 +1,11 @@
-# jeu-de-piton — game plan
+# jeu-de-piton — game plan (ARCHIVED)
 
-> Durable plan written at scaffold time. The build is well underway (Milestones
-> 2–4 — the engine core, SVG board rendering, and the interaction loop — are
-> **complete**; the game is playable hot-seat. Milestone 5, a second rule
-> variant, is next — see [STATUS.md](STATUS.md) for live progress); treat the
-> milestones below as a sketch, not a contract.
+> ⚠️ **Frozen snapshot — not a live document.** This is the original plan written
+> at scaffold time, kept for history. Do not update it. Its durable content has
+> moved to [`../architecture.md`](../architecture.md) (vision + architecture) and
+> [`../decisions.md`](../decisions.md) (the dated rationale log); current status
+> is in [`../STATUS.md`](../STATUS.md). Read this only if you want the original
+> framing of the project.
 
 ## What this is
 

@@ -20,6 +20,26 @@
 Travel is **counter-clockwise on screen**; the engine just advances by
 *increasing* index. Direction is purely a UI concern.
 
+## Engine indexing — the progress-coordinate model (PINNED)
+Source of truth: [`src/engine/board.ts`](../src/engine/board.ts) + its tests; this
+is the prose summary. Each piton's **whole journey is one monotonic integer line**
+(a *progress* coordinate):
+
+- `0 … P−1` — on the shared track (`P = trackPathLength`).
+- `P … P+L−1` — in its private home lane (`L = laneLength`).
+- `P+L` — HOME (`finished`).
+
+The absolute track square is `(entryIndex + progress) mod trackLength`, so
+cross-player **captures fall out of equal absolute squares** with no special case.
+`progressOf` ↔ `positionAt` are inverses (the latter maps a progress value to a
+track square, lane cell, `finished`, or `null` for an overshoot — which is exactly
+"not a legal move").
+
+Pinned values (2026-06-12): entry seats `{0, 17, 34, 51}` (2P → opposite arms
+`{0, 34}`); `trackLength: 68`, `laneLength: 7`, `pitonsPerPlayer: 4`;
+`homeEntryOffset: 4` → `trackPathLength: 64`, i.e. a player's lane mouth is 5
+squares before its own start. The 12 safe squares are pinned below.
+
 ## The grid
 The cabin board is the standard Selchow & Righter Parcheesi cross. It drops onto
 a square grid (cell units, not pixels):
@@ -137,4 +157,4 @@ an SVG under `references/`, then `node scripts/render-board.mjs <in.svg>
 The grid is currently **uniform squares**; the reference draws cells as
 rectangles whose long side runs along each arm. This is a contained refactor of
 `layout.ts` + the renderers (engine untouched; the 90° rotation model carries the
-orientation automatically). Tracked in [PLAN.md](PLAN.md) milestone 6.
+orientation automatically). Tracked in [STATUS.md](STATUS.md) (M6 polish backlog).

@@ -45,14 +45,16 @@ families, so there's no single official "jeu de piton."
 - First to get **all pawns HOME** wins.
 
 Canonical Parcheesi is the family reference. The engine actually encodes the
-**cabin variant (jeu de piton) first** (see below and PLAN.md); canonical could
-be added later as a second `Ruleset`.
+**cabin variant (jeu de piton) first** (see below and
+[architecture.md](architecture.md)); canonical could be added later as a second
+`Ruleset`.
 
 ## Cabin house rules (jeu de piton) — CONFIRMED
 
 Collected 2026-06-11 from the friend who taught the game; his version comes from
 his own family lineage. This is the **primary `Ruleset` the engine implements**
-(built first — see PLAN.md). Where it diverges from canonical:
+(built first — see [architecture.md](architecture.md)). Where it diverges from
+canonical:
 
 | Aspect | Canonical Parcheesi | jeu de piton (ours) |
 | --- | --- | --- |
