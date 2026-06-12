@@ -50,8 +50,11 @@ own start). The 12 safe squares are also pinned — see below.
    [`src/engine/moves.ts`](../src/engine/moves.ts): `rollStep` (6→12), `pathBlocked`
    walks the crossed squares enforcing ally-blocking (pass + land), occupied
    safe-square blocking, no-stacking. Lane-entry moves deferred to rung 6.
-4. 🔜 **Capture** — landing on a lone enemy off a safe square → nest.
-5. **The 6** — moves 12, grants another roll, 3rd-consecutive-6 streak penalty.
+4. ✅ **Capture** — landing on a lone enemy off a safe square sets
+   `Move.captures` (→ nest); ally / safe-square enemy still blocks. In
+   [`src/engine/moves.ts`](../src/engine/moves.ts) via `resolveLanding`.
+5. 🔜 **The 6** — moves 12 (done), grants another roll, 3rd-consecutive-6
+   streak penalty (`lose-leading`).
 6. **Lane + exact HOME + win** — lane turn-off, exact landing, all-four-home.
 7. ✅ Safe squares + `homeEntryOffset` pinned 2026-06-12 (see decision log).
 
@@ -63,22 +66,30 @@ home-mouth is the next player's lane entry. Full detail in
 [rules-and-lineage.md](rules-and-lineage.md).
 
 ## Open rule details to confirm (non-blocking)
-- Capture edge case on a safe/entry square (likely moot — enemies can't land
-  there at all).
+- ~~Capture edge case on a safe/entry square~~ — handled in rung 4: an enemy on a
+  safe square can't be landed on (no capture there), so the edge case can't
+  arise. Closed unless real play surprises us.
 
 ## Next session — start here
-**Task: rung 4 — capture (jeu de piton).** In
-[`src/engine/moves.ts`](../src/engine/moves.ts), turn the deferred "destination
-occupied → blocked" case into a capture: landing **exactly** on a **lone enemy**
-off a **safe square** is legal and sends that enemy back to its nest. Concretely,
-in `pathBlocked` (or its caller) the destination check should distinguish: ally
-→ still blocked; enemy on a non-safe square → **legal, with `captures` set** to
-that piton's id; enemy on a safe square → still blocked (no capture there). Set
-`Move.captures` to the captured piton's id so the existing `applyMove` (already
-nests `move.captures`) does the rest — confirm it does. Leave the 6's extra turn
-(rung 5) and lane/HOME/win (rung 6) deferred. Add fixtures: capture off a safe
-square, no-capture on a safe square, ally still blocks. Run `npm test`; board is
-`npm run render:board`.
+**Task: rung 5 — the 6's extra turn + streak penalty (jeu de piton).** The 6
+already moves 12 (rung 3) and capture is in (rung 4); now wire up the *turn
+consequences* of a 6. Today `applyMove` always `passTurn`s — make it conditional
+on the roll:
+- **Extra turn:** when `lastRoll === ruleset.extraTurnOn` (6), after applying the
+  move the turn **stays** with the same player (back to `awaiting-roll`), and
+  `extraTurnStreak` increments instead of resetting. A non-6 passes as today.
+- **Streak penalty (`extraTurnStreakLimit: 3`, `streakPenalty: 'lose-leading'`):**
+  the **3rd consecutive 6 is not played** — instead the player loses their
+  **most-advanced piton still on the shared track** (highest `progress` among
+  `kind: 'track'`; lane/finished pitons are immune) back to its nest, then the
+  turn passes. This likely belongs in `applyRoll` (the penalty pre-empts the
+  move: a 3rd-6 roll should yield no move and trigger the loss) — think through
+  whether it's an `applyRoll` or `applyMove` concern before coding. Watch the
+  ordering: streak counts consecutive 6s *by the same player this turn sequence*;
+  it resets on a non-6 and on turn handoff (`passTurn` already zeroes it).
+- Leave lane/HOME/win (rung 6) deferred. Add fixtures: a 6 keeps the turn + bumps
+  the streak; two 6s then a non-6; the 3rd-6 penalty nests the leading track
+  piton and passes. Run `npm test`; board is `npm run render:board`.
 
 ## Decision log
 - **2026-06-12** — **Safe squares + `homeEntryOffset` pinned** from the board and
