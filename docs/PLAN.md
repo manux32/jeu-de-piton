@@ -72,7 +72,8 @@ variant #2 — **no UI changes needed to add a variant.** That's the payoff.
 2. **Engine core** — state model + **jeu de piton (cabin) rules** + unit tests. No UI.
 3. **Board rendering** — SVG board reflecting engine state; pick player count.
 4. **Interaction loop** — roll, highlight legal moves, click to move, captures, win.
-5. **Variant layer** — formalize the `Ruleset` config; wire up the cabin variant.
+5. **Variant layer** — the cabin variant ships as the first `Ruleset`; a later
+   pass can add a second variant (e.g. canonical Parcheesi) — no UI changes.
 6. *(later)* polish, optional animation; confirm remaining open rule details.
 
 The cabin house rules are now **collected** (2026-06-11) and live in
@@ -80,11 +81,14 @@ The cabin house rules are now **collected** (2026-06-11) and live in
 to express them. A few secondary details remain to confirm — see the "Still
 open" list in that doc.
 
-## Open questions (to resolve when building)
+## Open questions — RESOLVED at milestone 2
 
-- Test runner choice (Vitest is the natural fit with Vite) — decide at milestone 2.
-- Board coordinate system / track indexing scheme — design at milestone 2.
-- Movement **direction** (cabin = counter-clockwise) is treated as a board-layout
-  concern: the engine moves along increasing track index; the SVG layer maps
-  index → screen position, so direction never branches the rules core. Confirm
-  this holds when we design the coordinate system.
+- ~~Test runner~~ → **Vitest** (`npm test`).
+- ~~Board coordinate / indexing scheme~~ → **progress-coordinate model**, pinned
+  in [`src/engine/board.ts`](../src/engine/board.ts) (see STATUS).
+- ~~Movement direction~~ → confirmed a board-layout concern: the engine advances
+  by increasing track index (counter-clockwise is the SVG layer's mapping), so
+  direction never branches the rules core.
+
+Live open items now live in [STATUS.md](STATUS.md); rule details still to confirm
+are in [rules-and-lineage.md](rules-and-lineage.md) "Still open".

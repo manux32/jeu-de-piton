@@ -30,7 +30,7 @@ families, so there's no single official "jeu de piton."
 - [Tock — Wikipedia](https://en.wikipedia.org/wiki/Tock)
 - [piton — dictionnaire québécois](https://www.je-parle-quebecois.com/lexique/definition/piton.html)
 
-## Canonical Parcheesi rules (the backbone we build first)
+## Canonical Parcheesi rules (the family reference)
 
 - 2–4 players, **4 pawns** each, starting in their nest.
 - Two dice. **Roll a 5 (or two dice summing to 5) to move a pawn out** of the
@@ -44,13 +44,15 @@ families, so there's no single official "jeu de piton."
   (variant-dependent).
 - First to get **all pawns HOME** wins.
 
-These are the defaults encoded as the first `Ruleset` in the engine.
+Canonical Parcheesi is the family reference. The engine actually encodes the
+**cabin variant (jeu de piton) first** (see below and PLAN.md); canonical could
+be added later as a second `Ruleset`.
 
 ## Cabin house rules (jeu de piton) — CONFIRMED
 
 Collected 2026-06-11 from the friend who taught the game; his version comes from
-his own family lineage. This is the **second `Ruleset` variant** the engine must
-support alongside canonical Parcheesi. Where it diverges from canonical:
+his own family lineage. This is the **primary `Ruleset` the engine implements**
+(built first — see PLAN.md). Where it diverges from canonical:
 
 | Aspect | Canonical Parcheesi | jeu de piton (ours) |
 | --- | --- | --- |

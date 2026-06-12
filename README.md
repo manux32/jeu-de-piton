@@ -11,7 +11,8 @@ engine framework — the game is turn-based discrete state, not real-time.
 - **Game lineage + canonical rules + house-rules** → [docs/rules-and-lineage.md](docs/rules-and-lineage.md)
 - **Current status + next steps** → [docs/STATUS.md](docs/STATUS.md)
 
-> Status: **scaffold only.** The engine and UI are built in the next session.
+> Status: **engine core in progress** (Milestone 2). Board model + rules live in
+> [`src/engine/`](src/engine/), unit-tested with Vitest (`npm test`); no UI yet.
 
 ## Develop
 
