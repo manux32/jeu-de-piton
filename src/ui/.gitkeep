@@ -1,3 +1,0 @@
-# React + SVG presentation layer lives here (Board, Piton, DiceRoller, …).
-# Built next session. The UI renders engine state and sends intents back; it
-# holds no game rules of its own.

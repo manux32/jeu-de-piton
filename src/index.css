@@ -123,3 +123,46 @@ code {
   color: var(--text);
   font-size: 15px;
 }
+
+/* --- board --------------------------------------------------------------- */
+.board-shell {
+  max-width: 720px;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.pill {
+  font: inherit;
+  font-size: 15px;
+  min-width: 40px;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--text-h);
+  cursor: pointer;
+}
+.pill:hover {
+  border-color: var(--accent-border);
+}
+.pill-on {
+  background: var(--accent-bg);
+  border-color: var(--accent-border);
+  color: var(--text-h);
+}
+
+.game-board {
+  width: 100%;
+  max-width: 640px;
+  height: auto;
+  margin: 0 auto;
+  aspect-ratio: 1 / 1;
+  border-radius: 8px;
+  background: #faf8f2;
+  box-shadow: var(--shadow);
+}

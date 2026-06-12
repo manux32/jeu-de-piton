@@ -5,11 +5,12 @@
 > This file is current + next + a decision log — keep it short.
 
 ## Mission of the moment
-**Milestone 2 (engine core) is COMPLETE.** All six baby-step rungs are in
-(createGame → entry → track movement → capture → the 6 → lane/HOME/win); the
-pure rules core for **jeu de piton (the cabin variant)** is done. 67 engine
-tests green. Next up: **Milestone 3 — SVG board rendering** (the `src/ui/`
-layer that renders engine state and sends intents back).
+**Milestone 3 (SVG board rendering) is COMPLETE.** The `src/ui/` layer now
+renders a static Parcheesi cross from the engine geometry and draws every piton
+at its `PitonPosition` (nest / track / lane / HOME), with a 2–4 player selector.
+Engine core (Milestone 2) stays done — 67 tests green, build + lint clean. Next
+up: **Milestone 4 — the interaction loop** (roll button + dice, highlight
+`legalMoves`, click-to-move, capture/win banner).
 
 ## Where the build stands
 - ✅ Milestone 1 — scaffold (Vite + React + TS, own repo).
@@ -27,7 +28,18 @@ layer that renders engine state and sends intents back).
     captures/safe squares); overshoot past HOME is no move; all-four-home sets
     `winner` + `game-over` in `applyMove` (a winning move never grants an extra
     roll). 8 new tests.
-- 🔜 Milestone 3 — SVG board rendering (`src/ui/`).
+- ✅ Milestone 3 — SVG board rendering (`src/ui/`). DONE.
+  - ✅ `buildLayout` ([`src/ui/layout.ts`](../src/ui/layout.ts)): the index→screen
+    map. 19×19 cell grid; the 68-cell track ring is one arm's quadrant (out a
+    side column, across the tip, back the other side) rotated ×4, phase-shifted
+    by `RING_SHIFT` so engine index 0 lands near a tip and each player's lane is
+    on their own arm. Pure geometry, no pixels/colors.
+  - ✅ Components: `<Board>` (cross, lanes, nests, safe-marks, HOME), `<Pitons>`
+    overlay, `<GameBoard>` (memoizes the layout). Colors per arm in `colors.ts`.
+  - ✅ `App` picks player count (2–4) and renders the current `GameState`. UI is
+    rules-free — it only reads engine state (no `applyMove` yet; that's M4).
+- 🔜 Milestone 4 — interaction loop (`src/ui/`): roll, legal-move highlight,
+  click-to-move, capture/win banner.
 - Cabin house rules **collected** (2026-06-11) and recorded in
   [rules-and-lineage.md](rules-and-lineage.md).
 - `Ruleset` / `GameState` types **widened** to express the cabin mechanics
@@ -88,28 +100,47 @@ home-mouth is the next player's lane entry. Full detail in
   is unaffected: its penalty fires before the playability check.)
 
 ## Next session — start here
-**Task: Milestone 3 — SVG board rendering (`src/ui/`).** The engine core is done
-and fully tested; now build the React + SVG presentation layer that *renders*
-`GameState` and sends intents (roll / chosen move) back. Architecture rule
+**Task: Milestone 4 — the interaction loop (`src/ui/`).** The board renders
+state (M3 done); now wire user intents back through the engine. Architecture rule
 (CLAUDE.md): `src/ui/` holds **no rules** — it reads engine state and calls
 `rollDie`/`applyRoll`/`legalMoves`/`applyMove`, nothing more.
-- Start from the geometry already proven by the board-render pipeline
-  (`npm run render:board`, see [`scripts/`](../scripts/) / `src/engine/board.ts`).
-  The engine deliberately does **not** model screen direction (counter-clockwise)
-  — the UI maps a track index / lane step → screen position. That index→pixel
-  mapping is the first real UI design decision.
-- Suggested baby-steps: (1) static SVG board from geometry (track ring, four
-  lanes, nests, safe-square marks); (2) render pitons at their `PitonPosition`;
-  (3) a roll button + dice display; (4) highlight `legalMoves` and apply the
-  picked one; (5) turn/winner banner.
-- Before coding the layer, **discuss the index→screen mapping and component
-  split** (per working-style: design before implementing).
-- Run `npm test` to confirm the engine still passes; `npm run dev` for the UI.
+- Suggested baby-steps: (1) hold the live `GameState` in a `useReducer` in `App`
+  (currently `createGame` via `useMemo` — read-only); (2) a roll button + dice
+  display driving `rollDie`/`applyRoll`; (3) compute `legalMoves`, highlight the
+  movable pitons / target cells on the board, click to `applyMove`; (4) capture
+  feedback + turn indicator + winner banner; (5) handle the extra-turn-on-6 and
+  the no-legal-move forfeit in the turn flow.
+- The render seam is `<GameBoard>`; `buildLayout` already maps every index →
+  cell, so highlighting is "draw a marker at `layout.trackCells[sq]` /
+  `laneCells[p][step]`". Add an `onPick(move)` callback path from `<Pitons>` up.
+- Watch the open rule detail: an unplayable bonus 6 (see below) — the engine
+  already decides this; the UI just surfaces whose turn it is.
+- Run `npm test` (engine still green) + `npm run build`; `npm run dev` for the UI.
+
+> Tip: to eyeball layout/render changes without the dev server, the throwaway
+> pattern used this session works well — a one-off vitest that builds the layout
+> (or `renderToStaticMarkup`s `<GameBoard>` with a doctored state) to an SVG in
+> `references/`, then `node scripts/render-board.mjs <in.svg> <out.png>`. Delete
+> the artifacts after.
 
 Revisit the two non-blocking open rule details above with the friend at some
 point (capture-on-safe is closed; unplayable 1st/2nd 6 is still open).
 
 ## Decision log
+- **2026-06-12** — **Milestone 3 done; index→screen mapping pinned** in
+  [`src/ui/layout.ts`](../src/ui/layout.ts). The cross drops onto a **19×19 cell
+  grid** (`sideLen = (trackLength/4 − 1)/2 = 8`, `gridSize = 2·sideLen+3`). The
+  68-cell track ring is built from **one arm's 17-cell quadrant** (out a side
+  column → across the tip U-turn → back the other side) **rotated 90° ×4**, then
+  **phase-shifted by `RING_SHIFT = 10`** so engine track index 0 sits just inside
+  an arm tip (a believable start) and each player's home lane + nest fall on
+  their own arm. The engine still owns no screen geometry — `buildLayout` is the
+  sole index→pixel map, so direction (counter-clockwise) lives only here.
+  Component split: `<GameBoard>` (memoizes layout) → `<Board>` (static cross) +
+  `<Pitons>` (overlay); player colors per arm in `ui/colors.ts`. UI stays
+  rules-free (reads state, no `applyMove` yet). Verified by rasterizing a
+  throwaway SVG render against `references/` (Selchow & Righter layout) — clean
+  match: continuous ring, 12 safe squares 3-per-arm, lanes on the right arms.
 - **2026-06-12** — **Rung 6 done → engine core complete.** Lane movement reuses
   the same progress-line walk as the track: `legalMoves` no longer special-cases
   the lane mouth — it lets `positionAt` map the target progress to a track
