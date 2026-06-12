@@ -35,6 +35,20 @@ export interface Piton {
 }
 
 /**
+ * A single legal move the current player may choose: take piton `pitonId` from
+ * `from` to `to`. `captures` is the id of an opponent piton sent back to its
+ * nest by landing on it, or `null`. `from` is informational (handy for the UI
+ * and for reading tests); applying a move only needs `pitonId`, `to`, and
+ * `captures`.
+ */
+export interface Move {
+  pitonId: string
+  from: PitonPosition
+  to: PitonPosition
+  captures: string | null
+}
+
+/**
  * A Ruleset is the swappable config that makes "change the rules per game" work.
  * Canonical Parcheesi is one Ruleset; the cabin's "jeu de piton" house rules
  * become another, filled in once we collect them. The engine reads these knobs;

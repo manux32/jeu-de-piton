@@ -40,11 +40,14 @@ defaults to a full lap; the exact lane turn-off is a `homeEntryOffset` knob,
 still pending a visual read (does not affect coordinate correctness).
 
 ## Next steps — jeu de piton engine core, built in baby-step rungs
-1. ✅/🔄 `JEU_DE_PITON` `Ruleset` constant + `createGame()` → initial `GameState`
+1. ✅ `JEU_DE_PITON` `Ruleset` constant + `createGame()` → initial `GameState`
    (players, pitons in nest, player 0 to roll), with unit tests.
-2. Roll one die + **entry** (a 5 onto the entry square); no legal move → pass.
-3. **Plain track movement** — path-aware step with ally-blocking, safe-square
-   blocking, no-stacking.
+2. ✅ Roll one die + **entry** — `rollDie`/`legalMoves`/`applyRoll`/`applyMove`
+   in [`src/engine/moves.ts`](../src/engine/moves.ts); a 5 enters onto the entry
+   square, no legal move → turn forfeits. `Move` type added. RNG injected for
+   determinism. (Turn handoff is provisional — extra-turn/win hook in later.)
+3. 🔜 **Plain track movement** — path-aware step with ally-blocking, safe-square
+   blocking, no-stacking. *(needs the 8 non-entry safe-square indices pinned)*
 4. **Capture** — landing on a lone enemy off a safe square → nest.
 5. **The 6** — moves 12, grants another roll, 3rd-consecutive-6 streak penalty.
 6. **Lane + exact HOME + win** — lane turn-off, exact landing, all-four-home.
