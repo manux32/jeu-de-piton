@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local prompt-drafting scratch file (kept untracked so spellcheck works while drafting)
+prompt-draft.md
