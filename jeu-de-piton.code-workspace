@@ -2,7 +2,51 @@
 	"folders": [
 		{
 			"path": "."
+		},
+		{
+			"path": "C:/Users/Administrator/.claude"
 		}
 	],
-	"settings": {}
+	"settings": {
+		"claudeCode.respectGitIgnore": false,
+		"search.exclude": {
+			"**/plugins/marketplaces/**": true,
+			"**/backups/**": true,
+			"**/cache/**": true,
+			"**/file-history/**": true,
+			"**/projects/**": true,
+			"**/sessions/**": true,
+			"**/session-env/**": true,
+			"**/shell-snapshots/**": true,
+			"**/tasks/**": true,
+			"**/usage-data/**": true,
+			"**/history.jsonl": true,
+			"**/.credentials.json": true,
+			"**/stats-cache.json": true
+		},
+		"files.watcherExclude": {
+			"**/plugins/marketplaces/**": true,
+			"**/backups/**": true,
+			"**/cache/**": true,
+			"**/file-history/**": true,
+			"**/projects/**": true,
+			"**/sessions/**": true,
+			"**/session-env/**": true,
+			"**/shell-snapshots/**": true,
+			"**/tasks/**": true,
+			"**/usage-data/**": true
+		},
+		"files.exclude": {
+			"**/plugins/marketplaces/**": true,
+			"**/backups/**": true,
+			"**/cache/**": true,
+			"**/file-history/**": true,
+			"**/projects/**": true,
+			"**/sessions/**": true,
+			"**/session-env/**": true,
+			"**/shell-snapshots/**": true,
+			"**/tasks/**": true,
+			"**/usage-data/**": true
+		}
+	}
 }
