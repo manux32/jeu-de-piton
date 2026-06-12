@@ -35,9 +35,9 @@ integer line, `0 … P-1` on the shared track, `P … P+L-1` in its private lane
 `P+L` = HOME (`P` = `trackPathLength`, `L` = `laneLength`). Absolute track
 square = `(entryIndex + progress) mod trackLength`, so cross-player captures
 fall out of equal absolute squares. `progressOf` ↔ `positionAt` are inverse.
-Entry seats at `{0,17,34,51}` (2P → opposite arms `{0,34}`). `trackPathLength`
-defaults to a full lap; the exact lane turn-off is a `homeEntryOffset` knob,
-still pending a visual read (does not affect coordinate correctness).
+Entry seats at `{0,17,34,51}` (2P → opposite arms `{0,34}`). `homeEntryOffset`
+**PINNED 2026-06-12 = 4** (`trackPathLength: 64`, lane mouth 5 squares before
+own start). The 12 safe squares are also pinned — see below.
 
 ## Next steps — jeu de piton engine core, built in baby-step rungs
 1. ✅ `JEU_DE_PITON` `Ruleset` constant + `createGame()` → initial `GameState`
@@ -47,31 +47,42 @@ still pending a visual read (does not affect coordinate correctness).
    square, no legal move → turn forfeits. `Move` type added. RNG injected for
    determinism. (Turn handoff is provisional — extra-turn/win hook in later.)
 3. 🔜 **Plain track movement** — path-aware step with ally-blocking, safe-square
-   blocking, no-stacking. *(needs the 8 non-entry safe-square indices pinned)*
+   blocking, no-stacking. *(safe squares now pinned — see below; unblocked.)*
 4. **Capture** — landing on a lone enemy off a safe square → nest.
 5. **The 6** — moves 12, grants another roll, 3rd-consecutive-6 streak penalty.
 6. **Lane + exact HOME + win** — lane turn-off, exact landing, all-four-home.
-7. Pin the exact indices of the 12 safe squares + 4 entry squares off the
-   vector reference (`../references/parcheesi-board-schematic.svg`) — non-blocking.
+7. ✅ Safe squares + `homeEntryOffset` pinned 2026-06-12 (see decision log).
+
+## Safe squares — PINNED (2026-06-12, from the board + friend's confirmation)
+`safeSquares = [0, 7, 12, 17, 24, 29, 34, 41, 46, 51, 58, 63]` — entries
+`{0,17,34,51}` each offset by `{0, 7, 12}`. Three families: starts, mid-arms
+`{7,24,41,58}`, home-mouths `{12,29,46,63}`. Counter-clockwise travel; the +12
+home-mouth is the next player's lane entry. Full detail in
+[rules-and-lineage.md](rules-and-lineage.md).
 
 ## Open rule details to confirm (non-blocking)
-- Exact track **indices** of the 12 safe + 4 entry squares (positions known;
-  numbering pinned during step 2 above).
 - Capture edge case on a safe/entry square (likely moot — enemies can't land
   there at all).
 
 ## Next session — start here
-**Task: engine core (canonical Parcheesi).** `GameState` init + a
-`CANONICAL_PARCHEESI` `Ruleset` → roll → path-aware legal-move generation →
-apply move → capture → win detection, with unit tests. Build on the
-progress-coordinate helpers in [`src/engine/board.ts`](../src/engine/board.ts)
-(`progressOf`/`positionAt`/`trackSquareOf`). Treat safe squares as injected data
-and keep `homeEntryOffset` at its default — exactness is non-blocking. This is
-where the absolute index convention gets pinned (exercised by tests). Run tests
-with `npm test`; render the board with `npm run render:board` if geometry
-questions come up.
+**Task: rung 3 — plain track movement (jeu de piton).** Extend `legalMoves` in
+[`src/engine/moves.ts`](../src/engine/moves.ts) to move pitons already on the
+track: convert the roll to a step count (`rollStepOverrides`, so a 6 → 12),
+walk the progress line with `progressOf`/`positionAt`, and apply the path-aware
+rules — **allies block** passage (and landing), **safe squares block all
+passage** (`safeSquares` now pinned), **no stacking** (`maxPerSquare: 1`). Stop
+before capture (rung 4), the 6's extra turn (rung 5), and the lane/HOME/win
+(rung 6) — but the path walk should already respect the lane boundary. Cover the
+blocking rules with fixture states. Run `npm test`; the board is
+`npm run render:board`.
 
 ## Decision log
+- **2026-06-12** — **Safe squares + `homeEntryOffset` pinned** from the board and
+  the friend who owns the rules. Travel is counter-clockwise; you start on your
+  own arm. Counts of 7 then 5 from a start (and a 12 landing on the next player's
+  lane entry) give `safeSquares = [0,7,12,17,24,29,34,41,46,51,58,63]` (starts +
+  mid-arms +7 + home-mouths +12) and `homeEntryOffset: 4` (`trackPathLength: 64`,
+  lane mouth 5 before own start). Closes the last "Still open" geometry items.
 - **2026-06-12** — **Build the cabin variant (jeu de piton) first**, not canonical
   Parcheesi. The friend who owns the family rules confirmed the full ruleset
   (now in [rules-and-lineage.md](rules-and-lineage.md)), so we build the game we

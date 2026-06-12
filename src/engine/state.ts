@@ -31,7 +31,12 @@ export function createGame(
     throw new Error(`playerCount must be 2–4, got ${playerCount}`)
   }
 
-  const geometry = makeGeometry(ruleset.trackLength, ruleset.laneLength, playerCount)
+  const geometry = makeGeometry(
+    ruleset.trackLength,
+    ruleset.laneLength,
+    playerCount,
+    ruleset.homeEntryOffset,
+  )
 
   const players: PlayerState[] = []
   for (let i = 0; i < playerCount; i++) {

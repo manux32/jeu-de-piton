@@ -64,10 +64,17 @@ export interface Ruleset {
   diceCount: number
   /** Die faces that let a piton leave the nest (Parcheesi/ours: [5]). */
   entryRolls: number[]
-  /** Squares on the shared loop before turning into a home lane. */
+  /** Full shared-loop square count (cabin board: 68). */
   trackLength: number
   /** Length of each player's private home column. */
   laneLength: number
+  /**
+   * Squares trimmed from a full lap before a piton turns into its home lane:
+   * `trackPathLength = trackLength - homeEntryOffset`. Cabin board: 4 — the lane
+   * mouth sits 5 squares before a player's own start (confirmed from the board:
+   * a roll of 12 from your start lands on the next player's lane entry).
+   */
+  homeEntryOffset: number
 
   // --- movement distance -----------------------------------------------------
   /**

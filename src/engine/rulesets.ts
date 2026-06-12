@@ -24,6 +24,7 @@ export const JEU_DE_PITON: Ruleset = {
   entryRolls: [5],
   trackLength: 68,
   laneLength: 7,
+  homeEntryOffset: 4, // lane mouth 5 squares before own start (trackPathLength 64)
 
   rollStepOverrides: { 6: 12 }, // a 6 moves twelve
   exactHomeEntry: true,
@@ -35,11 +36,11 @@ export const JEU_DE_PITON: Ruleset = {
 
   maxPerSquare: 1,
   captureEnabled: true,
-  // Confirmed safe: the 4 colored entry/start squares (one per arm). The other 8
-  // marked squares (a lane-mouth + mid-arm pair per arm) are positionally known
-  // but not yet numbered off the board photo — see rules-and-lineage.md "Still
-  // open". Non-blocking; pinned during the movement/capture rungs.
-  safeSquares: [0, 17, 34, 51],
+  // The 12 marked safe squares, pinned 2026-06-12 from the board (counter-
+  // clockwise travel; you start on your own arm). Three per arm, repeating every
+  // 17: own start (offset 0), a mid-arm safe (+7), and a home-lane mouth (+12 —
+  // which is an opponent's lane entry). = entries {0,17,34,51} each + {0,7,12}.
+  safeSquares: [0, 7, 12, 17, 24, 29, 34, 41, 46, 51, 58, 63],
   alliesBlockPassage: true,
   safeSquaresBlockPassage: true,
 }

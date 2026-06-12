@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { createGame } from './state'
 import { JEU_DE_PITON } from './rulesets'
-import { progressOf } from './board'
+import { progressOf, finishProgress } from './board'
 
 describe('JEU_DE_PITON ruleset', () => {
   it('encodes the confirmed cabin rules', () => {
@@ -17,6 +17,17 @@ describe('JEU_DE_PITON ruleset', () => {
     expect(JEU_DE_PITON.maxPerSquare).toBe(1)
     expect(JEU_DE_PITON.alliesBlockPassage).toBe(true)
     expect(JEU_DE_PITON.safeSquaresBlockPassage).toBe(true)
+  })
+
+  it('pins the 12 safe squares — 3 per arm (start/+7/+12), repeating every 17', () => {
+    expect(JEU_DE_PITON.safeSquares).toEqual([
+      0, 7, 12, 17, 24, 29, 34, 41, 46, 51, 58, 63,
+    ])
+    // The pattern is the four entries each offset by {0, 7, 12}.
+    const expected = [0, 17, 34, 51].flatMap((e) => [0, 7, 12].map((o) => e + o))
+    expect([...JEU_DE_PITON.safeSquares].sort((a, b) => a - b)).toEqual(
+      [...expected].sort((a, b) => a - b),
+    )
   })
 })
 
@@ -63,7 +74,9 @@ describe('createGame — opening state', () => {
     const state = createGame(JEU_DE_PITON)
     expect(state.geometry.trackLength).toBe(68)
     expect(state.geometry.laneLength).toBe(7)
-    expect(state.geometry.trackPathLength).toBe(68)
+    // homeEntryOffset 4 → lane mouth 5 before own start; HOME at progress 71.
+    expect(state.geometry.trackPathLength).toBe(64)
+    expect(finishProgress(state.geometry)).toBe(71)
     expect(state.geometry.entryIndices).toEqual([0, 17, 34, 51])
   })
 

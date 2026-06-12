@@ -104,18 +104,30 @@ track, the middle column (red runway) is that player's private home lane.
   connector squares).
 - **Home lanes: 7 cells each**, ×4, leading into the centre.
 - **HOME**: the centre goal.
-- **Safe squares: 12** — the circle-marked cells. They are the **4 colored
-  entry/start squares** (one just outside each nest) plus **8 more** (each arm
-  carries a pair: the home-lane mouth and a mid-arm square). A player's own
-  **entry/start square is itself a safe square**.
+- **Safe squares: 12** — the circle-marked cells. Three per arm, repeating every
+  17 squares: the **start/entry** square (offset 0), a **mid-arm** safe (+7), and
+  the **home-lane mouth** (+12, which is the *next* player's lane entry). A
+  player's own **entry/start square is itself safe**.
+- **Travel is counter-clockwise**; you start on your **own** arm and lap back to
+  enter your home lane there. The lane mouth sits **5 squares before your start**
+  (`homeEntryOffset: 4`, `trackPathLength: 64`).
+
+Pinned indices (2026-06-12, from the board + the friend's confirmation —
+counts of 7 then 5 from the start, and a 12 landing on the next player's lane
+entry): entries `{0, 17, 34, 51}` each offset by `{0, 7, 12}`, giving
+
+```
+safeSquares = [0, 7, 12, 17, 24, 29, 34, 41, 46, 51, 58, 63]
+  starts      {0, 17, 34, 51}
+  mid-arms    {7, 24, 41, 58}
+  home-mouths {12, 29, 46, 63}
+```
 
 So the concrete `Ruleset` numbers are `trackLength: 68`, `laneLength: 7`,
-`pitonsPerPlayer: 4`, and `safeSquares` = the 12 marked indices.
+`homeEntryOffset: 4`, `pitonsPerPlayer: 4`, and the 12 `safeSquares` above.
 
 ### Still open / to confirm later
-- Exact **track indices** of the 12 safe squares + the 4 entry squares: read
-  directly off the board photo when we design the coordinate/indexing scheme
-  (milestone 2). The *count* and *positions* are known; only the numbering is
-  pending.
+- ~~Exact track indices of the 12 safe squares + 4 entry squares~~ — **PINNED
+  2026-06-12** (see the indices above; `homeEntryOffset: 4` confirmed too).
 - Capture specifics **on** a safe/entry square (a safe square can't be landed on
   by an enemy at all, so capture there shouldn't arise — confirm no edge case).
