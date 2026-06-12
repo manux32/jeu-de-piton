@@ -26,7 +26,9 @@ is safe — + 8 others, a pair per arm). Details in
 ## Next steps
 1. Decide test runner (Vitest expected) and add it.
 2. Design the track/lane coordinate + indexing scheme, and from it pin the
-   exact indices of the 12 safe squares + 4 entry squares (read off the photo).
+   exact indices of the 12 safe squares + 4 entry squares — read off the clean
+   vector reference in [`../references/`](../references/README.md)
+   (`parcheesi-board-schematic.svg`).
 3. Build engine core for **canonical Parcheesi** first: state init, roll →
    legal moves (path-aware + forced-move from day one), apply move, capture, win
    detection, with unit tests.
