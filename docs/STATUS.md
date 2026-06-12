@@ -5,14 +5,15 @@
 > This file is current + next + a decision log — keep it short.
 
 ## Mission of the moment
-Finish Milestone 2 — the engine core for **jeu de piton (the cabin variant)**.
-Five of six baby-step rungs are in (createGame → entry → track movement →
-capture → the 6); only **rung 6 — lane + exact HOME + win** remains, then the
-core is done and Milestone 3 (SVG rendering) begins. 59 engine tests green.
+**Milestone 2 (engine core) is COMPLETE.** All six baby-step rungs are in
+(createGame → entry → track movement → capture → the 6 → lane/HOME/win); the
+pure rules core for **jeu de piton (the cabin variant)** is done. 67 engine
+tests green. Next up: **Milestone 3 — SVG board rendering** (the `src/ui/`
+layer that renders engine state and sends intents back).
 
 ## Where the build stands
 - ✅ Milestone 1 — scaffold (Vite + React + TS, own repo).
-- 🔄 Milestone 2 — engine core (state model + jeu de piton rules + tests).
+- ✅ Milestone 2 — engine core (state model + jeu de piton rules + tests). DONE.
   - ✅ Test runner: **Vitest** added (`npm test` / `npm run test:watch`,
     `vitest.config.ts`, node env).
   - ✅ Board coordinate model: [`src/engine/board.ts`](../src/engine/board.ts)
@@ -20,7 +21,13 @@ core is done and Milestone 3 (SVG rendering) begins. 59 engine tests green.
     (see below). Exported via `src/engine/index.ts`.
   - ✅ State init + roll + legal moves (path-aware) + apply + capture + the 6 —
     rungs 1–5 in [`src/engine/`](../src/engine/) (`state.ts`, `moves.ts`).
-  - 🔜 Lane turn-off + exact HOME + win — rung 6, the last (see next-session).
+  - ✅ Lane turn-off + exact HOME + win — rung 6, the last. Movement walks the
+    track *and* the private lane; `passageBlocked`/`resolveLanding` are
+    lane-aware (lanes private: only the mover's own pitons block, no enemies/
+    captures/safe squares); overshoot past HOME is no move; all-four-home sets
+    `winner` + `game-over` in `applyMove` (a winning move never grants an extra
+    roll). 8 new tests.
+- 🔜 Milestone 3 — SVG board rendering (`src/ui/`).
 - Cabin house rules **collected** (2026-06-11) and recorded in
   [rules-and-lineage.md](rules-and-lineage.md).
 - `Ruleset` / `GameState` types **widened** to express the cabin mechanics
@@ -59,7 +66,8 @@ own start). The 12 safe squares are also pinned — see below.
 5. ✅ **The 6** — moves 12, grants another roll (turn stays + `extraTurnStreak++`
    in `applyMove`), 3rd-consecutive-6 penalty in `applyRoll`
    (`penalizedStreakRoll` → `loseLeadingTrackPiton`, not played, turn passes).
-6. 🔜 **Lane + exact HOME + win** — lane turn-off, exact landing, all-four-home.
+6. ✅ **Lane + exact HOME + win** — lane turn-off, exact landing, overshoot-is-
+   no-move, all-four-home → winner. In [`src/engine/moves.ts`](../src/engine/moves.ts).
 7. ✅ Safe squares + `homeEntryOffset` pinned 2026-06-12 (see decision log).
 
 ## Safe squares — PINNED (2026-06-12, from the board + friend's confirmation)
@@ -80,34 +88,38 @@ home-mouth is the next player's lane entry. Full detail in
   is unaffected: its penalty fires before the playability check.)
 
 ## Next session — start here
-**Task: rung 6 — lane + exact HOME + win (jeu de piton).** The last rung: let
-pitons turn off the shared track into their private home lane, reach HOME by
-exact count, and win. The coordinate math is already in
-[`src/engine/board.ts`](../src/engine/board.ts) — `positionAt` returns a `lane`
-position, a `finished` position at `finishProgress`, or `null` for an overshoot.
-- **Stop deferring lane moves.** In `legalMoves`' track-movement loop, drop the
-  `if (p1 >= trackPathLength) continue` guard and let `positionAt(p1, …)` produce
-  the destination: a `lane` step, `finished` (HOME), or `null` (overshoot past
-  HOME → not a legal move, satisfying `exactHomeEntry`). The path walk must now
-  cover lane squares too — but lanes are **private**, so only the moving player's
-  own pitons can block there (no enemies, no captures, no safe squares in-lane).
-  Check `passageBlocked`/`resolveLanding` handle progress ≥ `trackPathLength`
-  correctly (an ally already in the lane still blocks pass+land; everything else
-  is clear). `progressOf` already maps a `lane` piton's progress, so an ally in
-  the lane is comparable on the same line.
-- **Win.** After `applyMove`, if all of a player's pitons are `finished`, set
-  `winner` + `phase: 'game-over'` instead of handing on. `legalMoves` already
-  returns `[]` at `game-over`. Decide interaction with the extra-turn grant (a
-  winning move shouldn't also "grant another roll").
-- Fixtures: track→lane turn-off, exact HOME landing (`finished`), an overshoot
-  that's illegal, an ally blocking inside the lane, and all-four-home → winner.
-  Run `npm test`; board is `npm run render:board`.
+**Task: Milestone 3 — SVG board rendering (`src/ui/`).** The engine core is done
+and fully tested; now build the React + SVG presentation layer that *renders*
+`GameState` and sends intents (roll / chosen move) back. Architecture rule
+(CLAUDE.md): `src/ui/` holds **no rules** — it reads engine state and calls
+`rollDie`/`applyRoll`/`legalMoves`/`applyMove`, nothing more.
+- Start from the geometry already proven by the board-render pipeline
+  (`npm run render:board`, see [`scripts/`](../scripts/) / `src/engine/board.ts`).
+  The engine deliberately does **not** model screen direction (counter-clockwise)
+  — the UI maps a track index / lane step → screen position. That index→pixel
+  mapping is the first real UI design decision.
+- Suggested baby-steps: (1) static SVG board from geometry (track ring, four
+  lanes, nests, safe-square marks); (2) render pitons at their `PitonPosition`;
+  (3) a roll button + dice display; (4) highlight `legalMoves` and apply the
+  picked one; (5) turn/winner banner.
+- Before coding the layer, **discuss the index→screen mapping and component
+  split** (per working-style: design before implementing).
+- Run `npm test` to confirm the engine still passes; `npm run dev` for the UI.
 
-After rung 6 the engine core (Milestone 2) is complete → on to Milestone 3
-(SVG board rendering). Revisit the two non-blocking open rule details above with
-the friend at some point.
+Revisit the two non-blocking open rule details above with the friend at some
+point (capture-on-safe is closed; unplayable 1st/2nd 6 is still open).
 
 ## Decision log
+- **2026-06-12** — **Rung 6 done → engine core complete.** Lane movement reuses
+  the same progress-line walk as the track: `legalMoves` no longer special-cases
+  the lane mouth — it lets `positionAt` map the target progress to a track
+  square, lane cell, `finished`, or `null` (overshoot → not a move, which *is*
+  `exactHomeEntry`). Lanes are **private**, so `passageBlocked`/`resolveLanding`
+  treat progress ≥ `trackPathLength` as own-piton-only (no enemies, captures, or
+  safe squares in-lane). **Win precedes the extra-turn grant**: `applyMove`
+  checks all-four-`finished` *before* `grantsExtraTurn`, so a winning move ends
+  the game (`winner` + `game-over`) and never also hands the player another roll,
+  even off a 6.
 - **2026-06-12** — **The 6's turn consequences split by phase.** The extra-turn
   *grant* lives in `applyMove` (after a move, a 6 keeps the turn + bumps
   `extraTurnStreak`); the 3rd-6 *penalty* lives in `applyRoll`, because that 6 is
