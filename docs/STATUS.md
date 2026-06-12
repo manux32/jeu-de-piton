@@ -53,7 +53,23 @@ still pending a visual read (does not affect coordinate correctness).
 - Capture edge case on a safe/entry square (likely moot — enemies can't land
   there at all).
 
+## Next session — start here
+**Task: engine core (canonical Parcheesi).** `GameState` init + a
+`CANONICAL_PARCHEESI` `Ruleset` → roll → path-aware legal-move generation →
+apply move → capture → win detection, with unit tests. Build on the
+progress-coordinate helpers in [`src/engine/board.ts`](../src/engine/board.ts)
+(`progressOf`/`positionAt`/`trackSquareOf`). Treat safe squares as injected data
+and keep `homeEntryOffset` at its default — exactness is non-blocking. This is
+where the absolute index convention gets pinned (exercised by tests). Run tests
+with `npm test`; render the board with `npm run render:board` if geometry
+questions come up.
+
 ## Decision log
+- **2026-06-11** — Dev tooling: **Vitest** is the test runner (`npm test`).
+  Board SVG → PNG render pipeline added (`npm run render:board`, sharp) for
+  reading geometry. Global personal memory now auto-loads each session via a
+  `SessionStart` hook in `~/.claude/settings.json` (untracked machine-local);
+  the project workspace hides the global `.claude` noise from explorer/search.
 - **2026-06-11** — Board confirmed as standard Parcheesi geometry (68-track,
   7-cell lanes, 12 safe squares) from a photo of the cabin board. "Moving is
   mandatory if able" (forced-move) added as a rule and `forcedMove` Ruleset knob.
