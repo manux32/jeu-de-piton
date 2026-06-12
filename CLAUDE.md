@@ -14,6 +14,15 @@ root glue at [`../../CLAUDE.md`](../../CLAUDE.md).
 - This is its own independent git repo (`manux32/jeu-de-piton`), nested under the
   home work-tree but ignored by the parent allowlist repo.
 
+## Dev server (session-start policy)
+The Vite dev server (`npm run dev`, port 5173) may outlive a session as an OS
+process — but a new session loses the background-task handle to it. So at session
+start: **check whether something is already serving on :5173; if so, restart it**
+(kill the stale process and relaunch via the Bash tool so this session owns a
+managed handle + fresh state). **If nothing is running, leave it down** — don't
+start it until the user asks or until you actually need it to do work this
+session. (Launch with `NODE_OPTIONS=--use-system-ca npm run dev`, backgrounded.)
+
 ## Architecture (do not violate)
 - **`src/engine/`** = pure rules core, **no React/DOM imports**. Unit-testable in
   isolation. Rule variants are `Ruleset` config objects, not code branches.
