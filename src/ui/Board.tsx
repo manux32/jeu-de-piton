@@ -14,12 +14,12 @@ interface Props {
   layout: BoardLayout
 }
 
+/** Fill for the 12 safe squares (starts, mid-arms, home-lane mouths). Black so
+ * it can't be mistaken for a blue player's home-lane cells. */
+const SAFE_FILL = '#1a1a1a'
+
 export function Board({ state, layout }: Props) {
   const safe = new Set(state.ruleset.safeSquares)
-  const entryOf = new Map<number, string>() // track index → owner color hex
-  state.geometry.entryIndices.forEach((idx, p) => {
-    if (p < state.players.length) entryOf.set(idx, PLAYER_HEX[state.players[p].color])
-  })
 
   return (
     <g className="board">
@@ -41,34 +41,19 @@ export function Board({ state, layout }: Props) {
         ))
       })}
 
-      {/* shared track */}
-      {layout.trackCells.map((c, i) => {
-        const entryHex = entryOf.get(i)
-        return (
-          <g key={`track-${i}`}>
-            <rect
-              x={c.col}
-              y={c.row}
-              width={1}
-              height={1}
-              fill={entryHex ?? '#ffffff'}
-              fillOpacity={entryHex ? 0.35 : 1}
-              stroke="#8a857c"
-              strokeWidth={0.03}
-            />
-            {safe.has(i) && (
-              <circle
-                cx={c.col + 0.5}
-                cy={c.row + 0.5}
-                r={0.34}
-                fill="none"
-                stroke="#7a756c"
-                strokeWidth={0.06}
-              />
-            )}
-          </g>
-        )
-      })}
+      {/* shared track — safe squares filled, others plain */}
+      {layout.trackCells.map((c, i) => (
+        <rect
+          key={`track-${i}`}
+          x={c.col}
+          y={c.row}
+          width={1}
+          height={1}
+          fill={safe.has(i) ? SAFE_FILL : '#ffffff'}
+          stroke="#8a857c"
+          strokeWidth={0.03}
+        />
+      ))}
 
       {/* nests */}
       {layout.nestCells.map((slots, p) => {

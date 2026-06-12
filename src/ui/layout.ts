@@ -78,12 +78,22 @@ function rotate(local: Cell, centre: number, times: number): Cell {
 }
 
 /**
- * Phase shift applied to the raw ring so engine track index 0 sits just inside
- * an arm tip (a believable start square) rather than at the ring's arbitrary
- * construction origin. Picked so a player's start and their home-lane mouth both
- * fall near the same tip, on opposite side columns. See module header.
+ * Phase that lands the engine's track indices on the right physical cells: each
+ * player's home-lane MOUTH (start − 5) on their arm's tip-middle cell, their
+ * START three cells up their right-hand side column, and every safe-square mark
+ * on its true cell. Pinned against the reference board (the player whose start
+ * is index 0 has it 3 squares up their right column). Mod one arm (`quadrant`).
  */
-const RING_SHIFT = 10
+const SAFE_PHASE = 13
+
+/**
+ * Whole-arm rotation of the *seating*, added on top of `SAFE_PHASE`. Because the
+ * board is 4-fold symmetric, rotating by a multiple of `quadrant` keeps every
+ * safe square / lane / mouth in place but changes which arm each player sits on.
+ * 3 places player 0 (index 0 — the first player, and the solo player vs. future
+ * AI) at the **South** arm, so a 2-player game (entries 0 & 34) is North–South.
+ */
+const SEAT_ROTATION = 3
 
 /**
  * Build the screen layout for a game with the given resolved geometry and player
@@ -98,6 +108,7 @@ export function buildLayout(
   const sideLen = (quadrant - 1) / 2
   const gridSize = 2 * sideLen + 3
   const centre = (gridSize - 1) / 2
+  const ringShift = SAFE_PHASE + SEAT_ROTATION * quadrant
 
   // --- one arm's track quadrant, in absolute grid cells (East arm) -----------
   // Local x runs 2…sideLen+1 (just outside the centre block, out to the tip).
@@ -114,7 +125,7 @@ export function buildLayout(
   }
   const trackCells: Cell[] = []
   for (let i = 0; i < trackLength; i++) {
-    trackCells.push(ring[(i + RING_SHIFT) % trackLength])
+    trackCells.push(ring[(i + ringShift) % trackLength])
   }
 
   // --- per-player lanes and nests, on each player's own arm -------------------
@@ -122,7 +133,7 @@ export function buildLayout(
   const laneCells: Cell[][] = []
   const nestCells: Cell[][] = []
   for (let p = 0; p < playerCount; p++) {
-    const entryRing = (entryIndices[p] + RING_SHIFT) % trackLength
+    const entryRing = (entryIndices[p] + ringShift) % trackLength
     const armRot = Math.floor(entryRing / quadrant)
 
     // Lane: middle column of the East arm (step 0 at the mouth near the tip,
@@ -134,15 +145,17 @@ export function buildLayout(
     }
     laneCells.push(lane)
 
-    // Nest: a 2×2 cluster centred in the East corner, rotated onto the arm.
-    const mid = centre + Math.round(sideLen / 2) + 1
-    const c0 = mid - 1
-    const c1 = mid + 1
+    // Nest: a 2×2 cluster in the corner adjacent to the player's START column.
+    // For the East arm the start is on the top (north) side column, so the nest
+    // sits in the top-right corner; rotation carries it onto each player's arm.
+    const off = Math.round(sideLen / 2) + 1
+    const cMid = centre + off // right side
+    const rMid = centre - off // start (top) side
     const slots = [
-      { col: c0, row: c0 },
-      { col: c1, row: c0 },
-      { col: c0, row: c1 },
-      { col: c1, row: c1 },
+      { col: cMid - 1, row: rMid - 1 },
+      { col: cMid + 1, row: rMid - 1 },
+      { col: cMid - 1, row: rMid + 1 },
+      { col: cMid + 1, row: rMid + 1 },
     ]
     nestCells.push(slots.map((s) => rotate(s, centre, armRot)))
   }
