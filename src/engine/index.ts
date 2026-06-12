@@ -3,3 +3,4 @@
  * deeper, so internal refactors stay invisible to the React side.
  */
 export type * from './types'
+export * from './board'

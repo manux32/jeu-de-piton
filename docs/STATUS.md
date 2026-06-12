@@ -5,13 +5,18 @@
 > This file is current + next + a decision log — keep it short.
 
 ## Mission of the moment
-Capture the cabin house rules and make sure the engine architecture can express
-them, before writing engine logic.
+Build Milestone 2 — the engine core. The board coordinate model is in; next is
+state init + path-aware move generation for canonical Parcheesi.
 
 ## Where the build stands
 - ✅ Milestone 1 — scaffold (Vite + React + TS, own repo).
-- 🔜 Milestone 2 — engine core (state model + canonical Parcheesi rules + tests).
-  Not started.
+- 🔄 Milestone 2 — engine core (state model + canonical Parcheesi rules + tests).
+  - ✅ Test runner: **Vitest** added (`npm test` / `npm run test:watch`,
+    `vitest.config.ts`, node env).
+  - ✅ Board coordinate model: [`src/engine/board.ts`](../src/engine/board.ts)
+    + 19 passing tests. The keystone *progress-coordinate* scheme is pinned
+    (see below). Exported via `src/engine/index.ts`.
+  - 🔜 State init → roll → legal moves (path-aware) → apply → capture → win.
 - Cabin house rules **collected** (2026-06-11) and recorded in
   [rules-and-lineage.md](rules-and-lineage.md).
 - `Ruleset` / `GameState` types **widened** to express the cabin mechanics
@@ -23,16 +28,24 @@ Standard Selchow & Righter Parcheesi layout. `trackLength: 68`, `laneLength: 7`,
 is safe — + 8 others, a pair per arm). Details in
 [rules-and-lineage.md](rules-and-lineage.md).
 
+## Indexing scheme — PINNED (2026-06-11, [`src/engine/board.ts`](../src/engine/board.ts))
+A **progress-coordinate** model: each piton's whole journey is one monotonic
+integer line, `0 … P-1` on the shared track, `P … P+L-1` in its private lane,
+`P+L` = HOME (`P` = `trackPathLength`, `L` = `laneLength`). Absolute track
+square = `(entryIndex + progress) mod trackLength`, so cross-player captures
+fall out of equal absolute squares. `progressOf` ↔ `positionAt` are inverse.
+Entry seats at `{0,17,34,51}` (2P → opposite arms `{0,34}`). `trackPathLength`
+defaults to a full lap; the exact lane turn-off is a `homeEntryOffset` knob,
+still pending a visual read (does not affect coordinate correctness).
+
 ## Next steps
-1. Decide test runner (Vitest expected) and add it.
-2. Design the track/lane coordinate + indexing scheme, and from it pin the
-   exact indices of the 12 safe squares + 4 entry squares — read off the clean
-   vector reference in [`../references/`](../references/README.md)
-   (`parcheesi-board-schematic.svg`).
-3. Build engine core for **canonical Parcheesi** first: state init, roll →
-   legal moves (path-aware + forced-move from day one), apply move, capture, win
-   detection, with unit tests.
-4. Add the **jeu de piton** `Ruleset` as variant #2 and test its divergences.
+1. Engine state init: build a `GameState` from a `Ruleset` (players, pitons in
+   nest, first turn) + the canonical Parcheesi `Ruleset` constant.
+2. Roll → **legal move generation** (path-aware + forced-move from day one) →
+   apply move → capture → win detection, with unit tests.
+3. Add the **jeu de piton** `Ruleset` as variant #2 and test its divergences.
+4. Pin the exact indices of the 12 safe squares + 4 entry squares off the
+   vector reference (`../references/parcheesi-board-schematic.svg`) — non-blocking.
 
 ## Open rule details to confirm (non-blocking)
 - Exact track **indices** of the 12 safe + 4 entry squares (positions known;

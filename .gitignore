@@ -25,3 +25,7 @@ dist-ssr
 
 # Local prompt-drafting scratch file (kept untracked so spellcheck works while drafting)
 prompt-draft.md
+
+# Scratch PNG renders of the board SVG (regenerate with `npm run render:board`)
+references/board-render.png
+references/*-render.png

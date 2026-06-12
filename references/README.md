@@ -18,6 +18,19 @@ clean, freely-licensed substitutes of the same board.
 For pinning exact track/safe-square indices, use the **SVG** — it's straight-on
 and vector, so cell boundaries are unambiguous.
 
+The SVG is hand-authored Inkscape, so its raw path data isn't practical to read
+as text. Rasterize it to a (gitignored) PNG to inspect it as an image:
+
+```
+npm run render:board                 # → references/board-render.png (1600px)
+node scripts/render-board.mjs in.svg out.png 2400   # custom in/out/size
+```
+
+(On the corporate network, prefix with `NODE_OPTIONS=--use-system-ca`.) This is
+how the board geometry below was confirmed: each arm = a tip safe-cell + 7 red
+home-lane cells, with 3 circled safe squares per arm (mouth, entry/start,
+mid-arm) = 12 total.
+
 ## Attribution / licences
 
 Both files are by **Micha L. Rieser** via Wikimedia Commons.
