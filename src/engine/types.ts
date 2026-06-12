@@ -10,6 +10,8 @@
  * load-bearing yet.
  */
 
+import type { BoardGeometry } from './board'
+
 /** One of the (up to) four corners / sides of the cross board. */
 export type PlayerColor = 'red' | 'blue' | 'yellow' | 'green'
 
@@ -115,6 +117,11 @@ export type Phase = 'awaiting-roll' | 'awaiting-move' | 'game-over'
 
 export interface GameState {
   ruleset: Ruleset
+  /**
+   * Resolved board geometry for this game, derived once from the ruleset +
+   * player count at `createGame` so move generation never recomputes it.
+   */
+  geometry: BoardGeometry
   players: PlayerState[]
   /** Index into `players` whose turn it is. */
   turn: number

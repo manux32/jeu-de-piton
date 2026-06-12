@@ -23,8 +23,10 @@ swappable rule sets matter here.
 
 - A genuinely **playable** 2D game soon — fun first, polish later.
 - **Hot-seat local multiplayer**, with a **selectable player count**.
-- **Swappable rule sets**: ship canonical Parcheesi first; add the cabin's house
-  rules as a second variant once the details are collected from the gang.
+- **Swappable rule sets**: ship the **cabin variant (jeu de piton)** first — it's
+  the game we actually play and, with a single die, the simpler core to build.
+  Canonical Parcheesi (two dice, combine/split) stays a possible future variant;
+  the engine is built variant-agnostic so adding it costs no UI change.
 
 Explicit non-goals (for now): 3D, AI opponents, online/networked play,
 animations beyond simple transitions. None are precluded by the architecture —
@@ -67,7 +69,7 @@ variant #2 — **no UI changes needed to add a variant.** That's the payoff.
 ## Milestones (rough)
 
 1. **Scaffold** — Vite + React + TS, own git repo, `CLAUDE.md` + `docs/`. ✅ *(this session)*
-2. **Engine core** — state model + canonical Parcheesi rules + unit tests. No UI.
+2. **Engine core** — state model + **jeu de piton (cabin) rules** + unit tests. No UI.
 3. **Board rendering** — SVG board reflecting engine state; pick player count.
 4. **Interaction loop** — roll, highlight legal moves, click to move, captures, win.
 5. **Variant layer** — formalize the `Ruleset` config; wire up the cabin variant.

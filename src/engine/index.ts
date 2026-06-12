@@ -4,3 +4,5 @@
  */
 export type * from './types'
 export * from './board'
+export * from './rulesets'
+export * from './state'

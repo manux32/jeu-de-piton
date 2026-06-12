@@ -6,7 +6,8 @@
 
 ## Mission of the moment
 Build Milestone 2 — the engine core. The board coordinate model is in; next is
-state init + path-aware move generation for canonical Parcheesi.
+state init + path-aware move generation for **jeu de piton (the cabin variant)**
+— the game we actually play, and the simpler core (one die vs canonical's two).
 
 ## Where the build stands
 - ✅ Milestone 1 — scaffold (Vite + React + TS, own repo).
@@ -38,13 +39,16 @@ Entry seats at `{0,17,34,51}` (2P → opposite arms `{0,34}`). `trackPathLength`
 defaults to a full lap; the exact lane turn-off is a `homeEntryOffset` knob,
 still pending a visual read (does not affect coordinate correctness).
 
-## Next steps
-1. Engine state init: build a `GameState` from a `Ruleset` (players, pitons in
-   nest, first turn) + the canonical Parcheesi `Ruleset` constant.
-2. Roll → **legal move generation** (path-aware + forced-move from day one) →
-   apply move → capture → win detection, with unit tests.
-3. Add the **jeu de piton** `Ruleset` as variant #2 and test its divergences.
-4. Pin the exact indices of the 12 safe squares + 4 entry squares off the
+## Next steps — jeu de piton engine core, built in baby-step rungs
+1. ✅/🔄 `JEU_DE_PITON` `Ruleset` constant + `createGame()` → initial `GameState`
+   (players, pitons in nest, player 0 to roll), with unit tests.
+2. Roll one die + **entry** (a 5 onto the entry square); no legal move → pass.
+3. **Plain track movement** — path-aware step with ally-blocking, safe-square
+   blocking, no-stacking.
+4. **Capture** — landing on a lone enemy off a safe square → nest.
+5. **The 6** — moves 12, grants another roll, 3rd-consecutive-6 streak penalty.
+6. **Lane + exact HOME + win** — lane turn-off, exact landing, all-four-home.
+7. Pin the exact indices of the 12 safe squares + 4 entry squares off the
    vector reference (`../references/parcheesi-board-schematic.svg`) — non-blocking.
 
 ## Open rule details to confirm (non-blocking)
@@ -65,6 +69,13 @@ with `npm test`; render the board with `npm run render:board` if geometry
 questions come up.
 
 ## Decision log
+- **2026-06-12** — **Build the cabin variant (jeu de piton) first**, not canonical
+  Parcheesi. The friend who owns the family rules confirmed the full ruleset
+  (now in [rules-and-lineage.md](rules-and-lineage.md)), so we build the game we
+  actually play. Bonus: one die is a *simpler* engine core than canonical's
+  two-dice combine/split, which suits the baby-step build. The turn model is a
+  "pool of movement amounts to consume" (single die = pool of one); canonical's
+  two-dice case slots in later as the general case without reworking the core.
 - **2026-06-11** — Dev tooling: **Vitest** is the test runner (`npm test`).
   Board SVG → PNG render pipeline added (`npm run render:board`, sharp) for
   reading geometry. Global personal memory now auto-loads each session via a
