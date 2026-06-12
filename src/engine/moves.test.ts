@@ -136,11 +136,10 @@ describe('legalMoves — track movement (rung 3)', () => {
     expect(forPiton(state, 5, 'red-0')[0].to).toEqual({ kind: 'track', square: 9 })
   })
 
-  it('defers a move that would enter the home lane to rung 6', () => {
-    // trackPathLength is 64; from square 60 a 5 overshoots into the lane...
+  it('keeps a piton that stays short of the lane mouth on the track', () => {
+    // trackPathLength is 64; from square 60 a 3 keeps it on the track
+    // (square 63 is an empty safe square — lane turn-off is exercised in rung 6).
     const state = place(createGame(JEU_DE_PITON), 'red-0', { kind: 'track', square: 60 })
-    expect(forPiton(state, 5, 'red-0')).toEqual([])
-    // ...but a 3 keeps it on the track (square 63 is an empty safe square).
     expect(forPiton(state, 3, 'red-0')[0].to).toEqual({ kind: 'track', square: 63 })
   })
 
@@ -268,6 +267,96 @@ describe('the 6 — extra turn & streak penalty (rung 5)', () => {
 
     expect(next.turn).toBe(1)
     expect(next.players[0].pitons.every((p) => p.position.kind === 'nest')).toBe(true)
+  })
+})
+
+describe('legalMoves — lane, exact HOME & win (rung 6)', () => {
+  const forPiton = (state: GameState, roll: number, id: string) =>
+    legalMoves(state, roll).filter((m) => m.pitonId === id)
+
+  // Geometry: trackPathLength 64, laneLength 7 → lane steps 0..6 (progress
+  // 64..70), HOME at progress 71. Red (player 0) enters at square 0.
+
+  it('turns off the track into the home lane', () => {
+    // Square 60 is progress 60; a 5 → progress 65 → lane step 1.
+    const state = place(createGame(JEU_DE_PITON), 'red-0', { kind: 'track', square: 60 })
+    expect(forPiton(state, 5, 'red-0')).toEqual([
+      {
+        pitonId: 'red-0',
+        from: { kind: 'track', square: 60 },
+        to: { kind: 'lane', step: 1 },
+        captures: null,
+      },
+    ])
+  })
+
+  it('advances a piton already inside its lane', () => {
+    const state = place(createGame(JEU_DE_PITON), 'red-0', { kind: 'lane', step: 1 })
+    expect(forPiton(state, 3, 'red-0')[0].to).toEqual({ kind: 'lane', step: 4 })
+  })
+
+  it('reaches HOME by exact count', () => {
+    // Lane step 6 is progress 70; a 1 lands exactly on HOME (progress 71).
+    const state = place(createGame(JEU_DE_PITON), 'red-0', { kind: 'lane', step: 6 })
+    expect(forPiton(state, 1, 'red-0')[0].to).toEqual({ kind: 'finished' })
+  })
+
+  it('offers no move that would overshoot HOME', () => {
+    // From lane step 6 (progress 70) a 2 overshoots HOME (progress 72) → illegal.
+    const fromLane = place(createGame(JEU_DE_PITON), 'red-0', { kind: 'lane', step: 6 })
+    expect(forPiton(fromLane, 2, 'red-0')).toEqual([])
+    // From the track too: square 60 (progress 60) + a 6 (twelve) → progress 72.
+    const fromTrack = place(createGame(JEU_DE_PITON), 'red-0', { kind: 'track', square: 60 })
+    expect(forPiton(fromTrack, 6, 'red-0')).toEqual([])
+  })
+
+  it('cannot pass one of its own pitons inside the lane', () => {
+    let state = place(createGame(JEU_DE_PITON), 'red-0', { kind: 'lane', step: 1 })
+    state = place(state, 'red-1', { kind: 'lane', step: 3 })
+    // red-0 + 3 would cross lane step 3 (ally) → blocked.
+    expect(forPiton(state, 3, 'red-0')).toEqual([])
+    // red-1 advancing deeper is unobstructed (→ lane step 5).
+    expect(forPiton(state, 2, 'red-1')[0].to).toEqual({ kind: 'lane', step: 5 })
+  })
+
+  it('cannot land on one of its own pitons inside the lane', () => {
+    let state = place(createGame(JEU_DE_PITON), 'red-0', { kind: 'lane', step: 2 })
+    state = place(state, 'red-1', { kind: 'lane', step: 4 })
+    expect(forPiton(state, 2, 'red-0')).toEqual([]) // would land on red-1
+  })
+
+  it('applyMove finishes a lone piton and passes the turn', () => {
+    const placed = place(createGame(JEU_DE_PITON), 'red-0', { kind: 'lane', step: 6 })
+    const rolled = applyRoll(placed, 1)
+    const move = legalMoves(rolled, 1).find((m) => m.pitonId === 'red-0')!
+    const next = applyMove(rolled, move)
+
+    expect(next.players[0].pitons.find((p) => p.id === 'red-0')?.position).toEqual({
+      kind: 'finished',
+    })
+    expect(next.winner).toBeNull()
+    expect(next.phase).toBe('awaiting-roll')
+    expect(next.turn).toBe(1) // others still nested — turn passes
+  })
+
+  it('declares the winner when the last piton comes HOME — even off a 6', () => {
+    let s = createGame(JEU_DE_PITON)
+    s = place(s, 'red-0', { kind: 'finished' })
+    s = place(s, 'red-1', { kind: 'finished' })
+    s = place(s, 'red-2', { kind: 'finished' })
+    s = place(s, 'red-3', { kind: 'track', square: 59 }) // progress 59 + 12 = HOME
+
+    const rolled = applyRoll(s, 6)
+    const move = legalMoves(rolled, 6).find((m) => m.pitonId === 'red-3')!
+    const next = applyMove(rolled, move)
+
+    expect(next.players[0].pitons.find((p) => p.id === 'red-3')?.position).toEqual({
+      kind: 'finished',
+    })
+    expect(next.winner).toBe('red')
+    expect(next.phase).toBe('game-over')
+    // A winning move ends the game; the 6 grants no further roll.
+    expect(legalMoves(next, 5)).toEqual([])
   })
 })
 

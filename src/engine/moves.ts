@@ -22,8 +22,13 @@
  * keeps the turn with the same player (an extra roll) and bumps the streak,
  * until the `extraTurnStreakLimit`th consecutive one — which is "not played" at
  * all: `applyRoll` pre-empts it, nesting the player's most-advanced track piton
- * (`lose-leading`) and passing the turn. The lane / exact-HOME / win (rung 6)
- * stays deferred. Earlier rung 2 covers ENTRY (nest → entry square).
+ * (`lose-leading`) and passing the turn. RUNG 6 closes the journey: a piton may
+ * turn off the shared track into its OWN private home lane, advance there, and
+ * reach HOME by exact count (an overshoot is no move — `exactHomeEntry`). Lanes
+ * are private, so only the mover's own pitons block in them — no enemies, no
+ * captures, no safe squares. When all of a player's pitons are HOME, `applyMove`
+ * ends the game (winner set, no extra turn even off a 6). Earlier rung 2 covers
+ * ENTRY (nest → entry square).
  */
 
 import type { GameState, Move, PitonPosition } from './types'
@@ -56,6 +61,17 @@ function squareOccupied(state: GameState, square: number): boolean {
   return pitonOnSquare(state, square) !== null
 }
 
+/**
+ * Is one of the CURRENT player's own pitons sitting at lane cell `step`? Lanes
+ * are private, so this is the only occupancy that matters inside a home lane —
+ * no enemy can be there, and there are no safe squares or captures in-lane.
+ */
+function ownPitonAtLaneStep(state: GameState, step: number): boolean {
+  return state.players[state.turn].pitons.some(
+    (p) => p.position.kind === 'lane' && p.position.step === step,
+  )
+}
+
 /** How many squares `roll` advances a piton (face value unless overridden). */
 function rollStep(state: GameState, roll: number): number {
   return state.ruleset.rollStepOverrides[roll] ?? roll
@@ -70,6 +86,10 @@ function rollStep(state: GameState, roll: number): number {
  *  - an ALLY crossed en route → blocked (you may not pass your own piton);
  *  - an occupied SAFE square crossed en route → blocked (it blocks everyone);
  *  - a lone enemy on a non-safe square en route → passed freely.
+ *
+ * Crossed progress beyond the shared track (`>= trackPathLength`) lies in the
+ * mover's PRIVATE home lane: only the mover's own piton can sit there and it
+ * still blocks passage; enemies and safe squares don't exist in-lane.
  */
 function passageBlocked(
   state: GameState,
@@ -77,9 +97,14 @@ function passageBlocked(
   p0: number,
   p1: number,
 ): boolean {
-  const { trackLength } = state.geometry
+  const { trackLength, trackPathLength } = state.geometry
   const { safeSquares } = state.ruleset
   for (let k = p0 + 1; k < p1; k++) {
+    if (k >= trackPathLength) {
+      // private lane cell — blocked only by your own piton already there
+      if (ownPitonAtLaneStep(state, k - trackPathLength)) return true
+      continue
+    }
     const square = (entryIndex + k) % trackLength
     const occupant = pitonOnSquare(state, square)
     if (occupant === null) continue
@@ -91,19 +116,30 @@ function passageBlocked(
 }
 
 /**
- * Decide what landing on the destination square means. Returns the move's
+ * Decide what landing on the destination position means. Returns the move's
  * `captures` value (a piton id, or null for an empty landing) when the landing
  * is legal, or `'blocked'` when it isn't.
  *
+ * On the shared TRACK:
  *  - empty square → legal, no capture;
  *  - an ALLY → blocked (no stacking on your own);
  *  - an enemy on a SAFE square → blocked (immune — no capture there);
  *  - a lone enemy off a safe square → capture (its id), if capture is enabled.
+ *
+ * In the private home LANE: blocked only by your own piton already on that cell
+ * (no enemies, no captures). Reaching HOME (`finished`) is always clear — any
+ * number of a player's pitons may rest there.
  */
 function resolveLanding(
   state: GameState,
-  square: number,
+  dest: PitonPosition,
 ): string | null | 'blocked' {
+  if (dest.kind === 'finished') return null // HOME — always reachable
+  if (dest.kind === 'lane') {
+    return ownPitonAtLaneStep(state, dest.step) ? 'blocked' : null
+  }
+  if (dest.kind === 'nest') return null // unreachable as a destination here
+  const square = dest.square
   const occupant = pitonOnSquare(state, square)
   if (occupant === null) return null
   if (occupant.player === state.turn) return 'blocked' // land on own piton
@@ -140,28 +176,24 @@ export function legalMoves(state: GameState, roll: number): Move[] {
     }
   }
 
-  // --- Track movement: a piton already out walks `step` squares ------------
-  // `step` decouples die face from distance (a 6 moves 12). The path walk
-  // enforces the cabin passing rules; a move that would leave the shared track
-  // for the home lane is deferred to rung 6 and simply not offered here.
+  // --- Movement: a piton already out walks `step` along its journey line ----
+  // `step` decouples die face from distance (a 6 moves 12). The walk covers both
+  // the shared track and the piton's own home lane; `positionAt` maps the target
+  // progress to a track square, a lane cell, HOME (`finished`), or `null` for an
+  // overshoot past HOME — which, under `exactHomeEntry`, is simply not a move.
   const step = rollStep(state, roll)
   for (const piton of player.pitons) {
-    if (piton.position.kind !== 'track') continue
+    if (piton.position.kind !== 'track' && piton.position.kind !== 'lane') continue
     const p0 = progressOf(piton.position, entryIndex, state.geometry)!
     const p1 = p0 + step
-    if (p1 >= state.geometry.trackPathLength) continue // lane entry → rung 6
+    const dest = positionAt(p1, entryIndex, state.geometry)
+    if (dest === null) continue // overshoot past HOME → illegal (exact-home entry)
     if (passageBlocked(state, entryIndex, p0, p1)) continue
 
-    const destSquare = (entryIndex + p1) % state.geometry.trackLength
-    const captures = resolveLanding(state, destSquare)
+    const captures = resolveLanding(state, dest)
     if (captures === 'blocked') continue
 
-    moves.push({
-      pitonId: piton.id,
-      from: piton.position,
-      to: positionAt(p1, entryIndex, state.geometry)!, // p1 is in track range
-      captures,
-    })
+    moves.push({ pitonId: piton.id, from: piton.position, to: dest, captures })
   }
 
   return moves
@@ -275,10 +307,10 @@ function setPositions(
 
 /**
  * Apply a chosen move and hand play on. Moves the piton to `move.to`, sends any
- * captured piton back to its nest, then either grants the same player another
- * roll (if the roll just played earns an extra turn — a 6) or passes the turn.
- *
- * Win detection (rung 6) will hook in before the handoff.
+ * captured piton back to its nest, then: if that brought all of the mover's
+ * pitons HOME the game ends (winner recorded — a winning move never also grants
+ * another roll, even off a 6); otherwise the same player either keeps the turn
+ * (an extra roll, if the roll just played earns one — a 6) or passes it on.
  */
 export function applyMove(state: GameState, move: Move): GameState {
   if (state.phase !== 'awaiting-move') {
@@ -287,6 +319,16 @@ export function applyMove(state: GameState, move: Move): GameState {
   const updates: Record<string, PitonPosition> = { [move.pitonId]: move.to }
   if (move.captures) updates[move.captures] = { kind: 'nest' }
   const moved = setPositions(state, updates)
+
+  // Win: all of the mover's pitons are HOME → game over, no further play.
+  if (moved.players[state.turn].pitons.every((p) => p.position.kind === 'finished')) {
+    return {
+      ...moved,
+      phase: 'game-over',
+      winner: moved.players[state.turn].color,
+      lastRoll: null,
+    }
+  }
 
   if (grantsExtraTurn(state)) {
     return {
