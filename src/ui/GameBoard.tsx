@@ -16,19 +16,31 @@ import { PLAYER_HEX } from './colors'
 interface Props {
   state: GameState
   moves: Move[]
+  rolled: number | null
   onPick: (move: Move) => void
   onNewGame: (playerCount: number) => void
+  onRoll: () => void
 }
 
-// New Game controls live inside the SVG (foreignObject), authored at natural px
-// then scaled into board units — so they reuse the page's .pill styling rather
-// than re-expressing it in viewBox units. Top-right corner, hugging the edge.
+// In-board HTML chrome (New Game controls, dice) lives in the SVG via
+// foreignObject, authored at natural px then scaled into board units — so it
+// reuses the page's .pill / .die styling rather than re-expressing it in viewBox
+// units. Corners hug the board edge, inset by CTRL_INSET.
 const CTRL_SCALE = 0.019
 const CTRL_W = 200
 const CTRL_H = 52
 const CTRL_INSET = 0.4
+const DICE_W = 150
+const DICE_H = 56
 
-export function GameBoard({ state, moves, onPick, onNewGame }: Props) {
+export function GameBoard({
+  state,
+  moves,
+  rolled,
+  onPick,
+  onNewGame,
+  onRoll,
+}: Props) {
   const layout = useMemo(
     () => buildLayout(state.geometry, state.players.length),
     [state.geometry, state.players.length],
@@ -42,6 +54,7 @@ export function GameBoard({ state, moves, onPick, onNewGame }: Props) {
   const nestOffset = Math.round(sideLen / 2) + 1
   const titleX = cellMid(centre - nestOffset, layout)
   const ctrlX = layout.extent - CTRL_INSET - CTRL_W * CTRL_SCALE
+  const diceY = layout.extent - CTRL_INSET - DICE_H * CTRL_SCALE
 
   return (
     <svg
@@ -88,6 +101,29 @@ export function GameBoard({ state, moves, onPick, onNewGame }: Props) {
                 {n}
               </button>
             ))}
+          </div>
+        </foreignObject>
+      </g>
+
+      {/* Dice, bottom-left. Same foreignObject-scaled-into-board-units trick:
+          the rolled result and the Roll button, reusing .die / .pill styling. */}
+      <g transform={`translate(${CTRL_INSET}, ${diceY}) scale(${CTRL_SCALE})`}>
+        <foreignObject x={0} y={0} width={DICE_W} height={DICE_H}>
+          <div xmlns="http://www.w3.org/1999/xhtml" className="board-dice">
+            <span
+              className="die"
+              aria-label={rolled ? `rolled ${rolled}` : 'no roll yet'}
+            >
+              {rolled ?? '–'}
+            </span>
+            <button
+              type="button"
+              className="pill pill-on"
+              onClick={onRoll}
+              disabled={state.phase !== 'awaiting-roll'}
+            >
+              Roll
+            </button>
           </div>
         </foreignObject>
       </g>

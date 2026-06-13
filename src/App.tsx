@@ -24,19 +24,16 @@ function App() {
 
   return (
     <main className="app-shell board-shell">
-      <Hud
-        game={game}
-        rolled={rolled}
-        notice={notice}
-        onRoll={() => dispatch({ type: 'roll', value: rollDie() })}
-      />
-
       <GameBoard
         state={game}
         moves={moves}
+        rolled={rolled}
         onPick={(move) => dispatch({ type: 'pick', move })}
         onNewGame={(playerCount) => dispatch({ type: 'newGame', playerCount })}
+        onRoll={() => dispatch({ type: 'roll', value: rollDie() })}
       />
+
+      <Hud game={game} notice={notice} />
 
       {DevTools && (
         <Suspense fallback={null}>

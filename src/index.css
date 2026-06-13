@@ -186,41 +186,56 @@ code {
   box-shadow: var(--shadow);
 }
 
-/* New Game controls mounted inside the board SVG (top-right) via foreignObject.
-   Right-aligned to the board edge; the wrapper itself is click-through so the
-   transparent area doesn't swallow board clicks — only the label/buttons take
-   pointer events. */
-.board-controls {
+/* HTML chrome mounted inside the board SVG via foreignObject: New Game controls
+   (top-right) and the dice (bottom-left). The wrapper is click-through so its
+   transparent area doesn't swallow board clicks — only the label/buttons/die
+   take pointer events. */
+.board-controls,
+.board-dice {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
   gap: 8px;
   width: 100%;
   height: 100%;
   pointer-events: none;
 }
-.board-controls > * {
+.board-controls {
+  justify-content: flex-end;
+}
+.board-dice {
+  justify-content: flex-start;
+}
+.board-controls > *,
+.board-dice > * {
   pointer-events: auto;
 }
-/* The board is always light, so pin these pills to light-theme colours rather
-   than inheriting the page color-scheme (dark mode would render the number
-   near-white and invisible on the board). Saturate the active pill so its
-   number stays legible. */
-.board-controls .pill {
+/* The board is always light, so pin these to light-theme colours rather than
+   inheriting the page color-scheme (dark mode would render the pill number /
+   die value near-white and invisible on the board). Saturate the active pill so
+   its label stays legible. */
+.board-controls .pill,
+.board-dice .pill {
   background: #fff;
   color: #08060d;
   border-color: #d9d6dd;
 }
-.board-controls .pill:hover {
+.board-controls .pill:hover,
+.board-dice .pill:hover {
   border-color: var(--accent-border);
 }
-.board-controls .pill-on {
+.board-controls .pill-on,
+.board-dice .pill-on {
   background: rgba(170, 59, 255, 0.22);
   border-color: #aa3bff;
   color: #08060d;
 }
 .board-controls .muted {
   color: #6b6375;
+}
+.board-dice .die {
+  background: #fff;
+  color: #08060d;
+  border-color: #d9d6dd;
 }
 
 /* Game title rendered inside the board SVG (top-left). Drawn on the always-light
