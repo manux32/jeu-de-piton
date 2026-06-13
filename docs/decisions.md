@@ -10,6 +10,24 @@
 > [rules-and-lineage.md](rules-and-lineage.md), [board-model.md](board-model.md)).
 > Don't duplicate git history — capture reasoning a commit message wouldn't.
 
+- **2026-06-12** — **Rectangular cells are render-only, not a grid change.** The
+  reference board's cells are wider across an arm than along it. Rather than make
+  the *logical* grid non-uniform (which would entangle the 90° rotation tiling and
+  every engine-index↔cell mapping), `buildLayout` keeps the uniform 19×19 logical
+  grid and emits a separate `edges[]` array of cumulative pixel boundaries —
+  palindromic, with the three central rows/columns widened by `ARM_WIDTH_SCALE`.
+  Renderers go through `cellStart`/`cellSize`/`cellMid`. Because one symmetric
+  array drives both axes, each arm gets the right orientation for free (south arm
+  wide-and-short, east arm tall-and-narrow). One knob, engine untouched.
+- **2026-06-12** — **Unplayable 1st/2nd 6 grants the bonus roll (confirmed).** A 6
+  with no legal move is *not* an ordinary forfeit: the player keeps the turn and
+  rolls again, and the unplayable 6 still counts toward the three-in-a-row (so
+  three unplayable 6s trip the lose-leading penalty) — symmetric with how a 3rd 6
+  is penalized "regardless of playability." Engine: `applyRoll` handles the
+  no-move-but-bonus branch; `grantsExtraTurn` was generalized to
+  `rollGrantsExtraTurn(state, roll)` so the played and unplayable paths share it.
+  A non-6 with no move still forfeits. Resolves the open question from the "6's
+  turn consequences split by phase" entry below.
 - **2026-06-12** — **Docs reorg for lean session context.** Split the docs into
   tiers: session-start (CLAUDE.md + a slimmed STATUS.md), lazy reference
   (architecture.md, rules-and-lineage.md, board-model.md, this log), and frozen

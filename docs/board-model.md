@@ -42,7 +42,8 @@ squares before its own start. The 12 safe squares are pinned below.
 
 ## The grid
 The cabin board is the standard Selchow & Righter Parcheesi cross. It drops onto
-a square grid (cell units, not pixels):
+a square **logical** grid (cell units, not pixels — cells *render* at non-uniform
+sizes for the rectangular look; see "Rectangular cells — DONE" below):
 
 - `sideLen = (trackLength/4 − 1)/2 = 8` — cells along one arm.
 - `gridSize = 2·sideLen + 3 = 19` — the 19×19 grid.

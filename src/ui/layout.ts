@@ -22,10 +22,14 @@
  *     gridSize  = 2 * sideLen + 3                    // cabin board: 19
  *     centre    = (gridSize - 1) / 2                 // cabin board: 9
  *
- * Coordinates here are in *cell units* (origin top-left, +x right, +y down), so
- * an SVG with `viewBox="0 0 gridSize gridSize"` maps a cell `{col,row}` to the
- * square `[col,row]…[col+1,row+1]`; a piece sits at the cell centre
- * `{col + 0.5, row + 0.5}`. Pixel sizing is the renderer's choice.
+ * Logical coordinates are in *cell units* (origin top-left, +x right, +y down).
+ * The grid is uniform 19×19 *logically*, but cells RENDER at non-uniform sizes:
+ * `buildLayout` emits an `edges[]` array of cumulative cell boundaries (the three
+ * central rows/columns widened by `ARM_WIDTH_SCALE` for the rectangular-cell
+ * look). Renderers therefore map a logical `{col,row}` to pixels via the
+ * `cellStart` / `cellSize` / `cellMid` helpers — into an SVG `viewBox="0 0 extent
+ * extent"` — rather than assuming a cell is the unit square `[col,row]…[col+1,
+ * row+1]`. Pixel sizing is the renderer's choice.
  *
  * ──────────────────────────────────────────────────────────────────────────
  * The track ring
@@ -39,7 +43,7 @@
  *
  * Direction of travel (the cabin runs counter-clockwise) is purely this layer's
  * concern; the engine only ever advances by increasing index. See the decision
- * log in docs/STATUS.md.
+ * log in docs/decisions.md.
  */
 
 import type { BoardGeometry, PitonPosition } from '../engine'

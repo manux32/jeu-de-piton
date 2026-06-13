@@ -13,9 +13,10 @@
 > right reference doc and leave only a one-line pointer here.
 
 ## Where we are
-**Playable hot-seat.** Milestones 1–4 done (scaffold · engine core · SVG board ·
-interaction loop). 67 engine tests green, build + lint clean. `src/ui/` is
-rules-free — every decision comes from the engine via
+**Playable hot-seat, polished.** Milestones 1–4 done (scaffold · engine core ·
+SVG board · interaction loop), plus several M6 look-and-feel items (rectangular
+cells, HOME grouping/highlight, capture-click). 70 engine tests green, build +
+lint clean. `src/ui/` is rules-free — every decision comes from the engine via
 `rollDie`/`applyRoll`/`legalMoves`/`applyMove`.
 
 ## Build checklist
