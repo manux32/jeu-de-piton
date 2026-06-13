@@ -65,9 +65,27 @@ describe('legalMoves — entry (rung 2)', () => {
     ])
   })
 
-  it('blocks entry when an enemy sits on the (safe) entry square — no capture', () => {
+  it('captures a lone enemy on the OWN start square — the start-square exception', () => {
+    // Square 0 is red's own start. It is safe to everyone but red, so an enemy
+    // parked there is captured by red exiting the nest onto it (one move per
+    // nested piton, each capturing blue-0).
     const state = place(createGame(JEU_DE_PITON), 'blue-0', { kind: 'track', square: 0 })
-    expect(legalMoves(state, 5)).toEqual([])
+    const moves = legalMoves(state, 5)
+    expect(moves).toHaveLength(4)
+    for (const move of moves) {
+      expect(move.from).toEqual({ kind: 'nest' })
+      expect(move.to).toEqual({ kind: 'track', square: 0 })
+      expect(move.captures).toBe('blue-0')
+    }
+  })
+
+  it('keeps a start square safe to a non-owner who lands on it by movement', () => {
+    // Square 17 is blue's start. The exception is entry-only: red walking the
+    // track onto it (red-0 at 14, +3) still hits the universal safe-square
+    // immunity in resolveLanding — no capture, the landing is blocked.
+    let state = place(createGame(JEU_DE_PITON), 'red-0', { kind: 'track', square: 14 })
+    state = place(state, 'blue-0', { kind: 'track', square: 17 })
+    expect(legalMoves(state, 3).filter((m) => m.pitonId === 'red-0')).toEqual([])
   })
 
   it('returns nothing once the game is over', () => {
@@ -452,6 +470,22 @@ describe('applyMove — entry', () => {
     const [entry] = legalMoves(rolled, 5)
     applyMove(rolled, entry)
     expect(rolled).toEqual(before)
+  })
+
+  it('start-square capture: exactly one piton leaves the nest, enemy goes home', () => {
+    // Several capture-on-entry moves are offered (one per nested piton), but
+    // applying one brings out ONLY that piton — the rest stay nested.
+    const placed = place(createGame(JEU_DE_PITON), 'blue-0', { kind: 'track', square: 0 })
+    const rolled = applyRoll(placed, 5)
+    const move = legalMoves(rolled, 5).find((m) => m.captures === 'blue-0')!
+    const next = applyMove(rolled, move)
+
+    const redOut = next.players[0].pitons.filter((p) => p.position.kind !== 'nest')
+    expect(redOut).toHaveLength(1)
+    expect(redOut[0].position).toEqual({ kind: 'track', square: 0 })
+    expect(next.players[1].pitons.find((p) => p.id === 'blue-0')?.position).toEqual({
+      kind: 'nest',
+    })
   })
 
   it('rejects a move outside the awaiting-move phase', () => {

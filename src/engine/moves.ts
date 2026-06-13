@@ -56,11 +56,6 @@ function pitonOnSquare(
   return null
 }
 
-/** Is any piton (any owner) sitting on this absolute track square? */
-function squareOccupied(state: GameState, square: number): boolean {
-  return pitonOnSquare(state, square) !== null
-}
-
 /**
  * Is one of the CURRENT player's own pitons sitting at lane cell `step`? Lanes
  * are private, so this is the only occupancy that matters inside a home lane —
@@ -161,21 +156,32 @@ export function legalMoves(state: GameState, roll: number): Move[] {
   const moves: Move[] = []
 
   // --- Entry: a nest piton onto its entry square --------------------------
-  // TODO(start-square exception): the confirmed rule makes a player's OWN start
-  // an exception — they may enter onto it to CAPTURE a lone enemy parked there
-  // (the start is safe only to non-owners). Not yet implemented: today any
-  // occupant blocks entry and is immune, regardless of owner. See
-  // docs/rules-and-lineage.md + STATUS.md. To support it, allow entry when the
-  // occupant is a lone enemy and emit a capturing entry Move.
-  if (state.ruleset.entryRolls.includes(roll) && !squareOccupied(state, entryIndex)) {
-    for (const piton of player.pitons) {
-      if (piton.position.kind === 'nest') {
-        moves.push({
-          pitonId: piton.id,
-          from: piton.position,
-          to: { kind: 'track', square: entryIndex },
-          captures: null,
-        })
+  // The start-square exception: a start square is safe to everyone BUT its
+  // owner, so the owner may exit the nest (on an entry roll) straight onto it.
+  // An ally already there blocks entry (no stacking); a lone enemy is CAPTURED
+  // (the square shields it from every OTHER player, but never from its owner);
+  // an empty square is a plain entry. The square stays universally safe in
+  // `resolveLanding` for everyone who lands on it by *movement* — the owner only
+  // ever touches its own start at this entry moment, never via a lap. See
+  // docs/rules-and-lineage.md.
+  if (state.ruleset.entryRolls.includes(roll)) {
+    const occupant = pitonOnSquare(state, entryIndex)
+    const entryCaptures: string | null | 'blocked' =
+      occupant === null
+        ? null
+        : occupant.player === state.turn || !state.ruleset.captureEnabled
+          ? 'blocked'
+          : occupant.id
+    if (entryCaptures !== 'blocked') {
+      for (const piton of player.pitons) {
+        if (piton.position.kind === 'nest') {
+          moves.push({
+            pitonId: piton.id,
+            from: piton.position,
+            to: { kind: 'track', square: entryIndex },
+            captures: entryCaptures,
+          })
+        }
       }
     }
   }
