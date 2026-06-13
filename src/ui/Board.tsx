@@ -6,7 +6,7 @@
  * units, matching the parent SVG's `viewBox`.
  */
 import type { GameState } from '../engine'
-import type { BoardLayout } from './layout'
+import { type BoardLayout, cellStart, cellSize, cellMid } from './layout'
 import { PLAYER_HEX } from './colors'
 
 interface Props {
@@ -29,10 +29,10 @@ export function Board({ state, layout }: Props) {
         return lane.map((c, s) => (
           <rect
             key={`lane-${p}-${s}`}
-            x={c.col}
-            y={c.row}
-            width={1}
-            height={1}
+            x={cellStart(c.col, layout)}
+            y={cellStart(c.row, layout)}
+            width={cellSize(c.col, layout)}
+            height={cellSize(c.row, layout)}
             fill={hex}
             fillOpacity={0.45}
             stroke="#9a958c"
@@ -45,10 +45,10 @@ export function Board({ state, layout }: Props) {
       {layout.trackCells.map((c, i) => (
         <rect
           key={`track-${i}`}
-          x={c.col}
-          y={c.row}
-          width={1}
-          height={1}
+          x={cellStart(c.col, layout)}
+          y={cellStart(c.row, layout)}
+          width={cellSize(c.col, layout)}
+          height={cellSize(c.row, layout)}
           fill={safe.has(i) ? SAFE_FILL : '#ffffff'}
           stroke="#8a857c"
           strokeWidth={0.03}
@@ -58,12 +58,14 @@ export function Board({ state, layout }: Props) {
       {/* nests */}
       {layout.nestCells.map((slots, p) => {
         const hex = PLAYER_HEX[state.players[p].color]
-        const cols = slots.map((s) => s.col)
-        const rows = slots.map((s) => s.row)
-        const x = Math.min(...cols)
-        const y = Math.min(...rows)
-        const w = Math.max(...cols) - x + 1
-        const h = Math.max(...rows) - y + 1
+        const minCol = Math.min(...slots.map((s) => s.col))
+        const maxCol = Math.max(...slots.map((s) => s.col))
+        const minRow = Math.min(...slots.map((s) => s.row))
+        const maxRow = Math.max(...slots.map((s) => s.row))
+        const x = cellStart(minCol, layout)
+        const y = cellStart(minRow, layout)
+        const w = cellStart(maxCol, layout) + cellSize(maxCol, layout) - x
+        const h = cellStart(maxRow, layout) + cellSize(maxRow, layout) - y
         return (
           <g key={`nest-${p}`}>
             <rect
@@ -80,8 +82,8 @@ export function Board({ state, layout }: Props) {
             {slots.map((s, n) => (
               <circle
                 key={`slot-${p}-${n}`}
-                cx={s.col + 0.5}
-                cy={s.row + 0.5}
+                cx={cellMid(s.col, layout)}
+                cy={cellMid(s.row, layout)}
                 r={0.36}
                 fill="#fdfcf8"
                 stroke={hex}
@@ -92,21 +94,21 @@ export function Board({ state, layout }: Props) {
         )
       })}
 
-      {/* HOME */}
+      {/* HOME — the central fat 3×3 band */}
       <rect
-        x={layout.homeCell.col - 1}
-        y={layout.homeCell.row - 1}
-        width={3}
-        height={3}
+        x={cellStart(layout.homeCell.col - 1, layout)}
+        y={cellStart(layout.homeCell.row - 1, layout)}
+        width={cellStart(layout.homeCell.col + 2, layout) - cellStart(layout.homeCell.col - 1, layout)}
+        height={cellStart(layout.homeCell.row + 2, layout) - cellStart(layout.homeCell.row - 1, layout)}
         rx={0.4}
         fill="#f3e7ec"
         stroke="#c79bab"
         strokeWidth={0.06}
       />
       <text
-        x={layout.homeCell.col + 0.5}
-        y={layout.homeCell.row + 0.5}
-        fontSize={0.5}
+        x={cellMid(layout.homeCell.col, layout)}
+        y={cellMid(layout.homeCell.row, layout)}
+        fontSize={0.6}
         fontWeight={600}
         textAnchor="middle"
         dominantBaseline="central"

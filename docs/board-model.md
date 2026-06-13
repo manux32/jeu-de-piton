@@ -153,8 +153,16 @@ layout (or `renderToStaticMarkup`s `<GameBoard>` with a doctored `GameState`) to
 an SVG under `references/`, then `node scripts/render-board.mjs <in.svg>
 <out.png>`; compare against `board-render.png`. Delete the artifacts after.
 
-## Future polish — rectangular cells
-The grid is currently **uniform squares**; the reference draws cells as
-rectangles whose long side runs along each arm. This is a contained refactor of
-`layout.ts` + the renderers (engine untouched; the 90° rotation model carries the
-orientation automatically). Tracked in [STATUS.md](STATUS.md) (M6 polish backlog).
+## Rectangular cells — DONE (2026-06-12)
+The reference draws movement cells as rectangles whose long side runs **across**
+each arm (wider perpendicular to travel than along it), which is what makes the
+arms read as chunky bands rather than thin spikes. Implemented as a **render-only**
+change: the logical grid stays uniform 19×19, but `buildLayout` now emits an
+`edges[]` array of cumulative cell boundaries (non-uniform, palindromic — the
+three central rows/columns, i.e. each arm's width plus HOME, stretched by
+`ARM_WIDTH_SCALE`). Renderers map a logical `{col,row}` to pixels through
+`cellStart`/`cellSize`/`cellMid` instead of assuming unit cells. Because the same
+spacing drives both axes, the south arm's cells come out wide-and-short and the
+east arm's identical cells tall-and-narrow automatically — the 90° rotation model
+carries the orientation. Engine untouched. `ARM_WIDTH_SCALE` (currently 1.9) is
+the single knob: 1 = the old squares, higher = chunkier arms.

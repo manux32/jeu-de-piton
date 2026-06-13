@@ -35,21 +35,33 @@ rules-free — every decision comes from the engine via
   (e.g. canonical Parcheesi) drops in with **no UI change**. Likely a
   ruleset-picker in the header beside the player-count pills.
 - **M6 — polish backlog:**
-  - **Rectangular cells** — the board uses a uniform square grid; the reference
-    draws cells as rectangles along each arm. Contained refactor of
-    [`src/ui/layout.ts`](../src/ui/layout.ts) + renderers; engine untouched.
-    Details in [board-model.md](board-model.md).
+  - ✅ **Rectangular cells** (2026-06-12) — render-only non-uniform spacing
+    (`ARM_WIDTH_SCALE`, currently 1.9). See [board-model.md](board-model.md).
+  - ✅ **Capture-click fix** (2026-06-12) — clicking the *enemy* disc of a capture
+    move now fires the move (its disc used to swallow the click over the target
+    marker). In [`Pitons.tsx`](../src/ui/Pitons.tsx).
+  - ✅ **HOME grouping** (2026-06-12) — finished pitons cluster per-colour against
+    the HOME edge facing their own arm, instead of piling up at centre.
+  - ✅ **HOME-move highlight** (2026-06-12) — a HOME-bound move shows a larger,
+    bolder, pulsing target marker.
   - **Forfeit-notice wart** (2026-06-12) — the HUD notice describes the player
     who *just rolled* ("Red rolled 3 — no legal move, turn passes") while the
     turn indicator already shows the **next** player; momentarily confusing. No
     engine bug. Candidate fix: gate the handoff behind an explicit "Pass/Continue"
     click (an `awaitingPass` view flag in `useGame`). Deferred — accept as-is.
+  - **HOME-corner (vs edge) clustering** — finished pitons currently group on the
+    cardinal HOME *edge* facing each arm; a diagonal-corner variant was floated.
+    Minor, deferred.
 
 ## Open rule details
-- *All confirmed as of 2026-06-12.* The unplayable-1st/2nd-6 question is closed:
-  it grants the bonus roll and counts toward the three-in-a-row (engine +
-  `rules-and-lineage.md` updated). No capture/HOME bonuses; entry on a 5 is not
-  forced. Reopen only if real play surprises us.
+- **Enemy on a player's start square** (awaiting the friend, 2026-06-12) — does an
+  enemy sitting on your start/entry square block you from coming out, or may you
+  capture it *despite* the square being safe? **Engine today: it blocks entry and
+  is immune** (start is a safe square; `legalMoves` refuses entry onto any occupied
+  entry square, and capture on a safe square is forbidden). Revisit once confirmed.
+- *Everything else confirmed as of 2026-06-12.* Unplayable-1st/2nd-6 closed (bonus
+  roll + counts toward three-in-a-row). No capture/HOME bonuses; entry on a 5 is
+  not forced.
 
 ## Dev quick-ref
 - `npm test` (engine), `npm run build` (type-check + build), `npm run dev` (UI,

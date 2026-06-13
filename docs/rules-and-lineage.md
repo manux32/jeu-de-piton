@@ -147,6 +147,10 @@ brand's bonus-move rules:
 - ~~Capture specifics **on** a safe/entry square~~ — **RESOLVED 2026-06-12** in
   the engine (rung 4): an enemy on a safe square can't be landed on, so capture
   there never arises. Confirm with real play if a surprise turns up.
+- **Enemy on your start square** — does an enemy parked on your start/entry
+  square block you from coming out, or may you capture it even though the start
+  is a safe square? **Engine today: it blocks entry and is immune** (no capture
+  on a safe square). Awaiting the friend's answer.
 - ~~Unplayable bonus 6~~ — **RESOLVED 2026-06-12** (confirmed with the friend):
   an unplayable 6 still grants the bonus roll **and still counts toward the
   three-in-a-row** — so three consecutive 6s trip the lose-leading penalty even

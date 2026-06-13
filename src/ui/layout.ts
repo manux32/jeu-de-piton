@@ -52,7 +52,7 @@ export interface Cell {
 
 /** Everything a renderer needs to place the board and the pieces on it. */
 export interface BoardLayout {
-  /** Side length of the square grid, in cells (cabin board: 19). */
+  /** Side length of the square *logical* grid, in cells (cabin board: 19). */
   gridSize: number
   /** Absolute track square index → its grid cell. Length = `trackLength`. */
   trackCells: Cell[]
@@ -62,7 +62,27 @@ export interface BoardLayout {
   nestCells: Cell[][]
   /** Centre cell of the board — HOME / the finish. */
   homeCell: Cell
+  /**
+   * Cumulative cell-edge positions in *render units*, length `gridSize + 1`.
+   * Cell index `i` spans `[edges[i], edges[i+1]]` on BOTH axes — the board is
+   * 4-fold symmetric, so one array drives columns and rows alike. Non-uniform:
+   * the three central rows/columns are wider (see `ARM_WIDTH_SCALE`), giving the
+   * rectangular-cell look. Renderers map a logical `{col,row}` to pixels through
+   * `cellStart`/`cellSize`/`cellMid` below rather than assuming unit cells.
+   */
+  edges: number[]
+  /** Total board size in render units (`= edges[gridSize]`); the SVG viewBox side. */
+  extent: number
 }
+
+/** Left/top render coordinate of the cell at logical index `i`. */
+export const cellStart = (i: number, layout: BoardLayout) => layout.edges[i]
+/** Render width/height of the cell at logical index `i`. */
+export const cellSize = (i: number, layout: BoardLayout) =>
+  layout.edges[i + 1] - layout.edges[i]
+/** Centre render coordinate of the cell at logical index `i`. */
+export const cellMid = (i: number, layout: BoardLayout) =>
+  (layout.edges[i] + layout.edges[i + 1]) / 2
 
 /**
  * Rotate a cell 90° clockwise on screen about the board centre, `times` times.
@@ -98,6 +118,18 @@ const SAFE_PHASE = 13
  * AI) at the **South** arm, so a 2-player game (entries 0 & 34) is North–South.
  */
 const SEAT_ROTATION = 3
+
+/**
+ * Rectangular-cell look. Movement squares are drawn wider ACROSS an arm than they
+ * are long ALONG it (matching the reference board). On the logical grid that means
+ * the three central rows/columns — every arm's WIDTH, plus the HOME block — are
+ * stretched by this factor, while the outer cells (each arm's LENGTH and the nest
+ * corners) stay at unit size. Because the board is symmetric, the same stretch on
+ * both axes makes the south arm's cells come out wide-and-short and the east arm's
+ * identical cells tall-and-narrow — automatically, with no per-arm code. 1 = the
+ * old uniform squares; raise it for chunkier arms (the photo sits near 1.6).
+ */
+const ARM_WIDTH_SCALE = 1.9
 
 /**
  * Build the screen layout for a game with the given resolved geometry and player
@@ -164,12 +196,22 @@ export function buildLayout(
     nestCells.push(slots.map((s) => rotate(s, centre, armRot)))
   }
 
+  // --- non-uniform render spacing: fatten the three central rows/columns ------
+  // (the arm widths + HOME). Palindromic by construction, so it stays symmetric.
+  const edges: number[] = [0]
+  for (let i = 0; i < gridSize; i++) {
+    const width = Math.abs(i - centre) <= 1 ? ARM_WIDTH_SCALE : 1
+    edges.push(edges[i] + width)
+  }
+
   return {
     gridSize,
     trackCells,
     laneCells,
     nestCells,
     homeCell: { col: centre, row: centre },
+    edges,
+    extent: edges[gridSize],
   }
 }
 

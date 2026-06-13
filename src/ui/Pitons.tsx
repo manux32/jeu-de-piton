@@ -3,10 +3,12 @@
  * `PitonPosition` maps to via `buildLayout`. Pure rendering of engine state —
  * it reads where each piton is and draws it; it never decides where a piton may
  * go. Which pitons are movable (and the move each one would make) is handed in
- * as `moves` from the engine's `legalMoves`; clicking one calls `onPick`.
+ * as `moves` from the engine's `legalMoves`; clicking one calls `onPick`. A
+ * capture move also makes its *target* enemy clickable, since that disc sits
+ * over the destination marker and would otherwise swallow the click.
  */
 import type { GameState, Move, PitonPosition } from '../engine'
-import type { BoardLayout, Cell } from './layout'
+import { type BoardLayout, type Cell, cellMid, cellStart } from './layout'
 import { PLAYER_HEX } from './colors'
 
 interface Props {
@@ -17,37 +19,63 @@ interface Props {
   onPick: (move: Move) => void
 }
 
-/** Small fan-out offsets so several pitons sharing HOME don't fully overlap. */
+/** Small fan-out within one player's HOME group so its pitons don't stack. */
 const HOME_FAN: Cell[] = [
-  { col: -0.45, row: -0.45 },
-  { col: 0.45, row: -0.45 },
-  { col: -0.45, row: 0.45 },
-  { col: 0.45, row: 0.45 },
+  { col: -0.32, row: -0.32 },
+  { col: 0.32, row: -0.32 },
+  { col: -0.32, row: 0.32 },
+  { col: 0.32, row: 0.32 },
 ]
 
-function cellFor(
+/**
+ * Where player `playerIndex`'s `slot`-th finished piton sits: clustered toward
+ * the HOME edge facing that player's own arm (the direction their lane enters
+ * from), so each colour groups in its own corner instead of piling up at the
+ * centre, then fanned within that group.
+ */
+function homeCluster(layout: BoardLayout, playerIndex: number, slot: number) {
+  const { homeCell } = layout
+  const lane = layout.laneCells[playerIndex]
+  const deep = lane[lane.length - 1] // lane cell nearest HOME → points at the arm
+  const dirCol = Math.sign(deep.col - homeCell.col)
+  const dirRow = Math.sign(deep.row - homeCell.row)
+  const homeHalf =
+    (cellStart(homeCell.col + 2, layout) - cellStart(homeCell.col - 1, layout)) / 2
+  const push = homeHalf - 0.95 // toward the player's edge, with a margin
+  const fan = HOME_FAN[slot % HOME_FAN.length]
+  return {
+    cx: cellMid(homeCell.col, layout) + dirCol * push + fan.col,
+    cy: cellMid(homeCell.row, layout) + dirRow * push + fan.row,
+  }
+}
+
+/** Render-unit pixel centre for a piton at `pos`. `slot` disambiguates pitons
+ * sharing a region (nest slots, or a player's HOME group). */
+function centerFor(
   pos: PitonPosition,
   playerIndex: number,
   layout: BoardLayout,
-  nestSlot: number,
-  homeSlot: number,
-): Cell {
+  slot: number,
+): { cx: number; cy: number } {
+  const mid = (c: Cell) => ({ cx: cellMid(c.col, layout), cy: cellMid(c.row, layout) })
   switch (pos.kind) {
     case 'nest':
-      return layout.nestCells[playerIndex][nestSlot]
+      return mid(layout.nestCells[playerIndex][slot])
     case 'track':
-      return layout.trackCells[pos.square]
+      return mid(layout.trackCells[pos.square])
     case 'lane':
-      return layout.laneCells[playerIndex][pos.step]
-    case 'finished': {
-      const fan = HOME_FAN[homeSlot % HOME_FAN.length]
-      return { col: layout.homeCell.col + fan.col, row: layout.homeCell.row + fan.row }
-    }
+      return mid(layout.laneCells[playerIndex][pos.step])
+    case 'finished':
+      return homeCluster(layout, playerIndex, slot)
   }
 }
 
 export function Pitons({ state, layout, moves, onPick }: Props) {
   const moveByPiton = new Map(moves.map((m) => [m.pitonId, m]))
+  // A capture targets an ENEMY piton; let clicking that enemy fire the move too.
+  const captureByPiton = new Map(
+    moves.filter((m) => m.captures).map((m) => [m.captures as string, m]),
+  )
 
   return (
     <g className="pitons">
@@ -62,19 +90,13 @@ export function Pitons({ state, layout, moves, onPick }: Props) {
               : piton.position.kind === 'finished'
                 ? homeSlot++
                 : 0
-          const cell = cellFor(
-            piton.position,
-            p,
-            layout,
-            piton.position.kind === 'nest' ? slot : 0,
-            piton.position.kind === 'finished' ? slot : 0,
-          )
-          const move = moveByPiton.get(piton.id)
-          const cx = cell.col + 0.5
-          const cy = cell.row + 0.5
+          const ownMove = moveByPiton.get(piton.id)
+          const captureMove = captureByPiton.get(piton.id)
+          const clickMove = ownMove ?? captureMove
+          const { cx, cy } = centerFor(piton.position, p, layout, slot)
           return (
             <g key={piton.id}>
-              {move && (
+              {ownMove && (
                 <circle
                   className="piton-halo"
                   cx={cx}
@@ -86,14 +108,20 @@ export function Pitons({ state, layout, moves, onPick }: Props) {
                 />
               )}
               <circle
-                className={move ? 'piton piton-movable' : 'piton'}
+                className={
+                  ownMove
+                    ? 'piton piton-movable'
+                    : captureMove
+                      ? 'piton piton-target'
+                      : 'piton'
+                }
                 cx={cx}
                 cy={cy}
                 r={0.3}
                 fill={hex}
                 stroke="#2b2b2b"
                 strokeWidth={0.05}
-                onClick={move ? () => onPick(move) : undefined}
+                onClick={clickMove ? () => onPick(clickMove) : undefined}
               />
             </g>
           )

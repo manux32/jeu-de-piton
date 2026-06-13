@@ -262,3 +262,16 @@ code {
 .move-target:hover {
   fill-opacity: 0.2;
 }
+.piton-target {
+  cursor: pointer;
+}
+/* HOME-bound move target — bolder, solid, and pulsing to draw the eye. */
+.move-target-home {
+  fill-opacity: 0.16;
+  stroke-width: 0.12;
+  stroke-dasharray: none;
+  animation: piton-pulse 1.2s ease-in-out infinite;
+}
+.move-target-home:hover {
+  fill-opacity: 0.3;
+}

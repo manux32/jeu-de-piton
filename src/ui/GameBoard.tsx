@@ -8,7 +8,7 @@
  */
 import { useMemo } from 'react'
 import type { GameState, Move } from '../engine'
-import { buildLayout, destinationCell } from './layout'
+import { buildLayout, destinationCell, cellMid } from './layout'
 import { Board } from './Board'
 import { Pitons } from './Pitons'
 import { PLAYER_HEX } from './colors'
@@ -28,7 +28,7 @@ export function GameBoard({ state, moves, onPick }: Props) {
   return (
     <svg
       className="game-board"
-      viewBox={`0 0 ${layout.gridSize} ${layout.gridSize}`}
+      viewBox={`0 0 ${layout.extent} ${layout.extent}`}
       role="img"
       aria-label="jeu de piton board"
     >
@@ -40,13 +40,16 @@ export function GameBoard({ state, moves, onPick }: Props) {
       <g className="move-targets" style={{ color: PLAYER_HEX[state.players[state.turn].color] }}>
         {moves.map((m, i) => {
           const cell = destinationCell(m.to, state.turn, layout)
+          // A HOME-bound move is the big prize — flag it with a larger, bolder,
+          // pulsing marker so players don't miss the chance to finish a piton.
+          const home = m.to.kind === 'finished'
           return (
             <circle
               key={`target-${i}`}
-              className="move-target"
-              cx={cell.col + 0.5}
-              cy={cell.row + 0.5}
-              r={0.42}
+              className={home ? 'move-target move-target-home' : 'move-target'}
+              cx={cellMid(cell.col, layout)}
+              cy={cellMid(cell.row, layout)}
+              r={home ? 0.85 : 0.42}
               onClick={() => onPick(m)}
             />
           )
