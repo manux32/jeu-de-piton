@@ -81,7 +81,10 @@ Key spatial facts a renderer must honour (all four were mistakes once — see
   cells. A piton there is immune to capture (safe square) but is **not** in the
   fully-private lane (enemies still pass through the tip on the shared track).
 - The **start / nest-exit** square is on the player's **right** side column
-  (a few cells up from the tip), and is itself safe.
+  (a few cells up from the tip), and is safe — but **only to other players**: its
+  owner may exit the nest onto it to capture an enemy parked there (the
+  start-square exception, see rules-and-lineage.md). It's marked with a colored
+  **ownership arrow** (below).
 - A player's **nest** sits in the board corner on the **same side as their start
   column** (the corner the entry arrow comes from), **centred in that corner
   quadrant** (the square board region between the two arms). Because the quadrant
@@ -111,7 +114,12 @@ mid-arm (left column). The mouth being `start − 5` is the engine's
 `homeEntryOffset: 4` (`trackPathLength: 64`) seen on the board.
 
 Rendered as a **black fill** (not blue — that would clash with blue players'
-home-lane cells).
+home-lane cells). The four **start** squares additionally carry an **ownership
+arrow** — a triangle in the owner's colour, laid *over* the black fill — that does
+double duty: it marks whose square it is (only that player can capture on it, per
+the start-square exception) and, by pointing the way play travels, shows the
+direction of flow. The arrow is axis-aligned (never tilted) with its base on the
+trailing edge; shape via the `ARROW_*` knobs in `src/ui/Board.tsx`.
 
 ## How a piton travels (the spatial walkthrough)
 1. Starts in its **nest** (corner). A roll of **5** moves it onto its **start**
@@ -123,7 +131,9 @@ home-lane cells).
 4. Reaches **HOME** by **exact** count (an overshoot is simply not a legal move).
 
 Capture/blocking happen on the **shared track** only; the private lane is immune,
-and safe squares can't be captured on and block passage. The "6 moves 12", the
+and safe squares can't be captured on and block passage — the lone exception being
+that a player may capture an enemy on the player's **own** start square (see
+rules-and-lineage.md; engine impl pending). The "6 moves 12", the
 3rd-six penalty, etc. are rule details — see rules-and-lineage.md, not here.
 
 ## Seating convention (UI choice, not a rule)

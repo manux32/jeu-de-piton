@@ -43,7 +43,7 @@ centred in their corner quadrants** — `buildLayout` positions nest holes in
 **render units** (`nestSlots`; `nestCentres` is now render-unit and *is* the
 quadrant centre), replacing integer `nestCells` + the `round(sideLen/2)+1` offset.
 
-As of the **2026-06-13 turn-clarity pass** (this session): two cues make
+As of the **2026-06-13 turn-clarity pass**: two cues make
 "whose turn" unmistakable. The active player's corner **wash now pulses** (a
 gentle ~1.5s breathe — `.nest-active-wash` in [index.css](../src/index.css),
 distinguished from the piton/home *alarm* pulse by a far shallower opacity swing,
@@ -55,6 +55,16 @@ anchored to the bottom of their corner quadrant. The reducer now tags each notic
 with a `noticeOwner` (still pure before/after observation). Messages went terse
 and dropped player names (the colour-coded corner identifies the player). **This
 retires the forfeit-notice wart** below.
+
+As of the **2026-06-13 start-square ownership pass** (this session): the friend
+**resolved the "enemy on your start square" question** — it's an **exception**: a
+start square is safe to *everyone but its owner*, who may exit the nest (on a 5)
+right onto it to **capture** an enemy parked there. The board now shows this with a
+per-start **ownership arrow** — a triangle in the owner's colour over the (kept)
+black safe fill that *also* points the way play travels (two cues in one: whose
+square + flow direction); shape via four base-anchored `ARROW_*` knobs in
+[Board.tsx](../src/ui/Board.tsx). **The engine still encodes the old fully-safe
+behaviour** — implementing the owner-exception is a fresh next-session item (below).
 
 ## Build checklist
 - ✅ **M1** scaffold — Vite + React + TS, own repo.
@@ -69,6 +79,14 @@ retires the forfeit-notice wart** below.
 - ⬜ **M6** polish backlog.
 
 ## Next session — pick one
+- **Implement the start-square exception in the engine (new, 2026-06-13).** The
+  rule is confirmed and the board already marks it, but `legalMoves` still treats a
+  start square as fully safe: it refuses nest-entry onto an occupied entry square
+  and forbids capture on safe squares. Teach it that a player's **own** start
+  square is *not* safe to them — entry onto it (on a 5) captures a lone enemy there
+  — while staying safe to everyone else and for the other two safe kinds (+7, +12).
+  Engine + tests; **no UI change** (the marker's already drawn). Detail →
+  [rules-and-lineage.md](rules-and-lineage.md).
 - **Chrome size tuning (the one piece of "chrome polish" still open).** Now that
   the board fills the screen, the on-board chrome scales up with it (sized in
   board units, `CTRL_SCALE = 0.019` in [GameBoard.tsx](../src/ui/GameBoard.tsx);
@@ -124,6 +142,12 @@ retires the forfeit-notice wart** below.
     notice split into per-nest event line (acting player) + turn prompt (current
     player), each in its owner's corner. `noticeOwner` added to `GameView`. *Why*
     → [decisions.md](decisions.md).
+  - ✅ **Start-square ownership arrows** (2026-06-13) — each start square carries a
+    triangle in the owner's colour pointing the way play travels (ownership +
+    direction in one mark); four base-anchored `ARROW_*` knobs in
+    [`Board.tsx`](../src/ui/Board.tsx). Marks the now-confirmed start-square
+    exception (engine impl still pending — see "Next session"). *Why* →
+    [decisions.md](decisions.md).
   - ✅ **Forfeit-notice wart** (2026-06-12, **resolved 2026-06-13**) — the notice
     used to describe the player who *just rolled* while the turn cue showed the
     **next** player; momentarily confusing. The deferred `awaitingPass`-gate fix
@@ -132,11 +156,11 @@ retires the forfeit-notice wart** below.
     nothing left to confuse.
 
 ## Open rule details
-- **Enemy on a player's start square** (awaiting the friend, 2026-06-12) — does an
-  enemy sitting on your start/entry square block you from coming out, or may you
-  capture it *despite* the square being safe? **Engine today: it blocks entry and
-  is immune** (start is a safe square; `legalMoves` refuses entry onto any occupied
-  entry square, and capture on a safe square is forbidden). Revisit once confirmed.
+- ~~Enemy on a player's start square~~ — **RESOLVED 2026-06-13** (the friend): it's
+  an **exception** — a start square is safe to everyone *but its owner*, who may
+  exit the nest onto it to capture an enemy there. Visual cue shipped (ownership
+  arrows); **engine change still pending** — see "Next session". Detail →
+  [rules-and-lineage.md](rules-and-lineage.md).
 - *Everything else confirmed as of 2026-06-12.* Unplayable-1st/2nd-6 closed (bonus
   roll + counts toward three-in-a-row). No capture/HOME bonuses; entry on a 5 is
   not forced.

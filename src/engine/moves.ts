@@ -161,8 +161,12 @@ export function legalMoves(state: GameState, roll: number): Move[] {
   const moves: Move[] = []
 
   // --- Entry: a nest piton onto its entry square --------------------------
-  // The entry square is itself a safe square, so an occupant there can never be
-  // captured and (no stacking) blocks entry entirely — regardless of owner.
+  // TODO(start-square exception): the confirmed rule makes a player's OWN start
+  // an exception — they may enter onto it to CAPTURE a lone enemy parked there
+  // (the start is safe only to non-owners). Not yet implemented: today any
+  // occupant blocks entry and is immune, regardless of owner. See
+  // docs/rules-and-lineage.md + STATUS.md. To support it, allow entry when the
+  // occupant is a lone enemy and emit a capturing entry Move.
   if (state.ruleset.entryRolls.includes(roll) && !squareOccupied(state, entryIndex)) {
     for (const piton of player.pitons) {
       if (piton.position.kind === 'nest') {

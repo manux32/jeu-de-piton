@@ -10,6 +10,28 @@
 > [rules-and-lineage.md](rules-and-lineage.md), [board-model.md](board-model.md)).
 > Don't duplicate git history — capture reasoning a commit message wouldn't.
 
+- **2026-06-13** — **Start squares are safe *only for their owner*; marked with a
+  colored "ownership arrow".** The friend resolved the long-open "enemy on your
+  start square" question: it is an **exception** to the safe-square rule. An enemy
+  parked on your start/entry square does **not** block you and is **not** immune to
+  *you* — you may bring a piton out of the nest (on a 5) right onto your start and
+  **capture** it. So a start square is safe to everyone *except the player who owns
+  it*; the other two safe kinds (mid-arm +7, home-mouth +12) stay universally safe.
+  **The engine still encodes the old "fully safe" behaviour** (`legalMoves` refuses
+  entry onto any occupied entry square, and capture on a safe square is forbidden)
+  — teaching it the owner-exception is now a tracked next step; this session shipped
+  only the **visual** cue. *Visual choice:* each start square gets a triangle in the
+  owner's colour, laid over the (kept) black safe fill, so the square still reads
+  "safe" but now shows *whose*. The triangle **points the way play travels** (CCW
+  along the track) rather than nest→start — packing two cues into one mark
+  (ownership *and* flow direction) for free; travel is axis-aligned so the arrows
+  never tilt, and the base rests on the trailing ("bottom") edge (screen-bottom for
+  the south arm, its rotation for the rest). Shape is four independent knobs in
+  [Board.tsx](../src/ui/Board.tsx) — `ARROW_LENGTH` / `ARROW_OFFSET_ALONG` /
+  `ARROW_OFFSET_ACROSS` / `ARROW_WIDTH` — deliberately **base-anchored** (resizing
+  length grows the apex from a fixed base) after a first cut tangled size with
+  position (apex and base both keyed off centre, so the length knob could only ever
+  budge ~10% of the height).
 - **2026-06-13** — **Whose-turn wash now *pulses*; the notice split into two
   per-nest lines.** Goal (user): make "whose turn is it" unmistakable to every
   player at a glance. Two changes. (1) **The active player's corner wash now

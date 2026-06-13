@@ -68,7 +68,7 @@ canonical:
 | Stacking | blockades of 2 allowed | **never two pitons on one square** |
 | Passing an ally | allowed | **forbidden** — cannot move past your own piton |
 | Passing an enemy | allowed | allowed *(unless on a safe square — see below)* |
-| Safe squares | immune to capture | immune to capture **and block all passage** — nobody may move past an occupied safe square |
+| Safe squares | immune to capture | immune to capture **and block all passage** — nobody may move past an occupied safe square *(exception: a player's own **start** square is not safe **to them** — see below)* |
 | Entering HOME | exact count | **exact count required** |
 | Moving is | mandatory if able | **mandatory if able** (forced move) |
 
@@ -96,7 +96,22 @@ the **whole path matters**:
   square**, which blocks everyone.
 - No square may ever hold two pitons, so a destination occupied by an ally is
   illegal, and a destination occupied by a lone enemy is a **capture** (unless
-  it's a safe square).
+  it's a safe square — but see the start-square exception next).
+
+### Start-square exception — safe *only for the owner* (CONFIRMED 2026-06-13)
+The one crack in "safe squares are immune to everyone": a **start/entry** square
+is safe to everyone **except the player who owns it**. If an enemy is parked on
+your start square, you may bring a piton **out of the nest** (on a 5) straight
+onto it and **capture** the enemy — the square neither blocks your entry nor
+shields the enemy *from you*. It still shields that enemy from **every other**
+player, and the other two safe kinds (mid-arm +7, home-mouth +12) stay
+universally safe.
+
+The board marks this with the per-start **ownership arrow** (the colour triangle,
+see [board-model.md](board-model.md)). **Not yet in the engine** — `legalMoves`
+today still refuses entry onto any occupied entry square and forbids capture on a
+safe square; teaching it the owner-exception is a tracked next step (see
+[STATUS.md](STATUS.md)).
 
 ### Board geometry — CONFIRMED
 The cabin board matches the standard **Selchow & Righter Parcheesi** layout
@@ -111,7 +126,8 @@ track, the middle column (red runway) is that player's private home lane.
 - **Safe squares: 12** — the circle-marked cells. Three per arm, repeating every
   17 squares: the **start/entry** square (offset 0), a **mid-arm** safe (+7), and
   the **home-lane mouth** (+12, which is the *next* player's lane entry). A
-  player's own **entry/start square is itself safe**.
+  player's own **entry/start square is safe to everyone *but its owner*** — see the
+  start-square exception above.
 - **Travel is counter-clockwise**; you start on your **own** arm and lap back to
   enter your home lane there. The lane mouth sits **5 squares before your start**
   (`homeEntryOffset: 4`, `trackPathLength: 64`).
@@ -147,10 +163,12 @@ brand's bonus-move rules:
 - ~~Capture specifics **on** a safe/entry square~~ — **RESOLVED 2026-06-12** in
   the engine (rung 4): an enemy on a safe square can't be landed on, so capture
   there never arises. Confirm with real play if a surprise turns up.
-- **Enemy on your start square** — does an enemy parked on your start/entry
-  square block you from coming out, or may you capture it even though the start
-  is a safe square? **Engine today: it blocks entry and is immune** (no capture
-  on a safe square). Awaiting the friend's answer.
+- ~~Enemy on your start square~~ — **RESOLVED 2026-06-13** (the friend): it's an
+  **exception** — you *may* capture it by exiting the nest onto your start; a start
+  square is safe only to non-owners (see "Start-square exception" above). The
+  visual cue (ownership arrows) shipped this session, but the **engine still
+  implements the old fully-safe behaviour** — the owner-exception is a pending
+  engine change, tracked in [STATUS.md](STATUS.md).
 - ~~Unplayable bonus 6~~ — **RESOLVED 2026-06-12** (confirmed with the friend):
   an unplayable 6 still grants the bonus roll **and still counts toward the
   three-in-a-row** — so three consecutive 6s trip the lose-leading penalty even
