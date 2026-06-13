@@ -64,6 +64,24 @@ lint clean. `src/ui/` is rules-free — every decision comes from the engine via
   roll + counts toward three-in-a-row). No capture/HOME bonuses; entry on a 5 is
   not forced.
 
+## Dev scenario tooling (dev builds only)
+A right-hand **Dev** panel (floating "Dev" toggle, top-right) loads doctored
+board situations for validating UI/interaction fixes without playing up to them.
+- Scenarios are **one file each** under [`src/ui/dev/scenarios/`](../src/ui/dev/scenarios/),
+  auto-discovered via `import.meta.glob` ([`registry.ts`](../src/ui/dev/registry.ts)) —
+  add a file, it shows up in the picker. Shared `DevScenario` type + `place()`
+  helper in [`scenario.ts`](../src/ui/dev/scenario.ts).
+- All dev surface is lazy-imported behind `import.meta.env.DEV` via
+  [`DevTools.tsx`](../src/ui/dev/DevTools.tsx), so the whole chunk (panel,
+  scenarios, `dev.css`) **never ships** — verified: prod bundle byte-identical to
+  pre-tooling. The engine stays untouched; scenarios dispatch a `load` action
+  ([`useGame.ts`](../src/ui/useGame.ts)) carrying a full `GameView`.
+- **Plan (3 sessions):** ✅ S1 panel + file-based scenarios + load dropdown.
+  ⬜ S2 board-state editor (click-piton-then-cell placement, turn/roll controls,
+  cell→position reverse map in `layout.ts`, EDIT-MODE banner). ⬜ S3 "save as
+  scenario" (state→code serialization + name field + dev-only Vite middleware
+  that writes a new file into `scenarios/`).
+
 ## Dev quick-ref
 - `npm test` (engine), `npm run build` (type-check + build), `npm run dev` (UI,
   port 5173 — see CLAUDE.md session-start policy).

@@ -34,6 +34,8 @@ export type GameAction =
   | { type: 'roll'; value: number }
   | { type: 'pick'; move: Move }
   | { type: 'newGame'; playerCount: number }
+  // DEV-only: drop a fully-built view straight in (see devScenarios.ts).
+  | { type: 'load'; view: GameView }
 
 const cap = (s: string) => s[0].toUpperCase() + s.slice(1)
 const name = (game: GameState, i: number) => cap(game.players[i].color)
@@ -48,6 +50,9 @@ function reducer(view: GameView, action: GameAction): GameView {
   switch (action.type) {
     case 'newGame':
       return init(action.playerCount)
+
+    case 'load':
+      return action.view
 
     case 'roll': {
       const prev = view.game

@@ -1,0 +1,78 @@
+/* Dev-tools styles. Imported only by DevTools.tsx, which is itself lazy-loaded
+   behind import.meta.env.DEV — so this CSS lands in the dev-only chunk and never
+   ships in a production build. */
+.dev-toggle {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 20;
+}
+
+.dev-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  width: 300px;
+  max-width: 80vw;
+  box-sizing: border-box;
+  padding: 16px;
+  text-align: left;
+  background: var(--bg);
+  border-left: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  overflow-y: auto;
+}
+
+.dev-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.dev-panel-title {
+  font-size: 18px;
+  margin: 0;
+}
+
+.dev-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-block: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.dev-label {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text);
+}
+
+.dev-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dev-select {
+  font: inherit;
+  font-size: 15px;
+  flex: 1;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text-h);
+  cursor: pointer;
+}
+
+.dev-hint {
+  font-size: 13px;
+  line-height: 135%;
+  color: var(--text);
+}

@@ -1,7 +1,15 @@
+import { lazy, Suspense } from 'react'
 import { rollDie, legalMoves, type Move } from './engine'
 import { GameBoard } from './ui/GameBoard'
 import { Hud } from './ui/Hud'
 import { useGame } from './ui/useGame'
+
+// Dev tools are lazy-loaded ONLY in dev builds. In production `import.meta.env.DEV`
+// is statically false, so the ternary collapses to `null` and the dynamic import
+// is dead code — Rollup never emits the dev chunk (panel, scenarios, dev.css).
+const DevTools = import.meta.env.DEV
+  ? lazy(() => import('./ui/dev/DevTools'))
+  : null
 
 function App() {
   const [view, dispatch] = useGame(4)
@@ -46,6 +54,12 @@ function App() {
         moves={moves}
         onPick={(move) => dispatch({ type: 'pick', move })}
       />
+
+      {DevTools && (
+        <Suspense fallback={null}>
+          <DevTools onLoad={(loaded) => dispatch({ type: 'load', view: loaded })} />
+        </Suspense>
+      )}
     </main>
   )
 }
