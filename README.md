@@ -12,7 +12,7 @@ engine framework — the game is turn-based discrete state, not real-time.
 - **Current status + next steps** → [docs/STATUS.md](docs/STATUS.md)
 
 > Status: **playable hot-seat** (Milestone 4 done). The pure rules core lives in
-> [`src/engine/`](src/engine/), unit-tested with Vitest (`npm test`, 70 passing);
+> [`src/engine/`](src/engine/), unit-tested with Vitest (`npm test`, 77 passing);
 > the SVG board + interaction loop (roll, highlight legal moves, click-to-move,
 > capture/win) live in [`src/ui/`](src/ui/). Next: a second rule variant + polish
 > — see [docs/STATUS.md](docs/STATUS.md).

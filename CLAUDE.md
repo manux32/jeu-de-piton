@@ -15,6 +15,7 @@ task touches that area**, to keep session context lean:
   [docs/board-model.md](docs/board-model.md) — read before touching board geometry
   or `src/ui/` layout (it's where past sessions drifted).
 - ***Why* a past choice was made** (dated rationale log) → [docs/decisions.md](docs/decisions.md)
+- **Dev scenario rig** (the dev-only `src/ui/dev/` panel) → [docs/dev-tooling.md](docs/dev-tooling.md)
 - Original scaffold-time plan, frozen → [docs/archive/PLAN.md](docs/archive/PLAN.md)
 
 This is its own independent git repo (`manux32/jeu-de-piton`), nested under the
@@ -28,6 +29,11 @@ start: **check whether something is already serving on :5173; if so, restart it*
 managed handle + fresh state). **If nothing is running, leave it down** — don't
 start it until the user asks or until you actually need it to do work this
 session. (Launch with `NODE_OPTIONS=--use-system-ca npm run dev`, backgrounded.)
+
+## Commits (working-style reminder)
+**Commit each meaningful step locally on your own initiative — don't ask first.**
+Group changes and confirm before *pushing*. (This mirrors a standing personal
+preference that's easy to forget mid-session.)
 
 ## Architecture (do not violate)
 - **`src/engine/`** = pure rules core, **no React/DOM imports**. Unit-testable in

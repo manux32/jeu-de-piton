@@ -4,7 +4,8 @@
 > structural decision**, not every session. Current status lives in
 > [STATUS.md](STATUS.md); the dated rationale log is in [decisions.md](decisions.md);
 > rules in [rules-and-lineage.md](rules-and-lineage.md); board geometry in
-> [board-model.md](board-model.md). Maintain: update a section when the decision it
+> [board-model.md](board-model.md); the dev scenario rig in
+> [dev-tooling.md](dev-tooling.md). Maintain: update a section when the decision it
 > describes actually changes; record *why* it changed in [decisions.md](decisions.md).
 
 ## What this is

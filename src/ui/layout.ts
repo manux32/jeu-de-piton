@@ -38,8 +38,9 @@
  * column to the tip, across the tip-middle cell (the U-turn), back along the top
  * side column. Rotating that quadrant by 90° three times (`rotate`, below) tiles
  * the whole `trackLength`-cell ring. The ring is then phase-shifted by
- * `RING_SHIFT` so that engine track index 0 lands on a sensible start square
- * (just inside a tip), with each player's home lane falling on their own arm.
+ * `ringShift` (`SAFE_PHASE + SEAT_ROTATION * quadrant`, see those constants) so
+ * that engine track index 0 lands on a sensible start square (just inside a tip),
+ * with each player's home lane falling on their own arm.
  *
  * Direction of travel (the cabin runs counter-clockwise) is purely this layer's
  * concern; the engine only ever advances by increasing index. See the decision
