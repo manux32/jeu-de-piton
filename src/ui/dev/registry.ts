@@ -1,8 +1,8 @@
 /**
  * DEV-ONLY scenario registry. Auto-discovers every scenario file under
  * `scenarios/` via Vite's `import.meta.glob`, so adding a file *is* adding a
- * scenario — no manual index to maintain (which is what makes the future
- * "save as scenario" flow as simple as writing a new file). Eager so the views
+ * scenario — no manual index to maintain (which is what lets the "save as
+ * scenario" flow just write a new file). Eager so the views
  * are ready synchronously for the picker; sorted by path for a stable order.
  */
 import type { DevScenario } from './scenario'

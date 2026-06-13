@@ -10,6 +10,25 @@
 > [rules-and-lineage.md](rules-and-lineage.md), [board-model.md](board-model.md)).
 > Don't duplicate git history — capture reasoning a commit message wouldn't.
 
+- **2026-06-13** — **Dev rig S3 done (save-as-scenario); two parameter-merge
+  calls.** The "Save as scenario" form serializes the live `GameView` to
+  scenario-file source ([`serialize.ts`](../src/ui/dev/serialize.ts), pure +
+  unit-tested) and POSTs it to a **dev-only Vite middleware** (`apply: 'serve'`, so
+  it has no presence in a prod build) that writes `scenarios/<id>.ts`; the
+  `import.meta.glob` registry surfaces it on the next HMR pass. Two redundancy
+  decisions worth the ink: (1) **Merged a scenario's `hint`+`notice` into one
+  `description`** — they were the *same concept* (a one-line description) duplicated
+  across two surfaces (picker tooltip vs HUD banner), so `build()` now returns board
+  state only and `loadScenario` stamps the `Dev:`-prefixed notice from the single
+  `description`. (2) **Deliberately did *not* merge `id` and `label`** — superficially
+  similar, but they are *different* concepts (a slug-constrained machine id that is
+  also the filename, vs free display text), so they can't be one string. The genuine
+  redundancy is `id`-equals-filename; the clean fix would be to derive `id` from the
+  glob path and drop the field. Declined as not worth the churn for a dev tool: the
+  serializer keeps them in sync for generated files, and a hand-edited drift is
+  harmless (`id` is only a React key / lookup, never the discovery mechanism). Easy
+  to revisit if it ever bites. Prod still dead-code-eliminates the whole dev surface
+  (no chunk emitted) — S3 didn't perturb the byte-identical-to-pre-tooling property.
 - **2026-06-12** — **Dev scenario rig: knob editor, not a board editor; lazy-only,
   not dead-branched.** Validating look-and-feel fixes (capture-click, HOME
   grouping/highlight) meant reaching exact states tedious to play to, so we built a

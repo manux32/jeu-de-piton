@@ -15,8 +15,8 @@
 ## Where we are
 **Playable hot-seat, polished.** Milestones 1–4 done (scaffold · engine core ·
 SVG board · interaction loop), plus several M6 look-and-feel items (rectangular
-cells, HOME grouping/highlight, capture-click). 70 engine tests green, build +
-lint clean. `src/ui/` is rules-free — every decision comes from the engine via
+cells, HOME grouping/highlight, capture-click). 75 tests green (70 engine + 5
+dev-tool serializer), build + lint clean. `src/ui/` is rules-free — every decision comes from the engine via
 `rollDie`/`applyRoll`/`legalMoves`/`applyMove`.
 
 ## Build checklist
@@ -64,41 +64,34 @@ lint clean. `src/ui/` is rules-free — every decision comes from the engine via
   roll + counts toward three-in-a-row). No capture/HOME bonuses; entry on a 5 is
   not forced.
 
-## Dev scenario tooling (dev builds only)
-A right-hand **Dev** panel (floating "Dev" toggle, top-right) loads doctored
-board situations for validating UI/interaction fixes without playing up to them.
-- Scenarios are **one file each** under [`src/ui/dev/scenarios/`](../src/ui/dev/scenarios/),
-  auto-discovered via `import.meta.glob` ([`registry.ts`](../src/ui/dev/registry.ts)) —
-  add a file, it shows up in the picker. Shared `DevScenario` type + `place()`
-  helper in [`scenario.ts`](../src/ui/dev/scenario.ts). A scenario carries a single
-  `description` (one concept — was split into `hint`+`notice`, merged 2026-06-13):
-  it's the picker tooltip *and*, via `loadScenario`, the HUD `notice` on load
-  (`Dev:`-prefixed). `build()` returns board state only; it no longer sets a notice.
-- All dev surface is lazy-imported behind `import.meta.env.DEV` via
-  [`DevTools.tsx`](../src/ui/dev/DevTools.tsx), so the whole chunk (panel,
-  scenarios, `dev.css`) **never ships** — verified: prod bundle byte-identical to
-  pre-tooling. The engine stays untouched; scenarios dispatch a `load` action
-  ([`useGame.ts`](../src/ui/useGame.ts)) carrying a full `GameView`.
-- The panel also has a **state editor** ([`StateEditor.tsx`](../src/ui/dev/StateEditor.tsx)):
-  a knob form (NOT spatial board-editing — pivoted there 2026-06-12) over the same
-  fields a scenario sets — turn, pending roll (→ phase), `extraTurnStreak`, and
-  each piton's position (collapsible per-colour groups + per-player Nest-all /
-  Home-all). It's a controlled reflection of the live `GameView`; edits dispatch
-  `load`; the board mirrors the result. Runs no engine transitions, so illegal
-  setups are allowed on purpose.
-- **Save as scenario** (S3, 2026-06-13): the "Save as scenario" form
-  ([`SaveScenario.tsx`](../src/ui/dev/SaveScenario.tsx)) takes a name + description,
-  serializes the live view to scenario-file source
-  ([`serialize.ts`](../src/ui/dev/serialize.ts), pure + unit-tested) and POSTs it to
-  a **dev-only Vite middleware** (`apply: 'serve'`, [`vite.config.ts`](../vite.config.ts))
-  that writes `scenarios/<id>.ts`. The glob then surfaces it on the next HMR pass
-  (page reloads → board resets, new scenario sits unloaded in the picker — accepted).
-  Middleware guards: id slug-validated, path confined to `scenarios/`, no overwrite
-  (409). Output mirrors the hand-written files: `place({…})` skipping nest-default
-  pitons, `turn`/`lastRoll`/`phase`, `extraTurnStreak` only when non-zero.
-- **Plan (3 sessions):** ✅ S1 panel + file-based scenarios + load dropdown.
-  ✅ S2 knob-based state editor. ✅ S3 save-as-scenario (above). **Dev tooling
-  complete.**
+## Dev scenario tooling (dev builds only) — complete
+A right-hand **Dev** panel (floating "Dev" toggle, top-right) drops the app into
+doctored board situations to validate UI/interaction fixes without playing up to
+them. The whole surface is one lazy `import()` behind `import.meta.env.DEV`
+([`DevTools.tsx`](../src/ui/dev/DevTools.tsx)), so it dead-code-eliminates out of
+prod (no chunk emitted; byte-identical to pre-tooling). Engine stays untouched —
+scenarios dispatch a `load` action ([`useGame.ts`](../src/ui/useGame.ts)) carrying
+a full `GameView`. Three pieces:
+- **Scenario picker** — scenarios are one file each under
+  [`scenarios/`](../src/ui/dev/scenarios/), auto-discovered via `import.meta.glob`
+  ([`registry.ts`](../src/ui/dev/registry.ts)); `DevScenario` + `place()` in
+  [`scenario.ts`](../src/ui/dev/scenario.ts). Each carries one `description` (picker
+  tooltip + `Dev:`-prefixed HUD notice via `loadScenario`); `build()` returns board
+  state only.
+- **State editor** ([`StateEditor.tsx`](../src/ui/dev/StateEditor.tsx)) — a knob
+  form (not a spatial board editor) over the fields a scenario sets (turn, pending
+  roll→phase, `extraTurnStreak`, per-piton position). Controlled reflection of the
+  live `GameView`; runs no engine transitions, so illegal setups are allowed on
+  purpose.
+- **Save as scenario** ([`SaveScenario.tsx`](../src/ui/dev/SaveScenario.tsx)) —
+  name + description → [`serialize.ts`](../src/ui/dev/serialize.ts) (pure, unit-
+  tested) → POST to a dev-only Vite middleware (`apply: 'serve'`,
+  [`vite.config.ts`](../vite.config.ts)) that writes `scenarios/<id>.ts`; the glob
+  picks it up on the next HMR pass (page reloads, new scenario sits unloaded —
+  accepted). Guards: slug id, path confined to `scenarios/`, no overwrite (409).
+
+*Why* the rig is shaped this way (knob-not-board editor, lazy-not-dead-branched,
+the two parameter-merge calls) → [decisions.md](decisions.md) (2026-06-12 + -13).
 
 ## Dev quick-ref
 - `npm test` (engine), `npm run build` (type-check + build), `npm run dev` (UI,

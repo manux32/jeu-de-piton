@@ -12,8 +12,9 @@
  * The whole dev tooling is gated behind `import.meta.env.DEV` at the call site,
  * so it dead-code-eliminates out of production builds.
  *
- * Geometry reminder (JEU_DE_PITON, 4 players): entry squares {0,17,34,51};
- * trackLength 68, laneLength 7, so a lane piton at step 4 is 3 short of HOME.
+ * Geometry reminder (JEU_DE_PITON, 4 players): trackLength 68 → entry squares
+ * {0,17,34,51} (arms 17 apart); trackPathLength 64 (ring squares walked before
+ * the lane); laneLength 7, so a lane piton at step 4 is 3 short of HOME.
  * Safe squares {0,7,12,17,24,29,34,41,46,51,58,63}.
  */
 import type { GameState, PitonPosition } from '../../engine'
