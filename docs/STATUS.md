@@ -41,14 +41,15 @@ The session-by-session *why* for all of the above is in [decisions.md](decisions
 - ⬜ **M5** variant layer.
 - 🔶 **M6** polish — **shipped:** rectangular cells, capture-click fix, HOME
   grouping/highlight, viewport-fit, chrome-moved-on-board, fill-the-screen, nest
-  centring, dice-at-centre, turn-clarity cues, start-square arrows + engine. **Open:**
+  centring, dice-at-centre, turn-clarity cues, start-square arrows + engine, die HUD
+  (SVG pip-face, tap-to-roll, spin/settle, pulse/dim). **Open:**
   chrome size tuning (see below). *(Per-item rationale → [decisions.md](decisions.md).)*
 
 ## Next session — pick one
 - **Chrome size tuning** (the one open M6 item). The on-board chrome is sized in
-  *board* units (`CTRL_SCALE` in [GameBoard.tsx](../src/ui/GameBoard.tsx); the
-  dice scale is `DICE_SCALE`, a multiple of it), so now that the board fills the screen
-  the pills / dice / notice can read oversized on a big monitor. Candidate fixes:
+  *board* units (`CTRL_SCALE` for the pills/notice, `DIE_SIZE` for the die, both in
+  [GameBoard.tsx](../src/ui/GameBoard.tsx)), so now that the board fills the screen
+  the pills / die / notice can read oversized on a big monitor. Candidate fixes:
   lower the scales, or size chrome from the viewport so it stays constant as the
   board grows. Needs an eyeball at real size first.
 - **M5 — variant layer.** The cabin ruleset already ships as a `Ruleset` and the

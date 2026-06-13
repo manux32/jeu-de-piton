@@ -10,6 +10,26 @@
 > [rules-and-lineage.md](rules-and-lineage.md), [board-model.md](board-model.md)).
 > Don't duplicate git history — capture reasoning a commit message wouldn't.
 
+- **2026-06-13** — **Die HUD: a native-SVG pip face you tap to roll, with all
+  roll *timing* in the view layer.** Replaced the HTML "Roll button + number chip"
+  (foreignObject) with a native SVG die (`DieFace` — a rounded box of pips on the
+  3×3 grid), reusing the nest's coloured-circles recipe so the die reads as a
+  sibling of the nests; the whole face is the roll target, tinted to the acting
+  player. Two non-obvious timing choices, both kept in the UI so the engine stays
+  pure: **(1)** the die **holds the last value through the turn handover** — the
+  view's `rolled` now persists across a move instead of nulling to `null`, because
+  a die that blanks between turns reads as broken; `init` still resets it (shown as
+  1) on a new game. **(2)** a roll **spins, settles, and — only when it leaves the
+  player with no move — holds a beat before the turn visibly passes**, so a forfeit
+  is legible. This lives in a `useDieRoll` sequencer that owns the timers; to pick
+  the hold-vs-commit branch it *peeks* the engine (`applyRoll(game, value).phase
+  !== 'awaiting-move'`) rather than re-deriving the "no legal move" rule —
+  `applyRoll` is pure/immutable, so peeking then dispatching the same value is free
+  and safe, and it captures every no-move case (pass, unplayable 6, three-6s
+  penalty) that a `legalMoves`-only peek would miss. Durations are knobs atop
+  [useDieRoll.ts](../src/ui/useDieRoll.ts); the roll-pending **pulse** + post-roll
+  **dim** reuse the board's existing opacity-pulse vocabulary. Removed
+  `DICE_SCALE`/`DICE_W`/`DICE_H` and the now-dead `.die` / `.board-dice` CSS.
 - **2026-06-13** — **Start-square exception implemented in the engine — and it's
   *entry-only*.** Taught `legalMoves` the owner-exception (the visual cue shipped
   earlier the same day; see the entry below): on an entry roll, a lone enemy on the
