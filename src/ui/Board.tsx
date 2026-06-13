@@ -58,6 +58,10 @@ export function Board({ state, layout }: Props) {
       {/* nests */}
       {layout.nestCells.map((slots, p) => {
         const hex = PLAYER_HEX[state.players[p].color]
+        // The player to act gets their whole corner quadrant — the blank board
+        // region between two arms, behind the nest — washed in their colour. A
+        // big, obvious "whose turn" cue that doesn't reuse the piton pulse halo.
+        const active = p === state.turn
         const minCol = Math.min(...slots.map((s) => s.col))
         const maxCol = Math.max(...slots.map((s) => s.col))
         const minRow = Math.min(...slots.map((s) => s.row))
@@ -66,8 +70,32 @@ export function Board({ state, layout }: Props) {
         const y = cellStart(minRow, layout)
         const w = cellStart(maxCol, layout) + cellSize(maxCol, layout) - x
         const h = cellStart(maxRow, layout) + cellSize(maxRow, layout) - y
+
+        // Which corner quadrant this nest sits in (between the two arms), bounded
+        // by the board edge and the near edge of each adjacent arm. The arms span
+        // the three central rows/cols (centre-1 … centre+1).
+        const { col: cc, row: cr } = layout.homeCell
+        const onLeft = (minCol + maxCol) / 2 < cc
+        const onTop = (minRow + maxRow) / 2 < cr
+        const qx0 = onLeft ? 0 : cellStart(cc + 2, layout)
+        const qx1 = onLeft ? cellStart(cc - 1, layout) : layout.extent
+        const qy0 = onTop ? 0 : cellStart(cr + 2, layout)
+        const qy1 = onTop ? cellStart(cr - 1, layout) : layout.extent
+        const inset = 0.15
+
         return (
           <g key={`nest-${p}`}>
+            {active && (
+              <rect
+                x={qx0 + inset}
+                y={qy0 + inset}
+                width={qx1 - qx0 - inset * 2}
+                height={qy1 - qy0 - inset * 2}
+                rx={0.6}
+                fill={hex}
+                fillOpacity={0.28}
+              />
+            )}
             <rect
               x={x - 0.3}
               y={y - 0.3}
