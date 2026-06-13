@@ -35,13 +35,13 @@ const HOME_FAN: Cell[] = [
  */
 function homeCluster(layout: BoardLayout, playerIndex: number, slot: number) {
   const { homeCell } = layout
-  const nest = layout.nestCells[playerIndex]
-  const nestCol = nest.reduce((s, c) => s + c.col, 0) / nest.length
-  const nestRow = nest.reduce((s, c) => s + c.row, 0) / nest.length
+  const nest = layout.nestSlots[playerIndex]
+  const nestCx = nest.reduce((s, c) => s + c.cx, 0) / nest.length
+  const nestCy = nest.reduce((s, c) => s + c.cy, 0) / nest.length
   // Diagonal direction from centre toward this player's nest corner (the nest
   // always sits off both axes, so both signs are non-zero).
-  const dirCol = Math.sign(nestCol - homeCell.col)
-  const dirRow = Math.sign(nestRow - homeCell.row)
+  const dirCol = Math.sign(nestCx - cellMid(homeCell.col, layout))
+  const dirRow = Math.sign(nestCy - cellMid(homeCell.row, layout))
   const homeHalf =
     (cellStart(homeCell.col + 2, layout) - cellStart(homeCell.col - 1, layout)) / 2
   const push = homeHalf - 0.95 // toward the player's corner, with a margin
@@ -63,7 +63,7 @@ function centerFor(
   const mid = (c: Cell) => ({ cx: cellMid(c.col, layout), cy: cellMid(c.row, layout) })
   switch (pos.kind) {
     case 'nest':
-      return mid(layout.nestCells[playerIndex][slot])
+      return layout.nestSlots[playerIndex][slot]
     case 'track':
       return mid(layout.trackCells[pos.square])
     case 'lane':

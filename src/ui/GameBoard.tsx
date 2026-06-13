@@ -74,7 +74,7 @@ export function GameBoard({
   // dice + notice hug the bottom (CTRL_INSET from the edge); only X is centred.
   // A foreignObject box is centred by offsetting its left edge half its scaled
   // width left of the nest centre (the inner flex is justify-content:center).
-  const nestX = (corner: number) => cellMid(layout.nestCentres[corner].col, layout)
+  const nestX = (corner: number) => layout.nestCentres[corner].cx
   const titleX = nestX(1)
   const ctrlX = nestX(0) - (ctrlW * CTRL_SCALE) / 2
   // Dice rolls at the dead centre of the board, over the HOME area — rolling is

@@ -62,17 +62,25 @@ export interface BoardLayout {
   trackCells: Cell[]
   /** Per player index: their private home-lane cells, step 0 (mouth) → last. */
   laneCells: Cell[][]
-  /** Per player index: the nest slots holding their pitons (one per piton). */
-  nestCells: Cell[][]
   /**
-   * Centre cell of each ARM's nest cluster, indexed by arm rotation (not by
-   * player) so it's stable across player counts — every corner has one whether
-   * or not a player is seated there. Rotation→screen-corner mapping:
-   * `[0]` top-right · `[1]` top-left · `[2]` bottom-left · `[3]` bottom-right.
-   * Used to place the in-board chrome (title/controls/dice/notice) centred on
-   * the nest in its corner. (`nestCells` re-derives the same point per player.)
+   * Per player index: the nest holes holding their pitons (one per piton), in
+   * *render units* (not cells). The 2×2 cluster is centred in its corner
+   * quadrant — see `nestCentres`. (Render units, because the quadrant centre
+   * falls on a cell boundary, so a gapped 2×2 can't sit centred on integer
+   * cells.)
    */
-  nestCentres: Cell[]
+  nestSlots: { cx: number; cy: number }[][]
+  /**
+   * Centre of each ARM's nest cluster, in *render units*, indexed by arm
+   * rotation (not by player) so it's stable across player counts — every corner
+   * has one whether or not a player is seated there. It is the centre of the
+   * corner *quadrant* (the square board region between two arms), so the nest
+   * sits centred in its area. Rotation→screen-corner mapping: `[0]` top-right ·
+   * `[1]` top-left · `[2]` bottom-left · `[3]` bottom-right. Used both to place
+   * the nest holes and to centre the in-board chrome (title/controls/notice) on
+   * the nest in its corner.
+   */
+  nestCentres: { cx: number; cy: number }[]
   /** Centre cell of the board — HOME / the finish. */
   homeCell: Cell
   /**
@@ -177,23 +185,58 @@ export function buildLayout(
     trackCells.push(ring[(i + ringShift) % trackLength])
   }
 
-  // Nest geometry (player-independent): a 2×2 cluster in the corner adjacent to
-  // an arm's START column. For the East arm the start is on the top (north) side
-  // column, so the nest sits in the top-right corner; rotation carries it onto
-  // each arm. `off` is the corner offset from centre; (cMid, rMid) is the cluster
-  // centre on the East arm before rotation.
-  const off = Math.round(sideLen / 2) + 1
-  const cMid = centre + off // right side
-  const rMid = centre - off // start (top) side
-  // Each arm's nest centre, indexed by arm rotation — see BoardLayout.nestCentres.
-  const nestCentres: Cell[] = [0, 1, 2, 3].map((r) =>
-    rotate({ col: cMid, row: rMid }, centre, r),
-  )
+  // --- non-uniform render spacing: fatten the three central rows/columns ------
+  // (the arm widths + HOME). Palindromic by construction, so it stays symmetric.
+  // Built before the nests because they are positioned in render units.
+  const edges: number[] = [0]
+  for (let i = 0; i < gridSize; i++) {
+    const width = Math.abs(i - centre) <= 1 ? ARM_WIDTH_SCALE : 1
+    edges.push(edges[i] + width)
+  }
+  const extent = edges[gridSize]
+  const boardMid = extent / 2
+
+  // Nest geometry (render units). Each arm's nest is a 2×2 cluster of holes
+  // CENTRED in its corner quadrant — the square board region between two arms.
+  // The quadrant spans, on each axis, from the outer edge of the central 3-cell
+  // band (the arm: edges[centre+2]) to the board edge (extent); the nest centres
+  // on it. Positioned in render units, not cells, because that centre lands on a
+  // cell boundary — an integer-cell gapped 2×2 can't sit centred there.
+  // For the East arm the start is on the top (north) side, so its nest is the
+  // top-right corner; render-space rotation carries it onto each arm.
+  const eastNest = {
+    cx: (edges[centre + 2] + extent) / 2, // right side, outward
+    cy: edges[centre - 1] / 2, // start (top) side
+  }
+  // 90° render-space rotation about the board centre — exact because `edges` is
+  // palindromic. Mirrors `rotate`'s (x,y)→(y,−x), tiling the East corner onto
+  // North/West/South. Arm-rotation → screen corner: see BoardLayout.nestCentres.
+  const rotNest = (p: { cx: number; cy: number }, times: number) => {
+    let x = p.cx - boardMid
+    let y = p.cy - boardMid
+    for (let i = 0; i < times; i++) {
+      const nx = y
+      const ny = -x
+      x = nx
+      y = ny
+    }
+    return { cx: x + boardMid, cy: y + boardMid }
+  }
+  const nestCentres = [0, 1, 2, 3].map((r) => rotNest(eastNest, r))
+  // The 2×2 of holes around a nest centre. A square is rotation-invariant, so
+  // the same offsets serve every arm; ±1 render unit ⇒ holes 2 units apart, the
+  // spacing the (unit-width) corner cells give.
+  const SLOT_OFFSETS = [
+    { dx: -1, dy: -1 },
+    { dx: 1, dy: -1 },
+    { dx: -1, dy: 1 },
+    { dx: 1, dy: 1 },
+  ]
 
   // --- per-player lanes and nests, on each player's own arm -------------------
   // A player's arm is the quadrant their (shifted) entry cell falls in.
   const laneCells: Cell[][] = []
-  const nestCells: Cell[][] = []
+  const nestSlots: { cx: number; cy: number }[][] = []
   for (let p = 0; p < playerCount; p++) {
     const entryRing = (entryIndices[p] + ringShift) % trackLength
     const armRot = Math.floor(entryRing / quadrant)
@@ -207,34 +250,20 @@ export function buildLayout(
     }
     laneCells.push(lane)
 
-    // Nest: the 2×2 cluster around (cMid, rMid) (see above), rotated onto the
-    // player's arm.
-    const slots = [
-      { col: cMid - 1, row: rMid - 1 },
-      { col: cMid + 1, row: rMid - 1 },
-      { col: cMid - 1, row: rMid + 1 },
-      { col: cMid + 1, row: rMid + 1 },
-    ]
-    nestCells.push(slots.map((s) => rotate(s, centre, armRot)))
-  }
-
-  // --- non-uniform render spacing: fatten the three central rows/columns ------
-  // (the arm widths + HOME). Palindromic by construction, so it stays symmetric.
-  const edges: number[] = [0]
-  for (let i = 0; i < gridSize; i++) {
-    const width = Math.abs(i - centre) <= 1 ? ARM_WIDTH_SCALE : 1
-    edges.push(edges[i] + width)
+    // Nest: the centred 2×2 cluster on this player's arm.
+    const c = nestCentres[armRot]
+    nestSlots.push(SLOT_OFFSETS.map((o) => ({ cx: c.cx + o.dx, cy: c.cy + o.dy })))
   }
 
   return {
     gridSize,
     trackCells,
     laneCells,
-    nestCells,
+    nestSlots,
     nestCentres,
     homeCell: { col: centre, row: centre },
     edges,
-    extent: edges[gridSize],
+    extent,
   }
 }
 

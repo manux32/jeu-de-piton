@@ -57,28 +57,31 @@ export function Board({ state, layout }: Props) {
         />
       ))}
 
-      {/* nests */}
-      {layout.nestCells.map((slots, p) => {
+      {/* nests — render-unit hole centres, each cluster centred in its corner
+          quadrant (see layout.nestSlots / nestCentres) */}
+      {layout.nestSlots.map((slots, p) => {
         const hex = PLAYER_HEX[state.players[p].color]
         // The player to act gets their whole corner quadrant — the blank board
         // region between two arms, behind the nest — washed in their colour. A
         // big, obvious "whose turn" cue that doesn't reuse the piton pulse halo.
         const active = p === state.turn
-        const minCol = Math.min(...slots.map((s) => s.col))
-        const maxCol = Math.max(...slots.map((s) => s.col))
-        const minRow = Math.min(...slots.map((s) => s.row))
-        const maxRow = Math.max(...slots.map((s) => s.row))
-        const x = cellStart(minCol, layout)
-        const y = cellStart(minRow, layout)
-        const w = cellStart(maxCol, layout) + cellSize(maxCol, layout) - x
-        const h = cellStart(maxRow, layout) + cellSize(maxRow, layout) - y
+        const minCx = Math.min(...slots.map((s) => s.cx))
+        const maxCx = Math.max(...slots.map((s) => s.cx))
+        const minCy = Math.min(...slots.map((s) => s.cy))
+        const maxCy = Math.max(...slots.map((s) => s.cy))
+        const pad = 0.8 // box margin beyond the outer hole centres
+        const x = minCx - pad
+        const y = minCy - pad
+        const w = maxCx - minCx + pad * 2
+        const h = maxCy - minCy + pad * 2
 
         // Which corner quadrant this nest sits in (between the two arms), bounded
         // by the board edge and the near edge of each adjacent arm. The arms span
-        // the three central rows/cols (centre-1 … centre+1).
+        // the three central rows/cols (centre-1 … centre+1); the cluster centre
+        // vs the board centre tells us the corner.
         const { col: cc, row: cr } = layout.homeCell
-        const onLeft = (minCol + maxCol) / 2 < cc
-        const onTop = (minRow + maxRow) / 2 < cr
+        const onLeft = (minCx + maxCx) / 2 < cellMid(cc, layout)
+        const onTop = (minCy + maxCy) / 2 < cellMid(cr, layout)
         const qx0 = onLeft ? 0 : cellStart(cc + 2, layout)
         const qx1 = onLeft ? cellStart(cc - 1, layout) : layout.extent
         const qy0 = onTop ? 0 : cellStart(cr + 2, layout)
@@ -99,10 +102,10 @@ export function Board({ state, layout }: Props) {
               />
             )}
             <rect
-              x={x - 0.3}
-              y={y - 0.3}
-              width={w + 0.6}
-              height={h + 0.6}
+              x={x}
+              y={y}
+              width={w}
+              height={h}
               rx={0.5}
               fill={hex}
               fillOpacity={0.18}
@@ -112,8 +115,8 @@ export function Board({ state, layout }: Props) {
             {slots.map((s, n) => (
               <circle
                 key={`slot-${p}-${n}`}
-                cx={cellMid(s.col, layout)}
-                cy={cellMid(s.row, layout)}
+                cx={s.cx}
+                cy={s.cy}
                 r={0.36}
                 fill="#fdfcf8"
                 stroke={hex}
