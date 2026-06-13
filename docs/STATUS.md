@@ -45,6 +45,9 @@ dev-tool serializer), build + lint clean. `src/ui/` is rules-free — every deci
     the HOME edge facing their own arm, instead of piling up at centre.
   - ✅ **HOME-move highlight** (2026-06-12) — a HOME-bound move shows a larger,
     bolder, pulsing target marker.
+  - ✅ **Viewport-fit / no page scrollbar** (2026-06-13) — the game column is
+    sized to the viewport so the document never scrolls; `#root` clips the
+    residual. *Why* + the 190px chrome reserve → [decisions.md](decisions.md).
   - **Forfeit-notice wart** (2026-06-12) — the HUD notice describes the player
     who *just rolled* ("Red rolled 3 — no legal move, turn passes") while the
     turn indicator already shows the **next** player; momentarily confusing. No

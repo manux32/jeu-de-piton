@@ -10,6 +10,19 @@
 > [rules-and-lineage.md](rules-and-lineage.md), [board-model.md](board-model.md)).
 > Don't duplicate git history — capture reasoning a commit message wouldn't.
 
+- **2026-06-13** — **Game column fits the viewport; the game never
+  document-scrolls.** `#root` is `height: 100svh; overflow: hidden` and the board
+  caps its own height at `calc(100svh - 190px)` ([index.css](../src/index.css)).
+  The 190px reserves the chrome above the board (shell padding + header + HUD) —
+  the HUD's *always-present notice line* is the slice a naive budget forgot, and it
+  was tipping the column past 100svh into a whole-page scrollbar (most visible with
+  a `Dev:` scenario notice showing). `overflow: hidden` is deliberate
+  belt-and-suspenders: the board is *sized* to fit so nothing should clip, but if
+  the budget is ever off it trims a few px rather than reintroducing a document
+  scrollbar. The Dev panel is exempt — it's `position: fixed`, so `#root`'s clip
+  doesn't reach it and it keeps its own `overflow-y: auto`, the one place a
+  scrollbar is wanted. Don't remove `overflow: hidden` or shrink the 190px without
+  re-measuring the chrome.
 - **2026-06-13** — **Dev rig S3 done (save-as-scenario); two parameter-merge
   calls.** The "Save as scenario" form serializes the live `GameView` to
   scenario-file source ([`serialize.ts`](../src/ui/dev/serialize.ts), pure +

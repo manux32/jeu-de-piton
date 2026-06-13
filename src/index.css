@@ -56,10 +56,15 @@
   margin: 0 auto;
   text-align: center;
   border-inline: 1px solid var(--border);
-  min-height: 100svh;
+  height: 100svh;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  /* The game column is sized to fit the viewport (see .game-board's height-aware
+     cap), so the document itself never needs to scroll. Clip the residual few px
+     rather than show a whole-page scrollbar. The Dev panel is position:fixed, so
+     it's exempt from this and keeps its own internal overflow-y scroll. */
+  overflow: hidden;
 }
 
 body {
@@ -170,8 +175,9 @@ code {
 .game-board {
   width: 100%;
   /* Square, so cap by the smaller of available width and viewport height
-     (leaving room for the header + HUD) to avoid vertical overflow. */
-  max-width: min(820px, calc(100svh - 170px));
+     (leaving room for the header + HUD) to avoid vertical overflow. The reserve
+     covers padding + header + HUD (incl. its always-present notice line). */
+  max-width: min(820px, calc(100svh - 190px));
   height: auto;
   margin: 0 auto;
   aspect-ratio: 1 / 1;
