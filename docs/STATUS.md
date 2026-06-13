@@ -45,13 +45,11 @@ rules-free — every decision comes from the engine via
     engine bug. Candidate fix: gate the handoff behind an explicit "Pass/Continue"
     click (an `awaitingPass` view flag in `useGame`). Deferred — accept as-is.
 
-## Open rule details (non-blocking — confirm with the friend)
-- **Unplayable 1st/2nd 6** — when a 6 (normally a bonus roll) has no legal move,
-  the engine currently treats it as an ordinary forfeit (no extra turn, streak
-  not bumped). Confirm whether it should still grant the bonus roll. (The *3rd* 6
-  is unaffected — its penalty fires before the playability check.)
-- *(Capture-on-a-safe-square — closed in engine rung 4; reopen only if real play
-  surprises us.)*
+## Open rule details
+- *All confirmed as of 2026-06-12.* The unplayable-1st/2nd-6 question is closed:
+  it grants the bonus roll and counts toward the three-in-a-row (engine +
+  `rules-and-lineage.md` updated). No capture/HOME bonuses; entry on a 5 is not
+  forced. Reopen only if real play surprises us.
 
 ## Dev quick-ref
 - `npm test` (engine), `npm run build` (type-check + build), `npm run dev` (UI,

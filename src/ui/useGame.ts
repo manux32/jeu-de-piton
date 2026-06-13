@@ -61,9 +61,19 @@ function reducer(view: GameView, action: GameAction): GameView {
         return { game: next, rolled: action.value, notice: null }
       }
 
-      // Otherwise the engine has already passed the turn. Two cases, told apart
-      // by observing whether the roller lost a piton to its nest (the 3rd-6
-      // streak penalty) versus an ordinary no-legal-move forfeit.
+      // No legal move, yet the turn stayed put ⇒ an unplayable bonus 6: nothing
+      // to play, but the player still rolls again.
+      if (next.turn === roller) {
+        return {
+          game: next,
+          rolled: action.value,
+          notice: `${name(prev, roller)} rolled ${action.value} — no legal move, rolls again.`,
+        }
+      }
+
+      // Otherwise the engine has passed the turn. Two cases, told apart by
+      // observing whether the roller lost a piton to its nest (the 3rd-6 streak
+      // penalty) versus an ordinary no-legal-move forfeit.
       const penalized = nestCount(next, roller) > nestCount(prev, roller)
       const notice = penalized
         ? `${name(prev, roller)} rolled three ${action.value}s — leading piton sent home.`

@@ -239,14 +239,16 @@ function loseLeadingTrackPiton(state: GameState): GameState {
 }
 
 /**
- * Does the roll just played (`state.lastRoll`) earn another turn? True when it
- * is the `extraTurnOn` face and the streak cap has not been reached. (For the
- * `lose-leading` variant the capped roll never reaches here — `applyRoll`
- * intercepts it — so this guard only bites under a `'none'` penalty.)
+ * Does `roll` earn another turn? True when it is the `extraTurnOn` face and the
+ * streak cap has not been reached. (For the `lose-leading` variant the capped
+ * roll never reaches here — `applyRoll` intercepts it — so the cap guard only
+ * bites under a `'none'` penalty.) Used both for a *played* extra-turn face and
+ * for an *unplayable* one — an unplayable 6 still grants the bonus roll and
+ * still counts toward the streak, exactly like a played 6.
  */
-function grantsExtraTurn(state: GameState): boolean {
+function rollGrantsExtraTurn(state: GameState, roll: number): boolean {
   const { extraTurnOn, extraTurnStreakLimit } = state.ruleset
-  if (extraTurnOn === null || state.lastRoll !== extraTurnOn) return false
+  if (extraTurnOn === null || roll !== extraTurnOn) return false
   if (extraTurnStreakLimit !== null && state.extraTurnStreak + 1 >= extraTurnStreakLimit) {
     return false
   }
@@ -273,8 +275,11 @@ function passTurn(state: GameState): GameState {
  *  - A penalized streak roll (the 3rd consecutive 6) is "not played": resolve
  *    the `lose-leading` penalty and pass the turn — no move is offered.
  *  - Otherwise, if the roll has a legal move, enter `awaiting-move` with the
- *    roll recorded; if it has none, the turn is forfeited immediately
- *    (forced-move: passing is only allowed when nothing can move).
+ *    roll recorded.
+ *  - If it has none, the turn is normally forfeited (forced-move: passing is
+ *    only allowed when nothing can move) — UNLESS the roll itself grants a bonus
+ *    turn (an unplayable 6): the player keeps the turn and rolls again, and the
+ *    6 still counts toward the streak, just as a played 6 would.
  */
 export function applyRoll(state: GameState, roll: number): GameState {
   if (state.phase !== 'awaiting-roll') {
@@ -284,6 +289,14 @@ export function applyRoll(state: GameState, roll: number): GameState {
     return passTurn(loseLeadingTrackPiton(state))
   }
   if (legalMoves(state, roll).length === 0) {
+    if (rollGrantsExtraTurn(state, roll)) {
+      return {
+        ...state,
+        phase: 'awaiting-roll',
+        lastRoll: null,
+        extraTurnStreak: state.extraTurnStreak + 1,
+      }
+    }
     return passTurn(state)
   }
   return { ...state, lastRoll: roll, phase: 'awaiting-move' }
@@ -330,7 +343,7 @@ export function applyMove(state: GameState, move: Move): GameState {
     }
   }
 
-  if (grantsExtraTurn(state)) {
+  if (state.lastRoll !== null && rollGrantsExtraTurn(state, state.lastRoll)) {
     return {
       ...moved,
       phase: 'awaiting-roll',

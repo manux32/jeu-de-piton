@@ -130,14 +130,25 @@ safeSquares = [0, 7, 12, 17, 24, 29, 34, 41, 46, 51, 58, 63]
 So the concrete `Ruleset` numbers are `trackLength: 68`, `laneLength: 7`,
 `homeEntryOffset: 4`, `pitonsPerPlayer: 4`, and the 12 `safeSquares` above.
 
+### No bonuses beyond the 6 — CONFIRMED (2026-06-12)
+The cabin version is leaner than canonical Parcheesi — it carries **none** of the
+brand's bonus-move rules:
+- **Capture** sends the enemy piton to its nest and nothing more — no bonus move
+  or extra roll for the capturer.
+- **Reaching HOME** earns no bonus move.
+- **Bringing a piton out on a 5** earns no extra roll (only a 6 does).
+- **Entry is not forced**: rolling a 5 with a piton in the nest *and* another
+  that can move lets you choose either — you only *must* enter if entry is your
+  one legal move (the general forced-move rule).
+
 ### Still open / to confirm later
 - ~~Exact track indices of the 12 safe squares + 4 entry squares~~ — **PINNED
   2026-06-12** (see the indices above; `homeEntryOffset: 4` confirmed too).
 - ~~Capture specifics **on** a safe/entry square~~ — **RESOLVED 2026-06-12** in
   the engine (rung 4): an enemy on a safe square can't be landed on, so capture
   there never arises. Confirm with real play if a surprise turns up.
-- **Unplayable bonus 6** — when a 6 (which normally grants another roll) has no
-  legal move, does the player still get the bonus roll, or is it an ordinary
-  forfeit? The engine currently treats it as a plain forfeit (no extra turn,
-  streak not bumped). To confirm with the friend. (A 3rd consecutive 6 is
-  unaffected — its penalty fires regardless of playability.)
+- ~~Unplayable bonus 6~~ — **RESOLVED 2026-06-12** (confirmed with the friend):
+  an unplayable 6 still grants the bonus roll **and still counts toward the
+  three-in-a-row** — so three consecutive 6s trip the lose-leading penalty even
+  if none was playable. Encoded in `applyRoll` (a non-6 with no move still
+  forfeits as before).

@@ -268,6 +268,47 @@ describe('the 6 — extra turn & streak penalty (rung 5)', () => {
     expect(next.turn).toBe(1)
     expect(next.players[0].pitons.every((p) => p.position.kind === 'nest')).toBe(true)
   })
+
+  it('an unplayable 6 still grants another roll and bumps the streak', () => {
+    // Fresh game: every piton is nested and a 6 is not an entry roll, so the 6
+    // has no legal move — yet the player keeps the turn and rolls again.
+    const next = applyRoll(createGame(JEU_DE_PITON), 6)
+
+    expect(next.turn).toBe(0) // same player rolls again
+    expect(next.phase).toBe('awaiting-roll')
+    expect(next.lastRoll).toBeNull() // nothing was played
+    expect(next.extraTurnStreak).toBe(1)
+    expect(next.players[0].pitons.every((p) => p.position.kind === 'nest')).toBe(true)
+  })
+
+  it('counts unplayable 6s toward the streak — a third one fires the penalty', () => {
+    // red-0 sits where +12 overshoots HOME (square 60, progress 60) and the rest
+    // are nested, so every 6 this turn is unplayable. The first two still grant a
+    // bonus roll; the third trips the lose-leading penalty all the same.
+    let s = place(createGame(JEU_DE_PITON), 'red-0', { kind: 'track', square: 60 })
+
+    s = applyRoll(s, 6) // unplayable → streak 1, same player
+    expect(s.extraTurnStreak).toBe(1)
+    expect(s.turn).toBe(0)
+
+    s = applyRoll(s, 6) // unplayable → streak 2, same player
+    expect(s.extraTurnStreak).toBe(2)
+    expect(s.turn).toBe(0)
+
+    s = applyRoll(s, 6) // third 6 → penalty: leading track piton nested, turn passes
+    expect(s.players[0].pitons.find((p) => p.id === 'red-0')?.position).toEqual({
+      kind: 'nest',
+    })
+    expect(s.turn).toBe(1)
+    expect(s.extraTurnStreak).toBe(0)
+  })
+
+  it('an unplayable non-6 still forfeits the turn', () => {
+    // A 4 with everyone nested has no move and is no bonus face → turn passes.
+    const next = applyRoll(createGame(JEU_DE_PITON), 4)
+    expect(next.turn).toBe(1)
+    expect(next.extraTurnStreak).toBe(0)
+  })
 })
 
 describe('legalMoves — lane, exact HOME & win (rung 6)', () => {
