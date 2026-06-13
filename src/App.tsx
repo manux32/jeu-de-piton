@@ -1,7 +1,8 @@
 import { lazy, Suspense } from 'react'
-import { rollDie, legalMoves, type Move } from './engine'
+import { legalMoves, type Move } from './engine'
 import { GameBoard } from './ui/GameBoard'
 import { useGame } from './ui/useGame'
+import { useDieRoll } from './ui/useDieRoll'
 
 // Dev tools are lazy-loaded ONLY in dev builds. In production `import.meta.env.DEV`
 // is statically false, so the ternary collapses to `null` and the dynamic import
@@ -13,6 +14,11 @@ const DevTools = import.meta.env.DEV
 function App() {
   const [view, dispatch] = useGame(4)
   const { game, rolled, notice, noticeOwner } = view
+
+  // The roll sequencer owns the die's spin/settle/handover timing (view-only);
+  // it generates the value, peeks the engine for the post-settle branch, and
+  // dispatches the roll itself. See useDieRoll.
+  const { face, rolling, roll } = useDieRoll(game, rolled, dispatch)
 
   // The board lights up the current player's legal moves only while a roll is
   // awaiting a move; everything that decides them lives in the engine.
@@ -26,12 +32,13 @@ function App() {
       <GameBoard
         state={game}
         moves={moves}
-        rolled={rolled}
+        face={face}
+        rolling={rolling}
         notice={notice}
         noticeOwner={noticeOwner}
         onPick={(move) => dispatch({ type: 'pick', move })}
         onNewGame={(playerCount) => dispatch({ type: 'newGame', playerCount })}
-        onRoll={() => dispatch({ type: 'roll', value: rollDie() })}
+        onRoll={roll}
       />
 
       {DevTools && (

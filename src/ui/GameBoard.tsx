@@ -7,8 +7,8 @@
  * is self-contained, no UI outside it). Each notice sits in the corner of the
  * player it concerns: the event line in the acting player's nest, the turn
  * prompt in the current player's. This is the interaction-loop seam (Milestone
- * 4): it takes the current player's `legalMoves` / `rolled` / `notice` /
- * `noticeOwner` and the `onPick` / `onRoll` / `onNewGame` callbacks; it adds no
+ * 4): it takes the current player's `legalMoves` / die `face` + `rolling` /
+ * `notice` / `noticeOwner` and the `onPick` / `onRoll` / `onNewGame` callbacks; it adds no
  * rules of its own (every decision is the engine's, made in App).
  */
 import { useMemo, useState } from 'react'
@@ -22,7 +22,10 @@ import { PLAYER_HEX } from './colors'
 interface Props {
   state: GameState
   moves: Move[]
-  rolled: number | null
+  /** Die face to display — resolved by the roll sequencer (spin → settle). */
+  face: number
+  /** True while a roll is animating; the die is non-interactive then. */
+  rolling: boolean
   notice: string | null
   /** Player the notice is about (defaults to the current player if omitted). */
   noticeOwner?: number | null
@@ -60,7 +63,8 @@ const NEST_NOTICE_GAP = 0.55
 export function GameBoard({
   state,
   moves,
-  rolled,
+  face,
+  rolling,
   notice,
   noticeOwner,
   onPick,
@@ -92,9 +96,8 @@ export function GameBoard({
   // Painted last (below) so it sits on top of any finished pitons; the HOME-bound
   // move-target ring is painted after it again, so that stays clickable on top.
   const dieCentre = layout.extent / 2
-  const canRoll = state.phase === 'awaiting-roll'
-  // Resting face shows the last value rolled; a fresh game (no roll yet) shows 1.
-  const dieValue = rolled ?? 1
+  // Clicks roll only when it's roll time and no roll is already animating.
+  const canRoll = state.phase === 'awaiting-roll' && !rolling
   const dieColor = PLAYER_HEX[state.players[state.turn].color]
   const over = state.phase === 'game-over'
 
@@ -231,9 +234,9 @@ export function GameBoard({
         onClick={canRoll ? onRoll : undefined}
         style={{ cursor: canRoll ? 'pointer' : 'default' }}
         role="button"
-        aria-label={rolled ? `rolled ${rolled}, roll again` : 'roll the die'}
+        aria-label={rolling ? 'rolling the die' : canRoll ? 'roll the die' : `die showing ${face}`}
       >
-        <DieFace value={dieValue} cx={dieCentre} cy={dieCentre} size={DIE_SIZE} color={dieColor} />
+        <DieFace value={face} cx={dieCentre} cy={dieCentre} size={DIE_SIZE} color={dieColor} />
       </g>
 
       {/* legal-move target markers — a tinted ring on each destination cell, in
