@@ -83,7 +83,11 @@ Key spatial facts a renderer must honour (all four were mistakes once — see
 - The **start / nest-exit** square is on the player's **right** side column
   (a few cells up from the tip), and is itself safe.
 - A player's **nest** sits in the board corner on the **same side as their start
-  column** (the corner the entry arrow comes from).
+  column** (the corner the entry arrow comes from), **centred in that corner
+  quadrant** (the square board region between the two arms). Because the quadrant
+  centre falls on a *cell boundary*, the 2×2 of nest holes is positioned in
+  **render units** (`BoardLayout.nestSlots` / `nestCentres`), not integer cells —
+  see the 2026-06-13 decision-log entry.
 
 ## Safe squares — 12, three per arm
 From the ruleset (pinned, see rules-and-lineage.md):

@@ -10,6 +10,30 @@
 > [rules-and-lineage.md](rules-and-lineage.md), [board-model.md](board-model.md)).
 > Don't duplicate git history — capture reasoning a commit message wouldn't.
 
+- **2026-06-13** — **Dice moved to the board centre (over HOME); finished pitons
+  tuck into nest corners; nests centred in their quadrants.** Rolling is the core
+  gameplay act, so the dice (die value + Roll) earns the **dead centre** of the
+  board over the HOME band — not the bottom-left nest where it sat. To make the
+  centre clean: the **"HOME" label was dropped** (the dice owns that space), and
+  finished pitons now **cluster diagonally toward each player's own nest corner**
+  (`Pitons.homeCluster` aims at the nest, not the cardinal HOME edge), which clears
+  the horizontal mid-band the die bar occupies. The dice is **painted after the
+  pieces** but the **legal-move target markers paint last of all** — so a
+  HOME-bound target stays visible *and clickable* over the die (the die `<span>`
+  is `pointer-events:none`, only Roll captures). Sized 1.5× the corner chrome
+  (`DICE_SCALE`) to own the middle. Show-on-roll / hide-on-move was considered and
+  **declined** — with the label gone and pitons in the corners the centre is clean
+  enough that a persistent die reads better (and keeps the last roll visible while
+  you move). **Separately, nests are now centred in their corner quadrants.** They
+  sat ~½ cell toward the board centre; the honest fix can't be integer-cell,
+  because a quadrant centre lands on a **cell boundary** and a gapped 2×2 centred
+  on a boundary needs half-cell positions. So nest holes are positioned in
+  **render units** inside `buildLayout` (`BoardLayout.nestSlots`, plus
+  `nestCentres` is now render-unit and *is* the quadrant centre), replacing the
+  integer `nestCells` + the `round(sideLen/2)+1` offset. Spacing/size/box are
+  unchanged — only the cluster shifts; the chrome that reads `nestCentres` followed
+  automatically. Did **both axes** (the offset was a symmetric diagonal, so
+  horizontal-only would leave an equal vertical asymmetry).
 - **2026-06-13** — **Board uncapped to fill the screen; chrome centred on nests;
   New Game became a disclosure.** Three follow-ons to the chrome-on-board move
   below. (1) **Fill the screen — uncapped.** The prior entry deferred raising the

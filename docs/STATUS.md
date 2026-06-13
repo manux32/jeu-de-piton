@@ -27,11 +27,20 @@ washing the active player's corner quadrant in their colour. See the 2026-06-13
 decision-log entries for the *why* (foreignObject scaling, light-theme pinning).
 
 As of the **2026-06-13 fill/centre/disclosure pass**: the board is now
-**uncapped** and fills the viewport (*the board is the game*); every chrome
-element is **centred horizontally on its corner's nest** (via the new
-`BoardLayout.nestCentres`, which also retired a duplicated nest-offset formula);
-and **New Game is a disclosure toggle** — collapsed to one button until clicked,
-then the 2/3/4 picker (choosing collapses it).
+**uncapped** and fills the viewport (*the board is the game*); the title / New
+Game / notice are **centred horizontally on their corner's nest** (via
+`BoardLayout.nestCentres`); and **New Game is a disclosure toggle** — collapsed to
+one button until clicked, then the 2/3/4 picker (choosing collapses it).
+
+As of the **2026-06-13 dice-centre/nest-centre pass** (this session): the **dice
+moved to the dead centre of the board, over HOME** — rolling is the core act, so
+it owns the middle (1.5× via `DICE_SCALE`, painted over the HOME band, which lost
+its "HOME" label; legal-move targets paint *last* so a HOME-bound ring stays
+clickable on top of the die). Finished pitons now **tuck into their nest corners**
+(`Pitons.homeCluster` aims at the nest), clearing the centre. And the **nests are
+centred in their corner quadrants** — `buildLayout` positions nest holes in
+**render units** (`nestSlots`; `nestCentres` is now render-unit and *is* the
+quadrant centre), replacing integer `nestCells` + the `round(sideLen/2)+1` offset.
 
 ## Build checklist
 - ✅ **M1** scaffold — Vite + React + TS, own repo.
@@ -48,11 +57,12 @@ then the 2/3/4 picker (choosing collapses it).
 ## Next session — pick one
 - **Chrome size tuning (the one piece of "chrome polish" still open).** Now that
   the board fills the screen, the on-board chrome scales up with it (sized in
-  board units, `CTRL_SCALE = 0.019` in [GameBoard.tsx](../src/ui/GameBoard.tsx)),
-  so on a big monitor the pills/dice/notice can read oversized. Candidate fixes:
-  lower `CTRL_SCALE`, or size the chrome from viewport rather than board units so
-  it stays constant as the board grows. Needs an eyeball at real size first.
-  (Placement, disclosure, and the nest-centre dedupe are **done** — see M6 below.)
+  board units, `CTRL_SCALE = 0.019` in [GameBoard.tsx](../src/ui/GameBoard.tsx);
+  the centred dice is `DICE_SCALE = CTRL_SCALE × 1.5`), so on a big monitor the
+  pills / dice / notice can read oversized. Candidate fixes: lower the scales, or
+  size the chrome from viewport rather than board units so it stays constant as the
+  board grows. Needs an eyeball at real size first. (Placement — incl. the dice at
+  centre — disclosure, and nest centring are **done** — see M6 below.)
 - **M5 — variant layer.** The cabin ruleset already ships as the `Ruleset` and
   the engine is variant-agnostic, so this is mostly *proving* a second variant
   (e.g. canonical Parcheesi) drops in with **no UI change**. Likely a
@@ -80,21 +90,28 @@ then the 2/3/4 picker (choosing collapses it).
     / 860px shell / 1126px `#root` caps); it now fills the viewport, bounded only
     by available width and `100svh − 56px` reserve. *Why* → [decisions.md](decisions.md).
   - ✅ **Chrome centred on nests + `nestCentres` exposed** (2026-06-13) — title /
-    New Game / dice / notice each centre horizontally on their corner's nest
-    cluster; `buildLayout` now exposes `nestCentres` (per-arm, count-independent),
-    retiring the duplicated `round(sideLen/2)+1` nest-offset formula.
+    New Game / notice each centre horizontally on their corner's nest cluster via
+    `buildLayout`'s `nestCentres` (per-arm, count-independent). *(The dice later
+    left the nest for the board centre — see below.)*
   - ✅ **New Game disclosure** (2026-06-13) — top-right control collapsed to one
     "New game" toggle; click reveals the 2/3/4 picker; choosing collapses it.
     View-local `useState`, box widens when open (still centred on the nest).
+  - ✅ **Dice at the board centre** (2026-06-13) — the dice (die value + Roll)
+    moved from the bottom-left nest to **dead centre over HOME** (1.5× via
+    `DICE_SCALE`); HOME label removed; legal-move targets paint *last* so a
+    HOME-bound ring stays clickable over the die. *Why* → [decisions.md](decisions.md).
+  - ✅ **Nests centred in their quadrants** (2026-06-13) — each nest's 2×2 sits
+    centred in its corner area; holes positioned in render units (`nestSlots` /
+    render-unit `nestCentres`) since the quadrant centre is a cell boundary.
+  - ✅ **HOME-corner clustering** (2026-06-13) — finished pitons now tuck
+    diagonally toward each player's **nest corner** (was: the cardinal HOME edge),
+    which also clears the board centre for the dice. (`Pitons.homeCluster`.)
   - **Forfeit-notice wart** (2026-06-12) — the notice describes the player
     who *just rolled* ("Red rolled 3 — no legal move, turn passes") while the
     turn cue (now the corner wash) already shows the **next** player; momentarily
     confusing. No
     engine bug. Candidate fix: gate the handoff behind an explicit "Pass/Continue"
     click (an `awaitingPass` view flag in `useGame`). Deferred — accept as-is.
-  - **HOME-corner (vs edge) clustering** — finished pitons currently group on the
-    cardinal HOME *edge* facing each arm; a diagonal-corner variant was floated.
-    Minor, deferred.
 
 ## Open rule details
 - **Enemy on a player's start square** (awaiting the friend, 2026-06-12) — does an
