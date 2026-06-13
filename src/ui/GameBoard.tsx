@@ -9,7 +9,7 @@
  * `onRoll` / `onNewGame` callbacks; it adds no rules of its own (every decision
  * is the engine's, made in App).
  */
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import type { GameState, Move } from '../engine'
 import { buildLayout, destinationCell, cellMid } from './layout'
 import { Board } from './Board'
@@ -33,7 +33,12 @@ interface Props {
 // its corner's nest cluster (see nestX in the body) and vertically inset from
 // the board edge by CTRL_INSET.
 const CTRL_SCALE = 0.019
-const CTRL_W = 200
+// New Game is a disclosure: a single "New game" toggle when collapsed, the
+// toggle plus the 2/3/4 picker when open. The box widens when open so the
+// content always fits; either way it's centred on the nest, so it grows
+// symmetrically about the nest centre.
+const CTRL_W_CLOSED = 112
+const CTRL_W_OPEN = 264
 const CTRL_H = 52
 const CTRL_INSET = 0.4
 const DICE_W = 150
@@ -55,6 +60,11 @@ export function GameBoard({
     [state.geometry, state.players.length],
   )
 
+  // New Game picker disclosure (view-local state, no rules): collapsed to a
+  // single toggle until the player opens it; choosing a count collapses it.
+  const [pickerOpen, setPickerOpen] = useState(false)
+  const ctrlW = pickerOpen ? CTRL_W_OPEN : CTRL_W_CLOSED
+
   // Each corner's chrome centres horizontally on that corner's nest cluster,
   // read straight from the layout (no re-derived geometry). Corner→nest mapping
   // per BoardLayout.nestCentres: [1] top-left, [0] top-right, [2] bottom-left,
@@ -64,7 +74,7 @@ export function GameBoard({
   // width left of the nest centre (the inner flex is justify-content:center).
   const nestX = (corner: number) => cellMid(layout.nestCentres[corner].col, layout)
   const titleX = nestX(1)
-  const ctrlX = nestX(0) - (CTRL_W * CTRL_SCALE) / 2
+  const ctrlX = nestX(0) - (ctrlW * CTRL_SCALE) / 2
   const diceX = nestX(2) - (DICE_W * CTRL_SCALE) / 2
   const diceY = layout.extent - CTRL_INSET - DICE_H * CTRL_SCALE
   const noticeX = nestX(3) - (NOTICE_W * CTRL_SCALE) / 2
@@ -97,24 +107,37 @@ export function GameBoard({
           foreignObject, rendered at natural px and scaled into board units so
           they reuse the .pill styling and stay accessible. */}
       <g transform={`translate(${ctrlX}, ${CTRL_INSET}) scale(${CTRL_SCALE})`}>
-        <foreignObject x={0} y={0} width={CTRL_W} height={CTRL_H}>
+        <foreignObject x={0} y={0} width={ctrlW} height={CTRL_H}>
           <div
             className="board-controls"
             role="group"
             aria-label="new game — player count"
           >
-            <span className="muted">New game</span>
-            {[2, 3, 4].map((n) => (
-              <button
-                key={n}
-                type="button"
-                className={n === state.players.length ? 'pill pill-on' : 'pill'}
-                aria-pressed={n === state.players.length}
-                onClick={() => onNewGame(n)}
-              >
-                {n}
-              </button>
-            ))}
+            <button
+              type="button"
+              className={pickerOpen ? 'pill pill-on' : 'pill'}
+              aria-expanded={pickerOpen}
+              onClick={() => setPickerOpen((open) => !open)}
+            >
+              New game
+            </button>
+            {pickerOpen &&
+              [2, 3, 4].map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  className={
+                    n === state.players.length ? 'pill pill-on' : 'pill'
+                  }
+                  aria-pressed={n === state.players.length}
+                  onClick={() => {
+                    onNewGame(n)
+                    setPickerOpen(false)
+                  }}
+                >
+                  {n}
+                </button>
+              ))}
           </div>
         </foreignObject>
       </g>
