@@ -107,7 +107,8 @@
   padding: 4px 10px;
 }
 
-/* collapsible per-colour piton group */
+/* per-colour piton block: always-visible presets on top, a collapsible
+   <details> below for per-piton editing. */
 .dev-group {
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -116,7 +117,7 @@
 .dev-group + .dev-group {
   margin-top: 6px;
 }
-.dev-group > summary {
+.dev-group-details > summary {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -128,11 +129,11 @@
   font-weight: 600;
   color: var(--text-h);
 }
-.dev-group > summary .muted {
+.dev-group-details > summary .muted {
   margin-left: auto;
 }
 .dev-group-actions {
-  margin: 8px 0 4px;
+  margin: 0 0 8px;
 }
 
 .dev-piton-row {

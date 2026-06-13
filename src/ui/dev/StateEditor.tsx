@@ -133,17 +133,9 @@ export function StateEditor({ view, onChange }: Props) {
         {game.players.map((player, pi) => {
           const home = player.pitons.filter((p) => p.position.kind === 'finished').length
           return (
-            <details key={player.color} className="dev-group">
-              <summary>
-                <span
-                  className="swatch"
-                  style={{ background: PLAYER_HEX[player.color] }}
-                  aria-hidden
-                />
-                <span className="dev-group-name">{cap(player.color)}</span>
-                <span className="muted">{home}/4 home</span>
-              </summary>
-
+            <div key={player.color} className="dev-group">
+              {/* Presets sit above the folder so they're reachable without
+                  expanding it; the <details> below holds per-piton editing. */}
               <div className="dev-row dev-wrap dev-group-actions">
                 <button
                   type="button"
@@ -161,57 +153,69 @@ export function StateEditor({ view, onChange }: Props) {
                 </button>
               </div>
 
-              {player.pitons.map((piton) => {
-                const pos = piton.position
-                return (
-                  <div key={piton.id} className="dev-piton-row">
-                    <span className="dev-piton-id">{piton.id}</span>
-                    <select
-                      className="dev-select dev-kind"
-                      value={pos.kind}
-                      onChange={(e) =>
-                        setPiton(piton.id, defaultPosition(e.target.value as PitonPosition['kind']))
-                      }
-                    >
-                      <option value="nest">nest</option>
-                      <option value="track">track</option>
-                      <option value="lane">lane</option>
-                      <option value="finished">home</option>
-                    </select>
-                    {pos.kind === 'track' && (
-                      <input
-                        type="number"
-                        className="dev-num"
-                        min={0}
-                        max={trackLength - 1}
-                        value={pos.square}
+              <details className="dev-group-details">
+                <summary>
+                  <span
+                    className="swatch"
+                    style={{ background: PLAYER_HEX[player.color] }}
+                    aria-hidden
+                  />
+                  <span className="dev-group-name">{cap(player.color)}</span>
+                  <span className="muted">{home}/4 home</span>
+                </summary>
+
+                {player.pitons.map((piton) => {
+                  const pos = piton.position
+                  return (
+                    <div key={piton.id} className="dev-piton-row">
+                      <span className="dev-piton-id">{piton.id}</span>
+                      <select
+                        className="dev-select dev-kind"
+                        value={pos.kind}
                         onChange={(e) =>
-                          setPiton(piton.id, {
-                            kind: 'track',
-                            square: clamp(Number(e.target.value) || 0, 0, trackLength - 1),
-                          })
+                          setPiton(piton.id, defaultPosition(e.target.value as PitonPosition['kind']))
                         }
-                      />
-                    )}
-                    {pos.kind === 'lane' && (
-                      <input
-                        type="number"
-                        className="dev-num"
-                        min={0}
-                        max={laneLength - 1}
-                        value={pos.step}
-                        onChange={(e) =>
-                          setPiton(piton.id, {
-                            kind: 'lane',
-                            step: clamp(Number(e.target.value) || 0, 0, laneLength - 1),
-                          })
-                        }
-                      />
-                    )}
-                  </div>
-                )
-              })}
-            </details>
+                      >
+                        <option value="nest">nest</option>
+                        <option value="track">track</option>
+                        <option value="lane">lane</option>
+                        <option value="finished">home</option>
+                      </select>
+                      {pos.kind === 'track' && (
+                        <input
+                          type="number"
+                          className="dev-num"
+                          min={0}
+                          max={trackLength - 1}
+                          value={pos.square}
+                          onChange={(e) =>
+                            setPiton(piton.id, {
+                              kind: 'track',
+                              square: clamp(Number(e.target.value) || 0, 0, trackLength - 1),
+                            })
+                          }
+                        />
+                      )}
+                      {pos.kind === 'lane' && (
+                        <input
+                          type="number"
+                          className="dev-num"
+                          min={0}
+                          max={laneLength - 1}
+                          value={pos.step}
+                          onChange={(e) =>
+                            setPiton(piton.id, {
+                              kind: 'lane',
+                              step: clamp(Number(e.target.value) || 0, 0, laneLength - 1),
+                            })
+                          }
+                        />
+                      )}
+                    </div>
+                  )
+                })}
+              </details>
+            </div>
           )
         })}
       </section>
