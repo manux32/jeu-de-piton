@@ -20,6 +20,24 @@ interface Props {
  * it can't be mistaken for a blue player's home-lane cells. */
 const SAFE_FILL = '#1a1a1a'
 
+/**
+ * Start-arrow shape — four independent knobs, each a fraction of the start
+ * cell's half-size resolved along/across the direction of travel. Tweak freely.
+ * The BASE is the anchor: changing the length grows/shrinks the apex out from a
+ * fixed base; the two offsets slide the whole (un-skewed) arrow around the cell.
+ *   ARROW_LENGTH       — apex distance from the base, along travel (1 = half the
+ *                        cell length, 2 = the full cell length).
+ *   ARROW_OFFSET_ALONG — base position along travel from the cell centre
+ *                        (signed: + toward the leading edge, − toward trailing).
+ *   ARROW_OFFSET_ACROSS— base position across travel from the cell centre
+ *                        (signed: slides the arrow sideways within the cell).
+ *   ARROW_WIDTH        — half the base width across the cell (1 = full width).
+ */
+const ARROW_LENGTH = 0.7
+const ARROW_OFFSET_ALONG = -0.95
+const ARROW_OFFSET_ACROSS = 0.63
+const ARROW_WIDTH = 0.3
+
 export function Board({ state, layout }: Props) {
   const safe = new Set(state.ruleset.safeSquares)
 
@@ -56,6 +74,56 @@ export function Board({ state, layout }: Props) {
           strokeWidth={0.03}
         />
       ))}
+
+      {/* start-square ownership arrows — a colored triangle on each player's
+          start square, pointing the way the piton travels (CCW along the track),
+          with its base resting on the square's trailing ("bottom") edge. That
+          gives two cues in one mark: whose square it is, and which way play runs.
+          The black safe fill stays beneath: the square is still safe, but only
+          *for its owner*, who can even exit the nest onto it to capture an enemy
+          sitting there. Travel is axis-aligned, so the arrows never tilt; the
+          trailing edge is screen-bottom for the south arm and its rotation for
+          the rest. */}
+      {state.players.map((player, p) => {
+        const s = state.geometry.entryIndices[p]
+        const cell = layout.trackCells[s]
+        const next = layout.trackCells[(s + 1) % layout.trackCells.length]
+        const cx = cellMid(cell.col, layout)
+        const cy = cellMid(cell.row, layout)
+        // Unit vector along travel (toward the next track cell) and across it.
+        const tx = cellMid(next.col, layout) - cx
+        const ty = cellMid(next.row, layout) - cy
+        const len = Math.hypot(tx, ty) || 1
+        const ux = tx / len
+        const uy = ty / len
+        const px = -uy
+        const py = ux
+        // Cell half-extents resolved along/across travel (axis-aligned, so each
+        // picks out one of the cell's two dimensions).
+        const cw = cellSize(cell.col, layout)
+        const ch = cellSize(cell.row, layout)
+        const alongHalf = (Math.abs(ux) * cw + Math.abs(uy) * ch) / 2
+        const acrossHalf = (Math.abs(px) * cw + Math.abs(py) * ch) / 2
+        // Anchor the base (slid from the cell centre by the two offsets), then
+        // grow the apex out from it along travel by the arrow's length.
+        const bx =
+          cx + ux * alongHalf * ARROW_OFFSET_ALONG + px * acrossHalf * ARROW_OFFSET_ACROSS
+        const by =
+          cy + uy * alongHalf * ARROW_OFFSET_ALONG + py * acrossHalf * ARROW_OFFSET_ACROSS
+        const ax = bx + ux * alongHalf * ARROW_LENGTH
+        const ay = by + uy * alongHalf * ARROW_LENGTH
+        const hb = acrossHalf * ARROW_WIDTH
+        return (
+          <polygon
+            key={`start-arrow-${p}`}
+            points={`${ax},${ay} ${bx + px * hb},${by + py * hb} ${bx - px * hb},${by - py * hb}`}
+            fill={PLAYER_HEX[player.color]}
+            stroke="#fdfcf8"
+            strokeWidth={0.04}
+            strokeLinejoin="round"
+          />
+        )
+      })}
 
       {/* nests — render-unit hole centres, each cluster centred in its corner
           quadrant (see layout.nestSlots / nestCentres) */}
