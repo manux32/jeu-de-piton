@@ -27,18 +27,18 @@ export interface DevScenario {
   label: string
   /**
    * One line describing what the scenario sets up / what to look at. Single
-   * source of truth: shown as the picker tooltip *and* stamped onto the HUD as
-   * the `notice` when loaded (see `loadScenario`). Scenarios therefore don't set
-   * a notice themselves — `build` returns board state only.
+   * source of truth: shown as the picker tooltip *and* stamped as the `notice`
+   * when loaded (see `loadScenario`). Scenarios therefore don't set a notice
+   * themselves — `build` returns board state only.
    */
   description: string
   build: () => Omit<GameView, 'notice'>
 }
 
 /**
- * Turn a scenario into a loadable view: its board state plus a HUD notice
- * derived from `description`. The `Dev:` prefix marks the banner as synthetic so
- * it reads differently from a real gameplay notice.
+ * Turn a scenario into a loadable view: its board state plus a notice derived
+ * from `description`. The `Dev:` prefix marks it as synthetic so it reads
+ * differently from a real gameplay notice.
  */
 export function loadScenario(s: DevScenario): GameView {
   return { ...s.build(), notice: `Dev: ${s.description}` }

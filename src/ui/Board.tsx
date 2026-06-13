@@ -1,9 +1,11 @@
 /**
- * Static board: the cross, the four colored home lanes, the nests, the safe-
- * square marks and HOME — all derived from the engine geometry via `buildLayout`.
- * It reads engine state (geometry, colors, safe squares) but holds no rules and
- * no piece positions; pitons render on top in <Pitons>. Coordinates are in cell
- * units, matching the parent SVG's `viewBox`.
+ * Mostly-static board: the cross, the four colored home lanes, the nests, the
+ * safe-square marks and HOME — all derived from the engine geometry via
+ * `buildLayout` — plus the active player's corner wash (the one state-driven
+ * bit: it reads `turn` to tint that player's corner quadrant as the whose-turn
+ * cue). It reads engine state (geometry, colors, safe squares, turn) but holds
+ * no rules and no piece positions; pitons render on top in <Pitons>. Coordinates
+ * are in cell units, matching the parent SVG's `viewBox`.
  */
 import type { GameState } from '../engine'
 import { type BoardLayout, cellStart, cellSize, cellMid } from './layout'

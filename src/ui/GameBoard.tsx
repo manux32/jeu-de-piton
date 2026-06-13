@@ -1,10 +1,13 @@
 /**
  * Composes the board: builds the screen layout from the engine geometry (once
- * per game) and renders the static <Board>, the legal-move target markers, and
- * the <Pitons> overlay inside a single SVG whose `viewBox` is the cell grid.
- * This is the interaction-loop seam (Milestone 4): it takes the current player's
- * `legalMoves` and an `onPick` callback and wires them down to <Pitons>; it adds
- * no rules of its own (the moves are computed by the engine in App).
+ * per game) and renders, inside a single SVG whose `viewBox` is the cell grid,
+ * the static <Board>, the legal-move target markers, the <Pitons> overlay, and
+ * all of the game's chrome — title, New Game controls, dice, notice — overlaid
+ * in the four corners (see the 2026-06-13 decision: the board is self-contained,
+ * no UI outside it). This is the interaction-loop seam (Milestone 4): it takes
+ * the current player's `legalMoves` / `rolled` / `notice` and the `onPick` /
+ * `onRoll` / `onNewGame` callbacks; it adds no rules of its own (every decision
+ * is the engine's, made in App).
  */
 import { useMemo } from 'react'
 import type { GameState, Move } from '../engine'
@@ -23,10 +26,11 @@ interface Props {
   onRoll: () => void
 }
 
-// In-board HTML chrome (New Game controls, dice) lives in the SVG via
+// In-board HTML chrome (New Game controls, dice, notice) lives in the SVG via
 // foreignObject, authored at natural px then scaled into board units — so it
-// reuses the page's .pill / .die styling rather than re-expressing it in viewBox
-// units. Corners hug the board edge, inset by CTRL_INSET.
+// reuses the page's .pill / .die / .board-notice styling rather than
+// re-expressing it in viewBox units. Corners hug the board edge, inset by
+// CTRL_INSET.
 const CTRL_SCALE = 0.019
 const CTRL_W = 200
 const CTRL_H = 52
