@@ -64,6 +64,15 @@ export interface BoardLayout {
   laneCells: Cell[][]
   /** Per player index: the nest slots holding their pitons (one per piton). */
   nestCells: Cell[][]
+  /**
+   * Centre cell of each ARM's nest cluster, indexed by arm rotation (not by
+   * player) so it's stable across player counts — every corner has one whether
+   * or not a player is seated there. Rotation→screen-corner mapping:
+   * `[0]` top-right · `[1]` top-left · `[2]` bottom-left · `[3]` bottom-right.
+   * Used to place the in-board chrome (title/controls/dice/notice) centred on
+   * the nest in its corner. (`nestCells` re-derives the same point per player.)
+   */
+  nestCentres: Cell[]
   /** Centre cell of the board — HOME / the finish. */
   homeCell: Cell
   /**
@@ -168,6 +177,19 @@ export function buildLayout(
     trackCells.push(ring[(i + ringShift) % trackLength])
   }
 
+  // Nest geometry (player-independent): a 2×2 cluster in the corner adjacent to
+  // an arm's START column. For the East arm the start is on the top (north) side
+  // column, so the nest sits in the top-right corner; rotation carries it onto
+  // each arm. `off` is the corner offset from centre; (cMid, rMid) is the cluster
+  // centre on the East arm before rotation.
+  const off = Math.round(sideLen / 2) + 1
+  const cMid = centre + off // right side
+  const rMid = centre - off // start (top) side
+  // Each arm's nest centre, indexed by arm rotation — see BoardLayout.nestCentres.
+  const nestCentres: Cell[] = [0, 1, 2, 3].map((r) =>
+    rotate({ col: cMid, row: rMid }, centre, r),
+  )
+
   // --- per-player lanes and nests, on each player's own arm -------------------
   // A player's arm is the quadrant their (shifted) entry cell falls in.
   const laneCells: Cell[][] = []
@@ -185,12 +207,8 @@ export function buildLayout(
     }
     laneCells.push(lane)
 
-    // Nest: a 2×2 cluster in the corner adjacent to the player's START column.
-    // For the East arm the start is on the top (north) side column, so the nest
-    // sits in the top-right corner; rotation carries it onto each player's arm.
-    const off = Math.round(sideLen / 2) + 1
-    const cMid = centre + off // right side
-    const rMid = centre - off // start (top) side
+    // Nest: the 2×2 cluster around (cMid, rMid) (see above), rotated onto the
+    // player's arm.
     const slots = [
       { col: cMid - 1, row: rMid - 1 },
       { col: cMid + 1, row: rMid - 1 },
@@ -213,6 +231,7 @@ export function buildLayout(
     trackCells,
     laneCells,
     nestCells,
+    nestCentres,
     homeCell: { col: centre, row: centre },
     edges,
     extent: edges[gridSize],

@@ -54,13 +54,11 @@ export function GameBoard({
     [state.geometry, state.players.length],
   )
 
-  // Horizontal centre of the top-left (North-arm) nest area, derived from the
-  // grid geometry so it holds regardless of which players are seated. Mirrors
-  // the nest-placement maths in buildLayout (off = round(sideLen/2)+1).
-  const centre = (layout.gridSize - 1) / 2
-  const sideLen = (layout.gridSize - 3) / 2
-  const nestOffset = Math.round(sideLen / 2) + 1
-  const titleX = cellMid(centre - nestOffset, layout)
+  // Each corner's chrome centres horizontally on that corner's nest cluster,
+  // read straight from the layout (no re-derived geometry). Corner→nest mapping
+  // per BoardLayout.nestCentres: [1] top-left, [0] top-right, [2] bottom-left,
+  // [3] bottom-right.
+  const titleX = cellMid(layout.nestCentres[1].col, layout)
   const ctrlX = layout.extent - CTRL_INSET - CTRL_W * CTRL_SCALE
   const diceY = layout.extent - CTRL_INSET - DICE_H * CTRL_SCALE
   const noticeX = layout.extent - CTRL_INSET - NOTICE_W * CTRL_SCALE
