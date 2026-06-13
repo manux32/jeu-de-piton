@@ -15,10 +15,11 @@ import { DevPanel } from './DevPanel'
 import './dev.css'
 
 interface Props {
+  view: GameView
   onLoad: (view: GameView) => void
 }
 
-export default function DevTools({ onLoad }: Props) {
+export default function DevTools({ view, onLoad }: Props) {
   const [open, setOpen] = useState(false)
 
   if (!open) {
@@ -31,6 +32,7 @@ export default function DevTools({ onLoad }: Props) {
 
   return (
     <DevPanel
+      view={view}
       scenarios={DEV_SCENARIOS}
       onLoad={onLoad}
       onClose={() => setOpen(false)}

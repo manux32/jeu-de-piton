@@ -76,3 +76,69 @@
   line-height: 135%;
   color: var(--text);
 }
+.dev-hint code {
+  font-size: 12px;
+  padding: 1px 4px;
+}
+
+.dev-wrap {
+  flex-wrap: wrap;
+}
+.dev-wrap .pill {
+  min-width: 0;
+  padding: 4px 10px;
+}
+
+/* collapsible per-colour piton group */
+.dev-group {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 10px;
+}
+.dev-group + .dev-group {
+  margin-top: 6px;
+}
+.dev-group > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  list-style-position: inside;
+  font-size: 14px;
+}
+.dev-group-name {
+  font-weight: 600;
+  color: var(--text-h);
+}
+.dev-group > summary .muted {
+  margin-left: auto;
+}
+.dev-group-actions {
+  margin: 8px 0 4px;
+}
+
+.dev-piton-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+.dev-piton-id {
+  font-family: var(--mono);
+  font-size: 13px;
+  width: 56px;
+  color: var(--text-h);
+}
+.dev-kind {
+  flex: 1;
+}
+.dev-num {
+  font: inherit;
+  font-size: 14px;
+  width: 64px;
+  padding: 5px 6px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text-h);
+}

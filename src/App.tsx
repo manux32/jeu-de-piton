@@ -57,7 +57,10 @@ function App() {
 
       {DevTools && (
         <Suspense fallback={null}>
-          <DevTools onLoad={(loaded) => dispatch({ type: 'load', view: loaded })} />
+          <DevTools
+            view={view}
+            onLoad={(loaded) => dispatch({ type: 'load', view: loaded })}
+          />
         </Suspense>
       )}
     </main>

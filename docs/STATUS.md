@@ -76,11 +76,17 @@ board situations for validating UI/interaction fixes without playing up to them.
   scenarios, `dev.css`) **never ships** — verified: prod bundle byte-identical to
   pre-tooling. The engine stays untouched; scenarios dispatch a `load` action
   ([`useGame.ts`](../src/ui/useGame.ts)) carrying a full `GameView`.
+- The panel also has a **state editor** ([`StateEditor.tsx`](../src/ui/dev/StateEditor.tsx)):
+  a knob form (NOT spatial board-editing — pivoted there 2026-06-12) over the same
+  fields a scenario sets — turn, pending roll (→ phase), `extraTurnStreak`, and
+  each piton's position (collapsible per-colour groups + per-player Nest-all /
+  Home-all). It's a controlled reflection of the live `GameView`; edits dispatch
+  `load`; the board mirrors the result. Runs no engine transitions, so illegal
+  setups are allowed on purpose.
 - **Plan (3 sessions):** ✅ S1 panel + file-based scenarios + load dropdown.
-  ⬜ S2 board-state editor (click-piton-then-cell placement, turn/roll controls,
-  cell→position reverse map in `layout.ts`, EDIT-MODE banner). ⬜ S3 "save as
-  scenario" (state→code serialization + name field + dev-only Vite middleware
-  that writes a new file into `scenarios/`).
+  ✅ S2 knob-based state editor. ⬜ S3 "save as scenario" (state→code
+  serialization + name field + dev-only Vite middleware that writes a new file
+  into `scenarios/`).
 
 ## Dev quick-ref
 - `npm test` (engine), `npm run build` (type-check + build), `npm run dev` (UI,

@@ -10,14 +10,16 @@
 import { useState } from 'react'
 import type { GameView } from '../useGame'
 import type { DevScenario } from './scenario'
+import { StateEditor } from './StateEditor'
 
 interface Props {
+  view: GameView
   scenarios: DevScenario[]
   onLoad: (view: GameView) => void
   onClose: () => void
 }
 
-export function DevPanel({ scenarios, onLoad, onClose }: Props) {
+export function DevPanel({ view, scenarios, onLoad, onClose }: Props) {
   const [selectedId, setSelectedId] = useState(scenarios[0]?.id ?? '')
   const selected = scenarios.find((s) => s.id === selectedId)
 
@@ -63,6 +65,8 @@ export function DevPanel({ scenarios, onLoad, onClose }: Props) {
         </div>
         {selected && <p className="dev-hint">{selected.hint}</p>}
       </section>
+
+      <StateEditor view={view} onChange={onLoad} />
     </aside>
   )
 }
