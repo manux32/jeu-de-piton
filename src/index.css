@@ -51,8 +51,7 @@
 }
 
 #root {
-  width: 1126px;
-  max-width: 100%;
+  width: 100%;
   margin: 0 auto;
   text-align: center;
   border-inline: 1px solid var(--border);
@@ -135,7 +134,9 @@ code {
 
 /* --- board --------------------------------------------------------------- */
 .board-shell {
-  max-width: 860px;
+  /* The board is the game — let it fill. No width cap here; the only limit is
+     the .game-board height-aware sizing below (and the shell padding). */
+  max-width: none;
 }
 
 .pill {
@@ -160,11 +161,13 @@ code {
 
 .game-board {
   width: 100%;
-  /* Square, so cap by the smaller of available width and viewport height to
-     avoid vertical overflow. All chrome (title, controls, dice, notice) now
-     lives inside the board, so the only off-board reserve is the shell padding
-     (24px top + bottom) plus a little safety. */
-  max-width: min(820px, calc(100svh - 56px));
+  /* The board is square and uncapped — "the board is the game", so it fills as
+     much as it can. `width: 100%` bounds it by the available width; this
+     max-width bounds it by viewport height so a square board never overflows
+     vertically. All chrome (title, controls, dice, notice) lives inside the
+     board, so the only off-board reserve is the shell padding (24px top +
+     bottom) plus a little safety. */
+  max-width: calc(100svh - 56px);
   height: auto;
   margin: 0 auto;
   aspect-ratio: 1 / 1;
