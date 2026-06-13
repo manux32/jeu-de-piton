@@ -25,7 +25,6 @@ function App() {
   return (
     <main className="app-shell board-shell">
       <header className="app-header">
-        <h1>Jeu de piton</h1>
         <div className="controls" role="group" aria-label="new game — player count">
           <span className="muted">New game</span>
           {[2, 3, 4].map((n) => (

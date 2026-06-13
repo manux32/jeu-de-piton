@@ -186,6 +186,17 @@ code {
   box-shadow: var(--shadow);
 }
 
+/* Game title rendered inside the board SVG (top-left). Drawn on the always-light
+   board background, so a fixed dark fill reads in either page theme. Sized in
+   viewBox units by <text font-size>, so it scales with the board. */
+.board-title {
+  fill: #9b96a3;
+  font-family: var(--heading);
+  font-weight: 600;
+  letter-spacing: -0.02px;
+  user-select: none;
+}
+
 /* --- HUD ----------------------------------------------------------------- */
 .hud {
   display: flex;

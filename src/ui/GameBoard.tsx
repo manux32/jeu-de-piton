@@ -25,6 +25,14 @@ export function GameBoard({ state, moves, onPick }: Props) {
     [state.geometry, state.players.length],
   )
 
+  // Horizontal centre of the top-left (North-arm) nest area, derived from the
+  // grid geometry so it holds regardless of which players are seated. Mirrors
+  // the nest-placement maths in buildLayout (off = round(sideLen/2)+1).
+  const centre = (layout.gridSize - 1) / 2
+  const sideLen = (layout.gridSize - 3) / 2
+  const nestOffset = Math.round(sideLen / 2) + 1
+  const titleX = cellMid(centre - nestOffset, layout)
+
   return (
     <svg
       className="game-board"
@@ -33,6 +41,19 @@ export function GameBoard({ state, moves, onPick }: Props) {
       aria-label="jeu de piton board"
     >
       <Board state={state} layout={layout} />
+
+      {/* Game title, baked into the board's top-left corner so it scales with
+          the board and needs no chrome outside it. Non-interactive. */}
+      <text
+        className="board-title"
+        x={titleX}
+        y={0.5}
+        fontSize={0.6}
+        textAnchor="middle"
+        dominantBaseline="hanging"
+      >
+        Jeu de piton
+      </text>
 
       {/* legal-move target markers — a hollow ring on each destination cell,
           tinted the moving player's color (via currentColor) so it doesn't read
