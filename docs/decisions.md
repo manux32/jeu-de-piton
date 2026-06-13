@@ -10,6 +10,17 @@
 > [rules-and-lineage.md](rules-and-lineage.md), [board-model.md](board-model.md)).
 > Don't duplicate git history — capture reasoning a commit message wouldn't.
 
+- **2026-06-13** — **Chrome scales with the board, by design — the "chrome size
+  tuning" item is retired (won't-do).** The parked M6 item *hypothesized* that
+  on-board chrome (pills, die, notices), sized in *board* units (`CTRL_SCALE`,
+  `DIE_SIZE`), would read oversized once the board fills a large monitor, and
+  floated decoupling chrome from board size (viewport-relative sizing). Resolved:
+  uniform scaling is the **intended** feel — the whole thing behaves like a
+  physical board game, every element growing and shrinking together. So chrome
+  stays in board units; we deliberately do **not** pin it to the viewport. (The
+  only residual, separate concern is the *opposite* extreme — a very small phone
+  screen could push the notice text under a legibility floor; revisit only if it
+  actually bites on a device, not pre-emptively.)
 - **2026-06-13** — **Die HUD: a native-SVG pip face you tap to roll, with all
   roll *timing* in the view layer.** Replaced the HTML "Roll button + number chip"
   (foreignObject) with a native SVG die (`DieFace` — a rounded box of pips on the
