@@ -1,7 +1,6 @@
 import { lazy, Suspense } from 'react'
 import { rollDie, legalMoves, type Move } from './engine'
 import { GameBoard } from './ui/GameBoard'
-import { Hud } from './ui/Hud'
 import { useGame } from './ui/useGame'
 
 // Dev tools are lazy-loaded ONLY in dev builds. In production `import.meta.env.DEV`
@@ -28,12 +27,11 @@ function App() {
         state={game}
         moves={moves}
         rolled={rolled}
+        notice={notice}
         onPick={(move) => dispatch({ type: 'pick', move })}
         onNewGame={(playerCount) => dispatch({ type: 'newGame', playerCount })}
         onRoll={() => dispatch({ type: 'roll', value: rollDie() })}
       />
-
-      <Hud game={game} notice={notice} />
 
       {DevTools && (
         <Suspense fallback={null}>

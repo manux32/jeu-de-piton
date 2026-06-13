@@ -138,20 +138,6 @@ code {
   max-width: 860px;
 }
 
-.app-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 8px 16px;
-}
-
-.controls {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
 .pill {
   font: inherit;
   font-size: 15px;
@@ -174,10 +160,11 @@ code {
 
 .game-board {
   width: 100%;
-  /* Square, so cap by the smaller of available width and viewport height
-     (leaving room for the header + HUD) to avoid vertical overflow. The reserve
-     covers padding + header + HUD (incl. its always-present notice line). */
-  max-width: min(820px, calc(100svh - 190px));
+  /* Square, so cap by the smaller of available width and viewport height to
+     avoid vertical overflow. All chrome (title, controls, dice, notice) now
+     lives inside the board, so the only off-board reserve is the shell padding
+     (24px top + bottom) plus a little safety. */
+  max-width: min(820px, calc(100svh - 56px));
   height: auto;
   margin: 0 auto;
   aspect-ratio: 1 / 1;
@@ -238,6 +225,26 @@ code {
   border-color: #d9d6dd;
 }
 
+/* Notice line mounted in the board SVG (bottom-right), right-aligned and
+   bottom-anchored. Click-through. Pinned to light-theme colours so the win
+   variant (normally near-white in dark mode) stays visible on the board. */
+.board-notice {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  width: 100%;
+  height: 100%;
+  text-align: right;
+  font-size: 15px;
+  line-height: 1.3;
+  color: #6b6375;
+  pointer-events: none;
+}
+.board-notice-win {
+  font-weight: 600;
+  color: #08060d;
+}
+
 /* Game title rendered inside the board SVG (top-left). Drawn on the always-light
    board background, so a fixed dark fill reads in either page theme. Sized in
    viewBox units by <text font-size>, so it scales with the board. */
@@ -249,22 +256,8 @@ code {
   user-select: none;
 }
 
-/* --- HUD ----------------------------------------------------------------- */
-.hud {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 8px 20px;
-}
-
-.hud-turn,
-.hud-roll {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
+/* --- shared bits -------------------------------------------------------- */
+/* .swatch: dev StateEditor colour chip. .die: the dice value (board-dice). */
 .swatch {
   width: 16px;
   height: 16px;
@@ -288,18 +281,6 @@ code {
 .pill:disabled {
   opacity: 0.4;
   cursor: not-allowed;
-}
-
-.hud-notice {
-  flex-basis: 100%;
-  min-height: 1.2em;
-  font-size: 15px;
-  color: var(--text);
-}
-.hud-win {
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--text-h);
 }
 
 /* --- board interaction --------------------------------------------------- */

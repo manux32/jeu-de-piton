@@ -17,6 +17,7 @@ interface Props {
   state: GameState
   moves: Move[]
   rolled: number | null
+  notice: string | null
   onPick: (move: Move) => void
   onNewGame: (playerCount: number) => void
   onRoll: () => void
@@ -32,11 +33,14 @@ const CTRL_H = 52
 const CTRL_INSET = 0.4
 const DICE_W = 150
 const DICE_H = 56
+const NOTICE_W = 360
+const NOTICE_H = 70
 
 export function GameBoard({
   state,
   moves,
   rolled,
+  notice,
   onPick,
   onNewGame,
   onRoll,
@@ -55,6 +59,9 @@ export function GameBoard({
   const titleX = cellMid(centre - nestOffset, layout)
   const ctrlX = layout.extent - CTRL_INSET - CTRL_W * CTRL_SCALE
   const diceY = layout.extent - CTRL_INSET - DICE_H * CTRL_SCALE
+  const noticeX = layout.extent - CTRL_INSET - NOTICE_W * CTRL_SCALE
+  const noticeY = layout.extent - CTRL_INSET - NOTICE_H * CTRL_SCALE
+  const over = state.phase === 'game-over'
 
   return (
     <svg
@@ -84,7 +91,6 @@ export function GameBoard({
       <g transform={`translate(${ctrlX}, ${CTRL_INSET}) scale(${CTRL_SCALE})`}>
         <foreignObject x={0} y={0} width={CTRL_W} height={CTRL_H}>
           <div
-            xmlns="http://www.w3.org/1999/xhtml"
             className="board-controls"
             role="group"
             aria-label="new game — player count"
@@ -109,7 +115,7 @@ export function GameBoard({
           the rolled result and the Roll button, reusing .die / .pill styling. */}
       <g transform={`translate(${CTRL_INSET}, ${diceY}) scale(${CTRL_SCALE})`}>
         <foreignObject x={0} y={0} width={DICE_W} height={DICE_H}>
-          <div xmlns="http://www.w3.org/1999/xhtml" className="board-dice">
+          <div className="board-dice">
             <span
               className="die"
               aria-label={rolled ? `rolled ${rolled}` : 'no roll yet'}
@@ -124,6 +130,21 @@ export function GameBoard({
             >
               Roll
             </button>
+          </div>
+        </foreignObject>
+      </g>
+
+      {/* Notice line (capture / extra roll / forfeit / winner), bottom-right.
+          Non-interactive text via foreignObject so it can wrap and right-align;
+          click-through so it never swallows board clicks. */}
+      <g transform={`translate(${noticeX}, ${noticeY}) scale(${CTRL_SCALE})`}>
+        <foreignObject x={0} y={0} width={NOTICE_W} height={NOTICE_H}>
+          <div
+            className={over ? 'board-notice board-notice-win' : 'board-notice'}
+            role="status"
+            aria-live="polite"
+          >
+            {notice ?? ''}
           </div>
         </foreignObject>
       </g>
