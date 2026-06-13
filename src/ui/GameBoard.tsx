@@ -29,8 +29,9 @@ interface Props {
 // In-board HTML chrome (New Game controls, dice, notice) lives in the SVG via
 // foreignObject, authored at natural px then scaled into board units — so it
 // reuses the page's .pill / .die / .board-notice styling rather than
-// re-expressing it in viewBox units. Corners hug the board edge, inset by
-// CTRL_INSET.
+// re-expressing it in viewBox units. Each element is centred horizontally on
+// its corner's nest cluster (see nestX in the body) and vertically inset from
+// the board edge by CTRL_INSET.
 const CTRL_SCALE = 0.019
 const CTRL_W = 200
 const CTRL_H = 52
@@ -57,11 +58,16 @@ export function GameBoard({
   // Each corner's chrome centres horizontally on that corner's nest cluster,
   // read straight from the layout (no re-derived geometry). Corner→nest mapping
   // per BoardLayout.nestCentres: [1] top-left, [0] top-right, [2] bottom-left,
-  // [3] bottom-right.
-  const titleX = cellMid(layout.nestCentres[1].col, layout)
-  const ctrlX = layout.extent - CTRL_INSET - CTRL_W * CTRL_SCALE
+  // [3] bottom-right. Vertical anchoring is unchanged — title hugs the top,
+  // dice + notice hug the bottom (CTRL_INSET from the edge); only X is centred.
+  // A foreignObject box is centred by offsetting its left edge half its scaled
+  // width left of the nest centre (the inner flex is justify-content:center).
+  const nestX = (corner: number) => cellMid(layout.nestCentres[corner].col, layout)
+  const titleX = nestX(1)
+  const ctrlX = nestX(0) - (CTRL_W * CTRL_SCALE) / 2
+  const diceX = nestX(2) - (DICE_W * CTRL_SCALE) / 2
   const diceY = layout.extent - CTRL_INSET - DICE_H * CTRL_SCALE
-  const noticeX = layout.extent - CTRL_INSET - NOTICE_W * CTRL_SCALE
+  const noticeX = nestX(3) - (NOTICE_W * CTRL_SCALE) / 2
   const noticeY = layout.extent - CTRL_INSET - NOTICE_H * CTRL_SCALE
   const over = state.phase === 'game-over'
 
@@ -115,7 +121,7 @@ export function GameBoard({
 
       {/* Dice, bottom-left. Same foreignObject-scaled-into-board-units trick:
           the rolled result and the Roll button, reusing .die / .pill styling. */}
-      <g transform={`translate(${CTRL_INSET}, ${diceY}) scale(${CTRL_SCALE})`}>
+      <g transform={`translate(${diceX}, ${diceY}) scale(${CTRL_SCALE})`}>
         <foreignObject x={0} y={0} width={DICE_W} height={DICE_H}>
           <div className="board-dice">
             <span
