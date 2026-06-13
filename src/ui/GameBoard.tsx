@@ -48,7 +48,7 @@ const CTRL_H = 52
 const CTRL_INSET = 0.4
 // The die is drawn natively in board units (see DieFace), centred over HOME. A
 // touch under the 3×3 HOME band so it owns the centre without crowding the arms.
-const DIE_SIZE = 2.4
+const DIE_SIZE = 2.0
 // Per-nest notice: a short line tucked just inside a player's own corner nest,
 // authored in px then scaled into board units like the other chrome. Narrow on
 // purpose — messages are kept terse so they fit a corner without crowding it.

@@ -6,8 +6,9 @@
  * in, so the reducer itself stays a pure function of `(view, action)`.
  *
  * Alongside the engine state it keeps two bits of *view* state the board doesn't
- * carry: `rolled` (the die face to show on the chip, which survives an immediate
- * forfeit where the engine clears `lastRoll`) and `notice` (a one-line message
+ * carry: `rolled` (the die face to show — the last value rolled, held until the
+ * next roll, surviving both a forfeit where the engine clears `lastRoll` and the
+ * handover to the next player) and `notice` (a one-line message
  * surfacing what the engine just decided — a capture, an extra roll, a forfeit,
  * the streak penalty, or a win). Both are derived by *observing* the before/after
  * states, not by re-deriving the rules.
@@ -24,7 +25,8 @@ import {
 
 export interface GameView {
   game: GameState
-  /** Die face to display; null before the first roll of a turn. */
+  /** Die face to display — the most recent roll, held until someone rolls
+   *  again; null only before any roll has happened (a fresh game). */
   rolled: number | null
   /** One-line feedback about the last engine event, or null. */
   notice: string | null
@@ -96,14 +98,17 @@ function reducer(view: GameView, action: GameAction): GameView {
       const next = applyMove(prev, action.move)
 
       if (next.phase === 'game-over') {
-        return { game: next, rolled: null, notice: 'Wins! 🎉', noticeOwner: prev.turn }
+        return { game: next, rolled: view.rolled, notice: 'Wins! 🎉', noticeOwner: prev.turn }
       }
       const parts: string[] = []
       if (action.move.captures) parts.push('Capture!')
       // Turn unchanged after a move ⇒ the roll earned another go (a 6).
       if (next.turn === prev.turn) parts.push('Roll again')
       const notice = parts.join(' · ') || null
-      return { game: next, rolled: null, notice, noticeOwner: notice ? prev.turn : null }
+      // Keep the rolled face on display through the move and into the next
+      // player's awaiting-roll — the die shows the last value rolled until
+      // someone rolls again (it resets to null, shown as 1, only on a new game).
+      return { game: next, rolled: view.rolled, notice, noticeOwner: notice ? prev.turn : null }
     }
   }
 }
