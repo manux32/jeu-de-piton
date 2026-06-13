@@ -33,6 +33,8 @@ interface Props {
 // its corner's nest cluster (see nestX in the body) and vertically inset from
 // the board edge by CTRL_INSET.
 const CTRL_SCALE = 0.019
+// The dice owns the board centre, so it reads larger than the corner chrome.
+const DICE_SCALE = CTRL_SCALE * 1.5
 // New Game is a disclosure: a single "New game" toggle when collapsed, the
 // toggle plus the 2/3/4 picker when open. The box widens when open so the
 // content always fits; either way it's centred on the nest, so it grows
@@ -75,8 +77,13 @@ export function GameBoard({
   const nestX = (corner: number) => cellMid(layout.nestCentres[corner].col, layout)
   const titleX = nestX(1)
   const ctrlX = nestX(0) - (ctrlW * CTRL_SCALE) / 2
-  const diceX = nestX(2) - (DICE_W * CTRL_SCALE) / 2
-  const diceY = layout.extent - CTRL_INSET - DICE_H * CTRL_SCALE
+  // Dice rolls at the dead centre of the board, over the HOME area — rolling is
+  // the core gameplay act, so it earns the middle (see this session's decision).
+  // Centred on both axes; painted last (below) so it sits on top of the HOME
+  // label and any finished pitons. The die span is click-through (CSS) so the
+  // HOME-bound move target ring underneath stays clickable.
+  const diceX = layout.extent / 2 - (DICE_W * DICE_SCALE) / 2
+  const diceY = layout.extent / 2 - (DICE_H * DICE_SCALE) / 2
   const noticeX = nestX(3) - (NOTICE_W * CTRL_SCALE) / 2
   const noticeY = layout.extent - CTRL_INSET - NOTICE_H * CTRL_SCALE
   const over = state.phase === 'game-over'
@@ -144,9 +151,29 @@ export function GameBoard({
         </foreignObject>
       </g>
 
-      {/* Dice, bottom-left. Same foreignObject-scaled-into-board-units trick:
-          the rolled result and the Roll button, reusing .die / .pill styling. */}
-      <g transform={`translate(${diceX}, ${diceY}) scale(${CTRL_SCALE})`}>
+      {/* Notice line (capture / extra roll / forfeit / winner), bottom-right.
+          Non-interactive text via foreignObject so it can wrap and right-align;
+          click-through so it never swallows board clicks. */}
+      <g transform={`translate(${noticeX}, ${noticeY}) scale(${CTRL_SCALE})`}>
+        <foreignObject x={0} y={0} width={NOTICE_W} height={NOTICE_H}>
+          <div
+            className={over ? 'board-notice board-notice-win' : 'board-notice'}
+            role="status"
+            aria-live="polite"
+          >
+            {notice ?? ''}
+          </div>
+        </foreignObject>
+      </g>
+
+      <Pitons state={state} layout={layout} moves={moves} onPick={onPick} />
+
+      {/* Dice, dead centre over HOME — painted after Pitons so the die/Roll sit
+          on top of any finished pitons clustered in the corners. foreignObject
+          scaled into board units, reusing .die / .pill styling. NB the
+          move-target markers are painted *after* this (below) so a HOME-bound
+          target stays visible and clickable on top of the die. */}
+      <g transform={`translate(${diceX}, ${diceY}) scale(${DICE_SCALE})`}>
         <foreignObject x={0} y={0} width={DICE_W} height={DICE_H}>
           <div className="board-dice">
             <span
@@ -167,24 +194,11 @@ export function GameBoard({
         </foreignObject>
       </g>
 
-      {/* Notice line (capture / extra roll / forfeit / winner), bottom-right.
-          Non-interactive text via foreignObject so it can wrap and right-align;
-          click-through so it never swallows board clicks. */}
-      <g transform={`translate(${noticeX}, ${noticeY}) scale(${CTRL_SCALE})`}>
-        <foreignObject x={0} y={0} width={NOTICE_W} height={NOTICE_H}>
-          <div
-            className={over ? 'board-notice board-notice-win' : 'board-notice'}
-            role="status"
-            aria-live="polite"
-          >
-            {notice ?? ''}
-          </div>
-        </foreignObject>
-      </g>
-
-      {/* legal-move target markers — a hollow ring on each destination cell,
-          tinted the moving player's color (via currentColor) so it doesn't read
-          as the green player's mark */}
+      {/* legal-move target markers — a tinted ring on each destination cell, in
+          the moving player's colour (via currentColor). Painted LAST so every
+          target sits on top of the pieces and the centred dice — in particular a
+          HOME-bound target lands over the die, where it must stay obvious and
+          clickable to finish a piton. */}
       <g className="move-targets" style={{ color: PLAYER_HEX[state.players[state.turn].color] }}>
         {moves.map((m, i) => {
           const cell = destinationCell(m.to, state.turn, layout)
@@ -203,8 +217,6 @@ export function GameBoard({
           )
         })}
       </g>
-
-      <Pitons state={state} layout={layout} moves={moves} onPick={onPick} />
     </svg>
   )
 }

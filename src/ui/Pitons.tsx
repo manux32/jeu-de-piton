@@ -28,20 +28,23 @@ const HOME_FAN: Cell[] = [
 ]
 
 /**
- * Where player `playerIndex`'s `slot`-th finished piton sits: clustered toward
- * the HOME edge facing that player's own arm (the direction their lane enters
- * from), so each colour groups in its own corner instead of piling up at the
- * centre, then fanned within that group.
+ * Where player `playerIndex`'s `slot`-th finished piton sits: tucked into the
+ * HOME corner toward that player's own NEST (the diagonal corner their nest
+ * occupies), so each colour groups in its corner AND the horizontal mid-band of
+ * HOME stays clear for the centred dice UI — then fanned within that group.
  */
 function homeCluster(layout: BoardLayout, playerIndex: number, slot: number) {
   const { homeCell } = layout
-  const lane = layout.laneCells[playerIndex]
-  const deep = lane[lane.length - 1] // lane cell nearest HOME → points at the arm
-  const dirCol = Math.sign(deep.col - homeCell.col)
-  const dirRow = Math.sign(deep.row - homeCell.row)
+  const nest = layout.nestCells[playerIndex]
+  const nestCol = nest.reduce((s, c) => s + c.col, 0) / nest.length
+  const nestRow = nest.reduce((s, c) => s + c.row, 0) / nest.length
+  // Diagonal direction from centre toward this player's nest corner (the nest
+  // always sits off both axes, so both signs are non-zero).
+  const dirCol = Math.sign(nestCol - homeCell.col)
+  const dirRow = Math.sign(nestRow - homeCell.row)
   const homeHalf =
     (cellStart(homeCell.col + 2, layout) - cellStart(homeCell.col - 1, layout)) / 2
-  const push = homeHalf - 0.95 // toward the player's edge, with a margin
+  const push = homeHalf - 0.95 // toward the player's corner, with a margin
   const fan = HOME_FAN[slot % HOME_FAN.length]
   return {
     cx: cellMid(homeCell.col, layout) + dirCol * push + fan.col,

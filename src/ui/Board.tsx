@@ -124,7 +124,9 @@ export function Board({ state, layout }: Props) {
         )
       })}
 
-      {/* HOME — the central fat 3×3 band */}
+      {/* HOME — the central fat 3×3 band. The "HOME" label was removed so the
+          centred dice UI owns this space cleanly (this session's decision);
+          finished pitons tuck into the corners (see Pitons homeCluster). */}
       <rect
         x={cellStart(layout.homeCell.col - 1, layout)}
         y={cellStart(layout.homeCell.row - 1, layout)}
@@ -135,17 +137,6 @@ export function Board({ state, layout }: Props) {
         stroke="#c79bab"
         strokeWidth={0.06}
       />
-      <text
-        x={cellMid(layout.homeCell.col, layout)}
-        y={cellMid(layout.homeCell.row, layout)}
-        fontSize={0.6}
-        fontWeight={600}
-        textAnchor="middle"
-        dominantBaseline="central"
-        fill="#a8617e"
-      >
-        HOME
-      </text>
     </g>
   )
 }

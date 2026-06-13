@@ -222,6 +222,10 @@ code {
   background: #fff;
   color: #08060d;
   border-color: #d9d6dd;
+  /* Centred over HOME, the die sits on top of the HOME-bound move-target ring.
+     Stay click-through (only the Roll button captures) so that ring is still
+     clickable to finish a piton. */
+  pointer-events: none;
 }
 
 /* Notice line mounted in the board SVG (bottom-right), centred horizontally on
