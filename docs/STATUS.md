@@ -24,7 +24,14 @@ The HUD/header are **gone**: title, New Game controls, dice (result + Roll), and
 the notice line are rendered inside the board SVG (title as `<text>`; the rest as
 `<foreignObject>` HTML scaled into board units), and whose-turn is shown by
 washing the active player's corner quadrant in their colour. See the 2026-06-13
-decision-log entry for the *why* (foreignObject scaling, light-theme pinning).
+decision-log entries for the *why* (foreignObject scaling, light-theme pinning).
+
+As of the **2026-06-13 fill/centre/disclosure pass**: the board is now
+**uncapped** and fills the viewport (*the board is the game*); every chrome
+element is **centred horizontally on its corner's nest** (via the new
+`BoardLayout.nestCentres`, which also retired a duplicated nest-offset formula);
+and **New Game is a disclosure toggle** — collapsed to one button until clicked,
+then the 2/3/4 picker (choosing collapses it).
 
 ## Build checklist
 - ✅ **M1** scaffold — Vite + React + TS, own repo.
@@ -39,17 +46,13 @@ decision-log entry for the *why* (foreignObject scaling, light-theme pinning).
 - ⬜ **M6** polish backlog.
 
 ## Next session — pick one
-- **Finish "fill the screen".** Chrome is on-board and the reserve is now 56px,
-  but the board is still capped at `820px` (and the shell at `860px`), so on a
-  tall/wide screen it won't truly fill top-to-bottom. This is a **width** problem
-  (the board is square, so width caps bound height): revisit `.game-board`
-  `max-width` / `.board-shell` / `#root` width in [index.css](../src/index.css).
-- **In-board chrome polish (continuation of 2026-06-13).** Refinements parked by
-  the user: "New Game" → a disclosure button that reveals the 2/3/4 picker on
-  click and collapses after choosing (real HTML, hence the foreignObject choice);
-  per-corner placement/size tuning across player counts. Minor: the nest-offset
-  formula `round(sideLen/2)+1` is now mirrored in `buildLayout` and `GameBoard`'s
-  `titleX` — consider exposing nest-centre coords from `BoardLayout` to dedupe.
+- **Chrome size tuning (the one piece of "chrome polish" still open).** Now that
+  the board fills the screen, the on-board chrome scales up with it (sized in
+  board units, `CTRL_SCALE = 0.019` in [GameBoard.tsx](../src/ui/GameBoard.tsx)),
+  so on a big monitor the pills/dice/notice can read oversized. Candidate fixes:
+  lower `CTRL_SCALE`, or size the chrome from viewport rather than board units so
+  it stays constant as the board grows. Needs an eyeball at real size first.
+  (Placement, disclosure, and the nest-centre dedupe are **done** — see M6 below.)
 - **M5 — variant layer.** The cabin ruleset already ships as the `Ruleset` and
   the engine is variant-agnostic, so this is mostly *proving* a second variant
   (e.g. canonical Parcheesi) drops in with **no UI change**. Likely a
@@ -73,6 +76,16 @@ decision-log entry for the *why* (foreignObject scaling, light-theme pinning).
     notice all render inside the board SVG; whose-turn = active player's corner
     wash; HUD + header deleted; reserve 190px→56px. *Why* (foreignObject scaled
     into board units, light-theme pinning) → [decisions.md](decisions.md).
+  - ✅ **Fill the screen** (2026-06-13) — board uncapped (dropped the 820px board
+    / 860px shell / 1126px `#root` caps); it now fills the viewport, bounded only
+    by available width and `100svh − 56px` reserve. *Why* → [decisions.md](decisions.md).
+  - ✅ **Chrome centred on nests + `nestCentres` exposed** (2026-06-13) — title /
+    New Game / dice / notice each centre horizontally on their corner's nest
+    cluster; `buildLayout` now exposes `nestCentres` (per-arm, count-independent),
+    retiring the duplicated `round(sideLen/2)+1` nest-offset formula.
+  - ✅ **New Game disclosure** (2026-06-13) — top-right control collapsed to one
+    "New game" toggle; click reveals the 2/3/4 picker; choosing collapses it.
+    View-local `useState`, box widens when open (still centred on the nest).
   - **Forfeit-notice wart** (2026-06-12) — the notice describes the player
     who *just rolled* ("Red rolled 3 — no legal move, turn passes") while the
     turn cue (now the corner wash) already shows the **next** player; momentarily

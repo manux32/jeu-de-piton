@@ -103,9 +103,11 @@ export function GameBoard({
         Jeu de piton
       </text>
 
-      {/* New Game controls, top-right. Real HTML buttons mounted in the SVG via
-          foreignObject, rendered at natural px and scaled into board units so
-          they reuse the .pill styling and stay accessible. */}
+      {/* New Game, top-right — a disclosure: the "New game" toggle alone until
+          opened, then the 2/3/4 picker (choosing collapses it). Real HTML
+          buttons mounted in the SVG via foreignObject, rendered at natural px
+          and scaled into board units so they reuse .pill styling and stay
+          accessible. */}
       <g transform={`translate(${ctrlX}, ${CTRL_INSET}) scale(${CTRL_SCALE})`}>
         <foreignObject x={0} y={0} width={ctrlW} height={CTRL_H}>
           <div

@@ -10,6 +10,29 @@
 > [rules-and-lineage.md](rules-and-lineage.md), [board-model.md](board-model.md)).
 > Don't duplicate git history — capture reasoning a commit message wouldn't.
 
+- **2026-06-13** — **Board uncapped to fill the screen; chrome centred on nests;
+  New Game became a disclosure.** Three follow-ons to the chrome-on-board move
+  below. (1) **Fill the screen — uncapped.** The prior entry deferred raising the
+  `820px`/`860px` caps as "a width question"; the user's call resolved it simply:
+  *the board is the game*, so **remove the caps entirely** (the 820px board, 860px
+  `.board-shell`, 1126px `#root`). The board stays square and is now bounded only
+  by available width (`width:100%`) and viewport height (`max-width: 100svh −
+  56px`); on a landscape monitor height binds, so it fills top-to-bottom. (2)
+  **Chrome centred on each corner's nest.** `buildLayout` now computes each arm's
+  nest-cluster centre once and exposes `BoardLayout.nestCentres` (indexed by arm
+  rotation: `[0]` TR, `[1]` TL, `[2]` BL, `[3]` BR — **player-count-independent**,
+  so placement is identical across 2/3/4 players). Title / New Game / dice / notice
+  read it to centre **horizontally** (vertical anchoring unchanged). This retired a
+  duplicated `round(sideLen/2)+1` nest-offset formula that was mirrored in
+  `buildLayout` and `GameBoard.titleX` — the dedupe the entry below flagged. (3)
+  **New Game → disclosure**, the "real HTML wanted a popover" the chrome entry
+  anticipated: a single "New game" toggle until clicked, then the 2/3/4 picker
+  (choosing collapses it). State is **view-local `useState` in GameBoard** — not
+  rules, so the engine/UI split holds; the foreignObject box widens when open
+  (`CTRL_W_CLOSED`→`OPEN`) so it always fits while staying centred on the nest.
+  *Knock-on, still open:* chrome is sized in **board units** (`CTRL_SCALE`), so a
+  bigger board scales it up — size tuning is the remaining chrome-polish item (see
+  STATUS).
 - **2026-06-13** — **All board chrome moved *inside* the board SVG; the HUD is
   retired.** Goal (user): the board *is* the game — self-contained, nothing
   outside it. Title → SVG `<text>` (top-left, viewBox units so it scales for
