@@ -13,11 +13,18 @@
 > right reference doc and leave only a one-line pointer here.
 
 ## Where we are
-**Playable hot-seat, polished.** Milestones 1–4 done (scaffold · engine core ·
-SVG board · interaction loop), plus several M6 look-and-feel items (rectangular
-cells, HOME grouping/highlight, capture-click). 75 tests green (70 engine + 5
-dev-tool serializer), build + lint clean. `src/ui/` is rules-free — every decision comes from the engine via
+**Playable hot-seat, polished — and all chrome now lives *on the board*.**
+Milestones 1–4 done (scaffold · engine core · SVG board · interaction loop),
+plus several M6 look-and-feel items (rectangular cells, HOME grouping/highlight,
+capture-click). 75 tests green (70 engine + 5 dev-tool serializer), build + lint
+clean. `src/ui/` is rules-free — every decision comes from the engine via
 `rollDie`/`applyRoll`/`legalMoves`/`applyMove`.
+
+The HUD/header are **gone**: title, New Game controls, dice (result + Roll), and
+the notice line are rendered inside the board SVG (title as `<text>`; the rest as
+`<foreignObject>` HTML scaled into board units), and whose-turn is shown by
+washing the active player's corner quadrant in their colour. See the 2026-06-13
+decision-log entry for the *why* (foreignObject scaling, light-theme pinning).
 
 ## Build checklist
 - ✅ **M1** scaffold — Vite + React + TS, own repo.
@@ -26,15 +33,28 @@ dev-tool serializer), build + lint clean. `src/ui/` is rules-free — every deci
 - ✅ **M3** SVG board render — `buildLayout` index→screen map; `<GameBoard>` →
   `<Board>` + `<Pitons>`. (`src/ui/`.)
 - ✅ **M4** interaction loop — `useGame` reducer, roll → highlight legal moves →
-  click-to-move, `<Hud>` (turn / capture / extra-roll / forfeit / winner).
+  click-to-move. (The old `<Hud>` is retired; its turn/dice/notice now render
+  inside the board — see 2026-06-13.)
 - ⬜ **M5** variant layer.
 - ⬜ **M6** polish backlog.
 
 ## Next session — pick one
+- **Finish "fill the screen".** Chrome is on-board and the reserve is now 56px,
+  but the board is still capped at `820px` (and the shell at `860px`), so on a
+  tall/wide screen it won't truly fill top-to-bottom. This is a **width** problem
+  (the board is square, so width caps bound height): revisit `.game-board`
+  `max-width` / `.board-shell` / `#root` width in [index.css](../src/index.css).
+- **In-board chrome polish (continuation of 2026-06-13).** Refinements parked by
+  the user: "New Game" → a disclosure button that reveals the 2/3/4 picker on
+  click and collapses after choosing (real HTML, hence the foreignObject choice);
+  per-corner placement/size tuning across player counts. Minor: the nest-offset
+  formula `round(sideLen/2)+1` is now mirrored in `buildLayout` and `GameBoard`'s
+  `titleX` — consider exposing nest-centre coords from `BoardLayout` to dedupe.
 - **M5 — variant layer.** The cabin ruleset already ships as the `Ruleset` and
   the engine is variant-agnostic, so this is mostly *proving* a second variant
   (e.g. canonical Parcheesi) drops in with **no UI change**. Likely a
-  ruleset-picker in the header beside the player-count pills.
+  ruleset-picker in the board's top-right New Game controls beside the
+  player-count pills.
 - **M6 — polish backlog:**
   - ✅ **Rectangular cells** (2026-06-12) — render-only non-uniform spacing
     (`ARM_WIDTH_SCALE`, currently 1.9). See [board-model.md](board-model.md).
@@ -47,10 +67,16 @@ dev-tool serializer), build + lint clean. `src/ui/` is rules-free — every deci
     bolder, pulsing target marker.
   - ✅ **Viewport-fit / no page scrollbar** (2026-06-13) — the game column is
     sized to the viewport so the document never scrolls; `#root` clips the
-    residual. *Why* + the 190px chrome reserve → [decisions.md](decisions.md).
-  - **Forfeit-notice wart** (2026-06-12) — the HUD notice describes the player
+    residual. *Why* → [decisions.md](decisions.md). (Reserve since dropped to
+    56px now that chrome is on-board — see next item.)
+  - ✅ **Chrome moved onto the board** (2026-06-13) — title / New Game / dice /
+    notice all render inside the board SVG; whose-turn = active player's corner
+    wash; HUD + header deleted; reserve 190px→56px. *Why* (foreignObject scaled
+    into board units, light-theme pinning) → [decisions.md](decisions.md).
+  - **Forfeit-notice wart** (2026-06-12) — the notice describes the player
     who *just rolled* ("Red rolled 3 — no legal move, turn passes") while the
-    turn indicator already shows the **next** player; momentarily confusing. No
+    turn cue (now the corner wash) already shows the **next** player; momentarily
+    confusing. No
     engine bug. Candidate fix: gate the handoff behind an explicit "Pass/Continue"
     click (an `awaitingPass` view flag in `useGame`). Deferred — accept as-is.
   - **HOME-corner (vs edge) clustering** — finished pitons currently group on the
@@ -79,7 +105,7 @@ a full `GameView`. Three pieces:
   [`scenarios/`](../src/ui/dev/scenarios/), auto-discovered via `import.meta.glob`
   ([`registry.ts`](../src/ui/dev/registry.ts)); `DevScenario` + `place()` in
   [`scenario.ts`](../src/ui/dev/scenario.ts). Each carries one `description` (picker
-  tooltip + `Dev:`-prefixed HUD notice via `loadScenario`); `build()` returns board
+  tooltip + `Dev:`-prefixed notice via `loadScenario`); `build()` returns board
   state only.
 - **State editor** ([`StateEditor.tsx`](../src/ui/dev/StateEditor.tsx)) — a knob
   form (not a spatial board editor) over the fields a scenario sets (turn, pending

@@ -10,6 +10,31 @@
 > [rules-and-lineage.md](rules-and-lineage.md), [board-model.md](board-model.md)).
 > Don't duplicate git history — capture reasoning a commit message wouldn't.
 
+- **2026-06-13** — **All board chrome moved *inside* the board SVG; the HUD is
+  retired.** Goal (user): the board *is* the game — self-contained, nothing
+  outside it. Title → SVG `<text>` (top-left, viewBox units so it scales for
+  free). New Game controls (top-right), dice (bottom-left), and the notice
+  (bottom-right) → **real HTML in `<foreignObject>`, authored at natural px then
+  scaled into board units** via a wrapping `<g transform="scale(…)">`. *Why this
+  shape:* inside a foreignObject, CSS `px` equal SVG user units, so the page's
+  15px `.pill`/`.die` styling would render gigantic — the scale-down lets us
+  **reuse the existing CSS untouched** and keep accessible HTML buttons.
+  Rejected alternatives: re-expressing pill styling in tiny viewBox units (CSS
+  churn); SVG-native `<rect>`+`<text>` buttons (lose a11y, and the *planned*
+  "New Game → disclosure popover" wants real HTML). **Whose-turn** became the
+  active player's **corner-quadrant colour wash** (the blank board region
+  between two arms, behind the nest), *not* a halo — the pulsing halo is already
+  the movable-piton vocabulary; derived from nest position so it holds across
+  player counts. **foreignObject gotcha pinned:** the board is always light but
+  the controls inherit the page `color-scheme`, so in dark mode pill numbers /
+  die value / the win-notice render near-white and vanish — the in-board chrome
+  is **pinned to fixed light-theme colours** (`.board-controls`/`.board-dice`/
+  `.board-notice` in [index.css](../src/index.css)). With the header + HUD gone,
+  the viewport reserve drops **190px → 56px** (shell padding only), so the board
+  grows to fill height up to the `820px`/`860px` caps (raising *those* to truly
+  fill a tall viewport is deferred — it's a width question, the board is square).
+  Supersedes the reserve figure in the entry below; `#root overflow:hidden` and
+  the rest of that rationale still stand.
 - **2026-06-13** — **Game column fits the viewport; the game never
   document-scrolls.** `#root` is `height: 100svh; overflow: hidden` and the board
   caps its own height at `calc(100svh - 190px)` ([index.css](../src/index.css)).
