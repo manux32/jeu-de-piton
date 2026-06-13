@@ -17,9 +17,9 @@ import { applyRoll, rollDie, type GameState } from '../engine'
 import type { GameAction } from './useGame'
 
 // Spin ~0.5s, then (no-move case only) hold ~0.7s before the turn hands over.
-const SPIN_MS = 500
-const SPIN_TICK_MS = 60
-const HOLD_MS = 700
+const SPIN_MS = 1000
+const SPIN_TICK_MS = 50
+const HOLD_MS = 1000
 
 const randomFace = () => Math.floor(Math.random() * 6) + 1
 

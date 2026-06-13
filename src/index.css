@@ -176,13 +176,12 @@ code {
   box-shadow: var(--shadow);
 }
 
-/* HTML chrome mounted inside the board SVG via foreignObject: New Game controls
-   (top-right) and the dice (bottom-left). Centred horizontally in their box,
-   which GameBoard centres on the corner's nest cluster. The wrapper is
-   click-through so its transparent area doesn't swallow board clicks — only the
-   label/buttons/die take pointer events. */
-.board-controls,
-.board-dice {
+/* HTML chrome mounted inside the board SVG via foreignObject: the New Game
+   controls (top-right). Centred horizontally in their box, which GameBoard
+   centres on the corner's nest cluster. The wrapper is click-through so its
+   transparent area doesn't swallow board clicks — only the buttons take pointer
+   events. (The die is native SVG, not foreignObject — see DieFace / .board-die.) */
+.board-controls {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -191,41 +190,28 @@ code {
   height: 100%;
   pointer-events: none;
 }
-.board-controls > *,
-.board-dice > * {
+.board-controls > * {
   pointer-events: auto;
 }
 /* The board is always light, so pin these to light-theme colours rather than
-   inheriting the page color-scheme (dark mode would render the pill number /
-   die value near-white and invisible on the board). Saturate the active pill so
-   its label stays legible. */
-.board-controls .pill,
-.board-dice .pill {
+   inheriting the page color-scheme (dark mode would render the pill number
+   near-white and invisible on the board). Saturate the active pill so its label
+   stays legible. */
+.board-controls .pill {
   background: #fff;
   color: #08060d;
   border-color: #d9d6dd;
 }
-.board-controls .pill:hover,
-.board-dice .pill:hover {
+.board-controls .pill:hover {
   border-color: var(--accent-border);
 }
-.board-controls .pill-on,
-.board-dice .pill-on {
+.board-controls .pill-on {
   background: rgba(170, 59, 255, 0.22);
   border-color: #aa3bff;
   color: #08060d;
 }
 .board-controls .muted {
   color: #6b6375;
-}
-.board-dice .die {
-  background: #fff;
-  color: #08060d;
-  border-color: #d9d6dd;
-  /* Centred over HOME, the die sits on top of the HOME-bound move-target ring.
-     Stay click-through (only the Roll button captures) so that ring is still
-     clickable to finish a piton. */
-  pointer-events: none;
 }
 
 /* Per-nest notice: a short line anchored in a player's own corner. The event
@@ -270,25 +256,12 @@ code {
 }
 
 /* --- shared bits -------------------------------------------------------- */
-/* .swatch: dev StateEditor colour chip. .die: the dice value (board-dice). */
+/* .swatch: dev StateEditor colour chip. */
 .swatch {
   width: 16px;
   height: 16px;
   border-radius: 50%;
   border: 1px solid rgba(0, 0, 0, 0.25);
-}
-
-.die {
-  font: 600 22px/1 var(--mono);
-  min-width: 40px;
-  height: 40px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--bg);
-  color: var(--text-h);
 }
 
 .pill:disabled {
@@ -313,6 +286,32 @@ code {
 }
 
 /* --- board interaction --------------------------------------------------- */
+/* The centre die (native SVG, see DieFace). Three states: `ready` pulses to
+   invite the tap when a roll is pending; `idle` dims it back once the roll is
+   done and it isn't actionable (awaiting a move, or game over); the plain class
+   (full opacity, no pulse) holds while a roll animates. Opacity transitions
+   smooth the hand-off between states. */
+.board-die {
+  cursor: default;
+  transition: opacity 0.2s ease;
+}
+.board-die-ready {
+  cursor: pointer;
+  animation: die-flash 1.2s ease-in-out infinite;
+}
+.board-die-idle {
+  opacity: 0.4;
+}
+@keyframes die-flash {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
 .piton-movable {
   cursor: pointer;
 }
