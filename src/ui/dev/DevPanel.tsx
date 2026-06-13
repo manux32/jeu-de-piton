@@ -3,14 +3,14 @@
  * auto-discovered scenarios + a Load button) and the <StateEditor> knob form
  * below it. It holds no rules and no game state of its own — it builds a
  * `GameView` and hands it up via `onLoad` (App dispatches the `load` action).
- * Still to come: "save as scenario" (serialize the current state to a file).
  *
  * Rendered only under `import.meta.env.DEV` (see App.tsx), so it never ships.
  */
 import { useState } from 'react'
 import type { GameView } from '../useGame'
-import type { DevScenario } from './scenario'
+import { loadScenario, type DevScenario } from './scenario'
 import { StateEditor } from './StateEditor'
+import { SaveScenario } from './SaveScenario'
 
 interface Props {
   view: GameView
@@ -58,15 +58,16 @@ export function DevPanel({ view, scenarios, onLoad, onClose }: Props) {
             type="button"
             className="pill pill-on"
             disabled={!selected}
-            onClick={() => selected && onLoad(selected.build())}
+            onClick={() => selected && onLoad(loadScenario(selected))}
           >
             Load
           </button>
         </div>
-        {selected && <p className="dev-hint">{selected.hint}</p>}
+        {selected && <p className="dev-hint">{selected.description}</p>}
       </section>
 
       <StateEditor view={view} onChange={onLoad} />
+      <SaveScenario view={view} />
     </aside>
   )
 }

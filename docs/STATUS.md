@@ -70,7 +70,10 @@ board situations for validating UI/interaction fixes without playing up to them.
 - Scenarios are **one file each** under [`src/ui/dev/scenarios/`](../src/ui/dev/scenarios/),
   auto-discovered via `import.meta.glob` ([`registry.ts`](../src/ui/dev/registry.ts)) —
   add a file, it shows up in the picker. Shared `DevScenario` type + `place()`
-  helper in [`scenario.ts`](../src/ui/dev/scenario.ts).
+  helper in [`scenario.ts`](../src/ui/dev/scenario.ts). A scenario carries a single
+  `description` (one concept — was split into `hint`+`notice`, merged 2026-06-13):
+  it's the picker tooltip *and*, via `loadScenario`, the HUD `notice` on load
+  (`Dev:`-prefixed). `build()` returns board state only; it no longer sets a notice.
 - All dev surface is lazy-imported behind `import.meta.env.DEV` via
   [`DevTools.tsx`](../src/ui/dev/DevTools.tsx), so the whole chunk (panel,
   scenarios, `dev.css`) **never ships** — verified: prod bundle byte-identical to
@@ -83,14 +86,19 @@ board situations for validating UI/interaction fixes without playing up to them.
   Home-all). It's a controlled reflection of the live `GameView`; edits dispatch
   `load`; the board mirrors the result. Runs no engine transitions, so illegal
   setups are allowed on purpose.
+- **Save as scenario** (S3, 2026-06-13): the "Save as scenario" form
+  ([`SaveScenario.tsx`](../src/ui/dev/SaveScenario.tsx)) takes a name + description,
+  serializes the live view to scenario-file source
+  ([`serialize.ts`](../src/ui/dev/serialize.ts), pure + unit-tested) and POSTs it to
+  a **dev-only Vite middleware** (`apply: 'serve'`, [`vite.config.ts`](../vite.config.ts))
+  that writes `scenarios/<id>.ts`. The glob then surfaces it on the next HMR pass
+  (page reloads → board resets, new scenario sits unloaded in the picker — accepted).
+  Middleware guards: id slug-validated, path confined to `scenarios/`, no overwrite
+  (409). Output mirrors the hand-written files: `place({…})` skipping nest-default
+  pitons, `turn`/`lastRoll`/`phase`, `extraTurnStreak` only when non-zero.
 - **Plan (3 sessions):** ✅ S1 panel + file-based scenarios + load dropdown.
-  ✅ S2 knob-based state editor. ⬜ S3 "save as scenario" (state→code
-  serialization + name field + dev-only Vite middleware that writes a new file
-  into `scenarios/`).
-  - *S3 serializer note:* emit the same shape as the hand-written scenario files
-    (the `place({…})` position map + `turn`/`lastRoll`/`phase` + a `notice`),
-    skipping nest-default pitons to keep output tidy. The three existing files
-    don't set `extraTurnStreak`, so only emit it when non-zero (it defaults to 0).
+  ✅ S2 knob-based state editor. ✅ S3 save-as-scenario (above). **Dev tooling
+  complete.**
 
 ## Dev quick-ref
 - `npm test` (engine), `npm run build` (type-check + build), `npm run dev` (UI,

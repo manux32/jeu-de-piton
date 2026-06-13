@@ -5,7 +5,7 @@ import { place, type DevScenario } from '../scenario'
 const capture: DevScenario = {
   id: 'capture',
   label: 'Capture',
-  hint: 'Red rolled 3; clicking the lone blue disc on the destination should fire the capture.',
+  description: 'Red rolled 3; clicking the lone blue disc on the destination should fire the capture.',
   build: () => {
     const game = place(createGame(JEU_DE_PITON, 4), {
       'red-0': { kind: 'track', square: 1 },
@@ -14,7 +14,6 @@ const capture: DevScenario = {
     return {
       game: { ...game, turn: 0, lastRoll: 3, phase: 'awaiting-move' },
       rolled: 3,
-      notice: 'Dev: capture available — click the blue disc to test the capture-click fix.',
     }
   },
 }

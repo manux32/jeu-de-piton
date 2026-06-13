@@ -71,10 +71,28 @@
   cursor: pointer;
 }
 
+.dev-text {
+  font: inherit;
+  font-size: 15px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text-h);
+}
+
 .dev-hint {
   font-size: 13px;
   line-height: 135%;
   color: var(--text);
+}
+
+.dev-error {
+  font-size: 13px;
+  line-height: 135%;
+  color: var(--danger, #e5484d);
 }
 .dev-hint code {
   font-size: 12px;
