@@ -17,9 +17,18 @@ interface Props {
   state: GameState
   moves: Move[]
   onPick: (move: Move) => void
+  onNewGame: (playerCount: number) => void
 }
 
-export function GameBoard({ state, moves, onPick }: Props) {
+// New Game controls live inside the SVG (foreignObject), authored at natural px
+// then scaled into board units — so they reuse the page's .pill styling rather
+// than re-expressing it in viewBox units. Top-right corner, hugging the edge.
+const CTRL_SCALE = 0.019
+const CTRL_W = 200
+const CTRL_H = 52
+const CTRL_INSET = 0.4
+
+export function GameBoard({ state, moves, onPick, onNewGame }: Props) {
   const layout = useMemo(
     () => buildLayout(state.geometry, state.players.length),
     [state.geometry, state.players.length],
@@ -32,6 +41,7 @@ export function GameBoard({ state, moves, onPick }: Props) {
   const sideLen = (layout.gridSize - 3) / 2
   const nestOffset = Math.round(sideLen / 2) + 1
   const titleX = cellMid(centre - nestOffset, layout)
+  const ctrlX = layout.extent - CTRL_INSET - CTRL_W * CTRL_SCALE
 
   return (
     <svg
@@ -54,6 +64,33 @@ export function GameBoard({ state, moves, onPick }: Props) {
       >
         Jeu de piton
       </text>
+
+      {/* New Game controls, top-right. Real HTML buttons mounted in the SVG via
+          foreignObject, rendered at natural px and scaled into board units so
+          they reuse the .pill styling and stay accessible. */}
+      <g transform={`translate(${ctrlX}, ${CTRL_INSET}) scale(${CTRL_SCALE})`}>
+        <foreignObject x={0} y={0} width={CTRL_W} height={CTRL_H}>
+          <div
+            xmlns="http://www.w3.org/1999/xhtml"
+            className="board-controls"
+            role="group"
+            aria-label="new game — player count"
+          >
+            <span className="muted">New game</span>
+            {[2, 3, 4].map((n) => (
+              <button
+                key={n}
+                type="button"
+                className={n === state.players.length ? 'pill pill-on' : 'pill'}
+                aria-pressed={n === state.players.length}
+                onClick={() => onNewGame(n)}
+              >
+                {n}
+              </button>
+            ))}
+          </div>
+        </foreignObject>
+      </g>
 
       {/* legal-move target markers — a hollow ring on each destination cell,
           tinted the moving player's color (via currentColor) so it doesn't read

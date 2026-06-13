@@ -186,6 +186,43 @@ code {
   box-shadow: var(--shadow);
 }
 
+/* New Game controls mounted inside the board SVG (top-right) via foreignObject.
+   Right-aligned to the board edge; the wrapper itself is click-through so the
+   transparent area doesn't swallow board clicks — only the label/buttons take
+   pointer events. */
+.board-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.board-controls > * {
+  pointer-events: auto;
+}
+/* The board is always light, so pin these pills to light-theme colours rather
+   than inheriting the page color-scheme (dark mode would render the number
+   near-white and invisible on the board). Saturate the active pill so its
+   number stays legible. */
+.board-controls .pill {
+  background: #fff;
+  color: #08060d;
+  border-color: #d9d6dd;
+}
+.board-controls .pill:hover {
+  border-color: var(--accent-border);
+}
+.board-controls .pill-on {
+  background: rgba(170, 59, 255, 0.22);
+  border-color: #aa3bff;
+  color: #08060d;
+}
+.board-controls .muted {
+  color: #6b6375;
+}
+
 /* Game title rendered inside the board SVG (top-left). Drawn on the always-light
    board background, so a fixed dark fill reads in either page theme. Sized in
    viewBox units by <text font-size>, so it scales with the board. */

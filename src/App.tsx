@@ -24,23 +24,6 @@ function App() {
 
   return (
     <main className="app-shell board-shell">
-      <header className="app-header">
-        <div className="controls" role="group" aria-label="new game — player count">
-          <span className="muted">New game</span>
-          {[2, 3, 4].map((n) => (
-            <button
-              key={n}
-              type="button"
-              className={n === game.players.length ? 'pill pill-on' : 'pill'}
-              aria-pressed={n === game.players.length}
-              onClick={() => dispatch({ type: 'newGame', playerCount: n })}
-            >
-              {n}
-            </button>
-          ))}
-        </div>
-      </header>
-
       <Hud
         game={game}
         rolled={rolled}
@@ -52,6 +35,7 @@ function App() {
         state={game}
         moves={moves}
         onPick={(move) => dispatch({ type: 'pick', move })}
+        onNewGame={(playerCount) => dispatch({ type: 'newGame', playerCount })}
       />
 
       {DevTools && (
