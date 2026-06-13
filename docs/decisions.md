@@ -10,6 +10,35 @@
 > [rules-and-lineage.md](rules-and-lineage.md), [board-model.md](board-model.md)).
 > Don't duplicate git history — capture reasoning a commit message wouldn't.
 
+- **2026-06-13** — **Whose-turn wash now *pulses*; the notice split into two
+  per-nest lines.** Goal (user): make "whose turn is it" unmistakable to every
+  player at a glance. Two changes. (1) **The active player's corner wash now
+  breathes** — a gentle opacity pulse (`.nest-active-wash` / `@keyframes
+  nest-breathe`), settled at 1.5s. This **reverses an earlier call of mine** (the
+  chrome-on-board entry below argued the wash should be static, "*not* a pulse,"
+  to keep the pulsing-halo vocabulary exclusive to movable pitons). The reversal:
+  a flashing corner is the strongest possible whose-turn cue, and the conflict it
+  worried about is avoided by **keeping the two pulses distinguishable by
+  amplitude, not cadence** — the wash uses a far shallower opacity swing
+  (0.18↔0.42 around the static 0.28) than the piton/home alarm pulse (0.35↔0.9),
+  so a large area pulsing *every* turn reads as calm presence, not alarm, even at
+  the same 1.x-second rate. (2) **The single bottom-right notice became two
+  per-nest lines**, each rendered in the corner of the player it concerns: the
+  **event line** (what just happened — `Capture!`, `Roll again`, `No move — pass`,
+  `Three 6s — sent home`, `Wins! 🎉`) sits in the **acting** player's nest; a
+  quieter italic **turn prompt** (`Your turn` / `Pick a piton`) sits in the
+  **current** player's nest. Both anchor to the **bottom of the player's corner
+  quadrant** (same bounds as the wash) so they clear the nest holes. The reducer
+  now carries which player a notice is about — a new `noticeOwner` on `GameView`,
+  still derived purely by *observing* before/after state (it's just the roller /
+  `prev.turn`), so the engine/UI split holds; when one player owns both lines (a
+  bonus 6 that keeps the turn) the event line wins, so a corner never doubles up.
+  Because each message now lives in its owner's **colour-coded** corner, the text
+  **dropped the player's name and the die value** and went terse — the location
+  identifies the player, the centred die shows the value. **This retires the
+  long-standing "forfeit-notice wart"** (the notice describing the *previous*
+  player while the cue showed the *next*): the two are now spatially separated, so
+  there's nothing to confuse. The deferred `awaitingPass` gate is no longer needed.
 - **2026-06-13** — **Dice moved to the board centre (over HOME); finished pitons
   tuck into nest corners; nests centred in their quadrants.** Rolling is the core
   gameplay act, so the dice (die value + Roll) earns the **dead centre** of the

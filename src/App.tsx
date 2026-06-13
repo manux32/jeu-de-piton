@@ -12,7 +12,7 @@ const DevTools = import.meta.env.DEV
 
 function App() {
   const [view, dispatch] = useGame(4)
-  const { game, rolled, notice } = view
+  const { game, rolled, notice, noticeOwner } = view
 
   // The board lights up the current player's legal moves only while a roll is
   // awaiting a move; everything that decides them lives in the engine.
@@ -28,6 +28,7 @@ function App() {
         moves={moves}
         rolled={rolled}
         notice={notice}
+        noticeOwner={noticeOwner}
         onPick={(move) => dispatch({ type: 'pick', move })}
         onNewGame={(playerCount) => dispatch({ type: 'newGame', playerCount })}
         onRoll={() => dispatch({ type: 'roll', value: rollDie() })}

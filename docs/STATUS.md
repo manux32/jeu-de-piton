@@ -21,10 +21,11 @@ clean. `src/ui/` is rules-free — every decision comes from the engine via
 `rollDie`/`applyRoll`/`legalMoves`/`applyMove`.
 
 The HUD/header are **gone**: title, New Game controls, dice (result + Roll), and
-the notice line are rendered inside the board SVG (title as `<text>`; the rest as
+the turn notices are rendered inside the board SVG (title as `<text>`; the rest as
 `<foreignObject>` HTML scaled into board units), and whose-turn is shown by
-washing the active player's corner quadrant in their colour. See the 2026-06-13
-decision-log entries for the *why* (foreignObject scaling, light-theme pinning).
+**gently pulsing** the active player's corner quadrant wash in their colour. See
+the 2026-06-13 decision-log entries for the *why* (foreignObject scaling,
+light-theme pinning, the pulse-vs-static reversal).
 
 As of the **2026-06-13 fill/centre/disclosure pass**: the board is now
 **uncapped** and fills the viewport (*the board is the game*); the title / New
@@ -32,7 +33,7 @@ Game / notice are **centred horizontally on their corner's nest** (via
 `BoardLayout.nestCentres`); and **New Game is a disclosure toggle** — collapsed to
 one button until clicked, then the 2/3/4 picker (choosing collapses it).
 
-As of the **2026-06-13 dice-centre/nest-centre pass** (this session): the **dice
+As of the **2026-06-13 dice-centre/nest-centre pass**: the **dice
 moved to the dead centre of the board, over HOME** — rolling is the core act, so
 it owns the middle (1.5× via `DICE_SCALE`, painted over the HOME band, which lost
 its "HOME" label; legal-move targets paint *last* so a HOME-bound ring stays
@@ -41,6 +42,19 @@ clickable on top of the die). Finished pitons now **tuck into their nest corners
 centred in their corner quadrants** — `buildLayout` positions nest holes in
 **render units** (`nestSlots`; `nestCentres` is now render-unit and *is* the
 quadrant centre), replacing integer `nestCells` + the `round(sideLen/2)+1` offset.
+
+As of the **2026-06-13 turn-clarity pass** (this session): two cues make
+"whose turn" unmistakable. The active player's corner **wash now pulses** (a
+gentle ~1.5s breathe — `.nest-active-wash` in [index.css](../src/index.css),
+distinguished from the piton/home *alarm* pulse by a far shallower opacity swing,
+not by cadence). And the single corner notice **split into two per-nest lines**:
+the **event line** (`Capture!` / `Roll again` / `No move — pass` / `Three 6s —
+sent home` / `Wins! 🎉`) sits in the **acting** player's nest, a quieter italic
+**turn prompt** (`Your turn` / `Pick a piton`) in the **current** player's — both
+anchored to the bottom of their corner quadrant. The reducer now tags each notice
+with a `noticeOwner` (still pure before/after observation). Messages went terse
+and dropped player names (the colour-coded corner identifies the player). **This
+retires the forfeit-notice wart** below.
 
 ## Build checklist
 - ✅ **M1** scaffold — Vite + React + TS, own repo.
@@ -106,12 +120,16 @@ quadrant centre), replacing integer `nestCells` + the `round(sideLen/2)+1` offse
   - ✅ **HOME-corner clustering** (2026-06-13) — finished pitons now tuck
     diagonally toward each player's **nest corner** (was: the cardinal HOME edge),
     which also clears the board centre for the dice. (`Pitons.homeCluster`.)
-  - **Forfeit-notice wart** (2026-06-12) — the notice describes the player
-    who *just rolled* ("Red rolled 3 — no legal move, turn passes") while the
-    turn cue (now the corner wash) already shows the **next** player; momentarily
-    confusing. No
-    engine bug. Candidate fix: gate the handoff behind an explicit "Pass/Continue"
-    click (an `awaitingPass` view flag in `useGame`). Deferred — accept as-is.
+  - ✅ **Turn-clarity cues** (2026-06-13) — the whose-turn wash pulses, and the
+    notice split into per-nest event line (acting player) + turn prompt (current
+    player), each in its owner's corner. `noticeOwner` added to `GameView`. *Why*
+    → [decisions.md](decisions.md).
+  - ✅ **Forfeit-notice wart** (2026-06-12, **resolved 2026-06-13**) — the notice
+    used to describe the player who *just rolled* while the turn cue showed the
+    **next** player; momentarily confusing. The deferred `awaitingPass`-gate fix
+    proved unnecessary: the per-nest notice split (above) **spatially separates**
+    the two, so the just-acted message sits in the acting player's own corner —
+    nothing left to confuse.
 
 ## Open rule details
 - **Enemy on a player's start square** (awaiting the friend, 2026-06-12) — does an

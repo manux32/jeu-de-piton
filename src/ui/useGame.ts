@@ -28,6 +28,12 @@ export interface GameView {
   rolled: number | null
   /** One-line feedback about the last engine event, or null. */
   notice: string | null
+  /**
+   * Which player the `notice` is about — the player who just acted (so the board
+   * can anchor the message in *their* nest). Optional: omitted by the dev
+   * scenario loader, where the board falls back to the current player's nest.
+   */
+  noticeOwner?: number | null
 }
 
 export type GameAction =
@@ -37,8 +43,6 @@ export type GameAction =
   // DEV-only: drop a fully-built view straight in (see src/ui/dev/).
   | { type: 'load'; view: GameView }
 
-const cap = (s: string) => s[0].toUpperCase() + s.slice(1)
-const name = (game: GameState, i: number) => cap(game.players[i].color)
 const nestCount = (game: GameState, i: number) =>
   game.players[i].pitons.filter((p) => p.position.kind === 'nest').length
 
@@ -63,16 +67,18 @@ function reducer(view: GameView, action: GameAction): GameView {
       // A roll with a legal move drops us into awaiting-move — no message; the
       // board lights up the movable pitons instead.
       if (next.phase === 'awaiting-move') {
-        return { game: next, rolled: action.value, notice: null }
+        return { game: next, rolled: action.value, notice: null, noticeOwner: null }
       }
 
       // No legal move, yet the turn stayed put ⇒ an unplayable bonus 6: nothing
-      // to play, but the player still rolls again.
+      // to play, but the player still rolls again. The message lands in the
+      // roller's own (colour-coded) nest, so it omits the player's name.
       if (next.turn === roller) {
         return {
           game: next,
           rolled: action.value,
-          notice: `${name(prev, roller)} rolled ${action.value} — no legal move, rolls again.`,
+          notice: 'No move — roll again',
+          noticeOwner: roller,
         }
       }
 
@@ -80,10 +86,8 @@ function reducer(view: GameView, action: GameAction): GameView {
       // observing whether the roller lost a piton to its nest (the 3rd-6 streak
       // penalty) versus an ordinary no-legal-move forfeit.
       const penalized = nestCount(next, roller) > nestCount(prev, roller)
-      const notice = penalized
-        ? `${name(prev, roller)} rolled three ${action.value}s — leading piton sent home.`
-        : `${name(prev, roller)} rolled ${action.value} — no legal move, turn passes.`
-      return { game: next, rolled: action.value, notice }
+      const notice = penalized ? 'Three 6s — sent home' : 'No move — pass'
+      return { game: next, rolled: action.value, notice, noticeOwner: roller }
     }
 
     case 'pick': {
@@ -92,13 +96,14 @@ function reducer(view: GameView, action: GameAction): GameView {
       const next = applyMove(prev, action.move)
 
       if (next.phase === 'game-over') {
-        return { game: next, rolled: null, notice: `${cap(next.winner!)} wins! 🎉` }
+        return { game: next, rolled: null, notice: 'Wins! 🎉', noticeOwner: prev.turn }
       }
       const parts: string[] = []
       if (action.move.captures) parts.push('Capture!')
       // Turn unchanged after a move ⇒ the roll earned another go (a 6).
-      if (next.turn === prev.turn) parts.push(`${name(prev, prev.turn)} rolls again.`)
-      return { game: next, rolled: null, notice: parts.join(' ') || null }
+      if (next.turn === prev.turn) parts.push('Roll again')
+      const notice = parts.join(' · ') || null
+      return { game: next, rolled: null, notice, noticeOwner: notice ? prev.turn : null }
     }
   }
 }

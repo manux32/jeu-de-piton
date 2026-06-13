@@ -2,16 +2,18 @@
  * Composes the board: builds the screen layout from the engine geometry (once
  * per game) and renders, inside a single SVG whose `viewBox` is the cell grid,
  * the static <Board>, the legal-move target markers, the <Pitons> overlay, and
- * all of the game's chrome — title, New Game controls, dice, notice — overlaid
- * in the four corners (see the 2026-06-13 decision: the board is self-contained,
- * no UI outside it). This is the interaction-loop seam (Milestone 4): it takes
- * the current player's `legalMoves` / `rolled` / `notice` and the `onPick` /
- * `onRoll` / `onNewGame` callbacks; it adds no rules of its own (every decision
- * is the engine's, made in App).
+ * all of the game's chrome — title, New Game controls, dice, and the per-nest
+ * notices — overlaid in the four corners (see the 2026-06-13 decision: the board
+ * is self-contained, no UI outside it). Each notice sits in the corner of the
+ * player it concerns: the event line in the acting player's nest, the turn
+ * prompt in the current player's. This is the interaction-loop seam (Milestone
+ * 4): it takes the current player's `legalMoves` / `rolled` / `notice` /
+ * `noticeOwner` and the `onPick` / `onRoll` / `onNewGame` callbacks; it adds no
+ * rules of its own (every decision is the engine's, made in App).
  */
 import { useMemo, useState } from 'react'
 import type { GameState, Move } from '../engine'
-import { buildLayout, destinationCell, cellMid } from './layout'
+import { buildLayout, destinationCell, cellMid, cellStart } from './layout'
 import { Board } from './Board'
 import { Pitons } from './Pitons'
 import { PLAYER_HEX } from './colors'
@@ -21,17 +23,19 @@ interface Props {
   moves: Move[]
   rolled: number | null
   notice: string | null
+  /** Player the notice is about (defaults to the current player if omitted). */
+  noticeOwner?: number | null
   onPick: (move: Move) => void
   onNewGame: (playerCount: number) => void
   onRoll: () => void
 }
 
-// In-board HTML chrome (New Game controls, dice, notice) lives in the SVG via
-// foreignObject, authored at natural px then scaled into board units — so it
-// reuses the page's .pill / .die / .board-notice styling rather than
-// re-expressing it in viewBox units. Each element is centred horizontally on
-// its corner's nest cluster (see nestX in the body) and vertically inset from
-// the board edge by CTRL_INSET.
+// In-board HTML chrome (New Game controls, dice, per-nest notices) lives in the
+// SVG via foreignObject, authored at natural px then scaled into board units —
+// so it reuses the page's .pill / .die / .nest-notice styling rather than
+// re-expressing it in viewBox units. The corner chrome (title, New Game) is
+// centred horizontally on its corner's nest cluster (see nestX in the body) and
+// vertically inset from the board edge by CTRL_INSET.
 const CTRL_SCALE = 0.019
 // The dice owns the board centre, so it reads larger than the corner chrome.
 const DICE_SCALE = CTRL_SCALE * 1.5
@@ -45,14 +49,20 @@ const CTRL_H = 52
 const CTRL_INSET = 0.4
 const DICE_W = 150
 const DICE_H = 56
-const NOTICE_W = 360
-const NOTICE_H = 70
+// Per-nest notice: a short line tucked just inside a player's own corner nest,
+// authored in px then scaled into board units like the other chrome. Narrow on
+// purpose — messages are kept terse so they fit a corner without crowding it.
+const NEST_NOTICE_W = 168
+const NEST_NOTICE_H = 48
+// Gap below the cluster's lowest hole before the notice line, in board units.
+const NEST_NOTICE_GAP = 0.55
 
 export function GameBoard({
   state,
   moves,
   rolled,
   notice,
+  noticeOwner,
   onPick,
   onNewGame,
   onRoll,
@@ -70,8 +80,8 @@ export function GameBoard({
   // Each corner's chrome centres horizontally on that corner's nest cluster,
   // read straight from the layout (no re-derived geometry). Corner→nest mapping
   // per BoardLayout.nestCentres: [1] top-left, [0] top-right, [2] bottom-left,
-  // [3] bottom-right. Vertical anchoring is unchanged — title hugs the top,
-  // dice + notice hug the bottom (CTRL_INSET from the edge); only X is centred.
+  // [3] bottom-right. Vertical anchoring is unchanged — title hugs the top; only
+  // X is centred. (Per-nest notices anchor themselves separately — see below.)
   // A foreignObject box is centred by offsetting its left edge half its scaled
   // width left of the nest centre (the inner flex is justify-content:center).
   const nestX = (corner: number) => layout.nestCentres[corner].cx
@@ -84,9 +94,37 @@ export function GameBoard({
   // HOME-bound move target ring underneath stays clickable.
   const diceX = layout.extent / 2 - (DICE_W * DICE_SCALE) / 2
   const diceY = layout.extent / 2 - (DICE_H * DICE_SCALE) / 2
-  const noticeX = nestX(3) - (NOTICE_W * CTRL_SCALE) / 2
-  const noticeY = layout.extent - CTRL_INSET - NOTICE_H * CTRL_SCALE
   const over = state.phase === 'game-over'
+
+  // Per-nest notices: each message sits in the corner of the player it concerns.
+  // The *event* line (what just happened) belongs to the player who acted —
+  // `noticeOwner`, falling back to the current player for dev-loaded notices; the
+  // *turn prompt* belongs to whoever is now to act. When the same player owns
+  // both (e.g. a bonus 6 keeps the turn), the event line wins — it's the more
+  // specific message. Each nest therefore shows at most one line.
+  const eventOwner = notice == null ? null : noticeOwner ?? state.turn
+  const prompt =
+    state.phase === 'awaiting-roll'
+      ? 'Your turn'
+      : state.phase === 'awaiting-move'
+        ? 'Pick a piton'
+        : null
+  // Anchor the notice at the BOTTOM of the player's corner quadrant — the washed
+  // area the nest sits in (same bounds as Board's whose-turn wash) — so it always
+  // clears the nest's holes/box. Centred horizontally on the nest cluster, its
+  // box dropped to the quadrant's lower edge, inset slightly so it isn't flush.
+  const nestNotice = (p: number) => {
+    const slots = layout.nestSlots[p]
+    const cx = slots.reduce((a, s) => a + s.cx, 0) / slots.length
+    const cy = slots.reduce((a, s) => a + s.cy, 0) / slots.length
+    const { row: cr } = layout.homeCell
+    const onTop = cy < cellMid(cr, layout)
+    const qy1 = onTop ? cellStart(cr - 1, layout) : layout.extent
+    const boxH = NEST_NOTICE_H * CTRL_SCALE
+    const x = cx - (NEST_NOTICE_W * CTRL_SCALE) / 2
+    const y = qy1 - boxH - NEST_NOTICE_GAP
+    return { x, y }
+  }
 
   return (
     <svg
@@ -151,20 +189,33 @@ export function GameBoard({
         </foreignObject>
       </g>
 
-      {/* Notice line (capture / extra roll / forfeit / winner), bottom-right.
-          Non-interactive text via foreignObject so it can wrap and right-align;
-          click-through so it never swallows board clicks. */}
-      <g transform={`translate(${noticeX}, ${noticeY}) scale(${CTRL_SCALE})`}>
-        <foreignObject x={0} y={0} width={NOTICE_W} height={NOTICE_H}>
-          <div
-            className={over ? 'board-notice board-notice-win' : 'board-notice'}
-            role="status"
-            aria-live="polite"
+      {/* Per-nest notices: each player's corner shows the message that concerns
+          them — the event line in the acting player's nest, the turn prompt in
+          the current player's nest (event wins if one player owns both). Terse
+          text via foreignObject; click-through so it never swallows board clicks. */}
+      {state.players.map((_, p) => {
+        const isEvent = p === eventOwner
+        const text = isEvent ? notice : p === state.turn ? prompt : null
+        if (!text) return null
+        const { x, y } = nestNotice(p)
+        const cls = isEvent
+          ? over
+            ? 'nest-notice nest-notice-win'
+            : 'nest-notice'
+          : 'nest-notice nest-notice-prompt'
+        return (
+          <g
+            key={`notice-${p}`}
+            transform={`translate(${x}, ${y}) scale(${CTRL_SCALE})`}
           >
-            {notice ?? ''}
-          </div>
-        </foreignObject>
-      </g>
+            <foreignObject x={0} y={0} width={NEST_NOTICE_W} height={NEST_NOTICE_H}>
+              <div className={cls} role="status" aria-live="polite">
+                {text}
+              </div>
+            </foreignObject>
+          </g>
+        )
+      })}
 
       <Pitons state={state} layout={layout} moves={moves} onPick={onPick} />
 

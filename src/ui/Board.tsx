@@ -62,8 +62,9 @@ export function Board({ state, layout }: Props) {
       {layout.nestSlots.map((slots, p) => {
         const hex = PLAYER_HEX[state.players[p].color]
         // The player to act gets their whole corner quadrant — the blank board
-        // region between two arms, behind the nest — washed in their colour. A
-        // big, obvious "whose turn" cue that doesn't reuse the piton pulse halo.
+        // region between two arms, behind the nest — washed in their colour, and
+        // that wash *breathes* (a gentle opacity pulse) so every player can see
+        // whose turn it is without hesitation. See docs/decisions.md (2026-06-13).
         const active = p === state.turn
         const minCx = Math.min(...slots.map((s) => s.cx))
         const maxCx = Math.max(...slots.map((s) => s.cx))
@@ -92,13 +93,13 @@ export function Board({ state, layout }: Props) {
           <g key={`nest-${p}`}>
             {active && (
               <rect
+                className="nest-active-wash"
                 x={qx0 + inset}
                 y={qy0 + inset}
                 width={qx1 - qx0 - inset * 2}
                 height={qy1 - qy0 - inset * 2}
                 rx={0.6}
                 fill={hex}
-                fillOpacity={0.28}
               />
             )}
             <rect

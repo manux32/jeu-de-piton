@@ -228,23 +228,32 @@ code {
   pointer-events: none;
 }
 
-/* Notice line mounted in the board SVG (bottom-right), centred horizontally on
-   its corner's nest and bottom-anchored. Click-through. Pinned to light-theme
-   colours so the win variant (normally near-white in dark mode) stays visible
-   on the board. */
-.board-notice {
+/* Per-nest notice: a short line anchored in a player's own corner. The event
+   line (what just happened) sits in the acting player's nest; the turn prompt
+   sits in the current player's nest — so the message is always *where* the
+   player it concerns is. Click-through; pinned light-theme (the board is always
+   light) so the near-black text stays legible in dark mode too. */
+.nest-notice {
   display: flex;
   align-items: flex-end;
   justify-content: center;
   width: 100%;
   height: 100%;
   text-align: center;
-  font-size: 15px;
-  line-height: 1.3;
-  color: #6b6375;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: #2b2733;
   pointer-events: none;
 }
-.board-notice-win {
+/* The current-player turn prompt is the quieter of the two — it's the baseline
+   "you're up" cue, reinforcing the breathing wash, not announcing an event. */
+.nest-notice-prompt {
+  font-style: italic;
+  font-weight: 500;
+  color: #4a4456;
+}
+.nest-notice-win {
   font-weight: 600;
   color: #08060d;
 }
@@ -285,6 +294,22 @@ code {
 .pill:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+/* Whose-turn corner wash: a shallow "breathing" pulse around the static 0.28
+   opacity. Same 1.2s cadence as the piton/home alarm pulse but a far gentler
+   opacity swing, so a large area pulsing every turn reads as presence, not alarm. */
+.nest-active-wash {
+  animation: nest-breathe 1.5s ease-in-out infinite;
+}
+@keyframes nest-breathe {
+  0%,
+  100% {
+    fill-opacity: 0.18;
+  }
+  50% {
+    fill-opacity: 0.42;
+  }
 }
 
 /* --- board interaction --------------------------------------------------- */
