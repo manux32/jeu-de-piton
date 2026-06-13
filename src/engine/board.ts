@@ -47,11 +47,10 @@
  * subset of these four physical seats (see `entrySeats`).
  *
  * `trackPathLength` (how far a piton walks the ring before turning into its
- * lane) defaults to the full ring — a complete lap, lane-mouth at entry-1.
- * The precise turn-off may sit a square or two earlier on the real board; that
- * is captured by `homeEntryOffset` and is the one geometry detail still pending
- * a visual read of the board (see docs/rules-and-lineage.md "Still open"). It
- * does not affect the correctness of the coordinate math below.
+ * lane) = `trackLength - homeEntryOffset`. `homeEntryOffset` is PINNED at 4
+ * (confirmed 2026-06-12 from the board: a roll of 12 from your start lands on the
+ * next player's lane entry), so the lane mouth sits 5 squares before a player's
+ * own start and `trackPathLength` is 64. See docs/rules-and-lineage.md.
  */
 
 import type { PitonPosition } from './types'

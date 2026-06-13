@@ -133,7 +133,7 @@ trailing edge; shape via the `ARROW_*` knobs in `src/ui/Board.tsx`.
 Capture/blocking happen on the **shared track** only; the private lane is immune,
 and safe squares can't be captured on and block passage — the lone exception being
 that a player may capture an enemy on the player's **own** start square (see
-rules-and-lineage.md; engine impl pending). The "6 moves 12", the
+rules-and-lineage.md; implemented in the engine, entry-only). The "6 moves 12", the
 3rd-six penalty, etc. are rule details — see rules-and-lineage.md, not here.
 
 ## Seating convention (UI choice, not a rule)
