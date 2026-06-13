@@ -11,7 +11,10 @@
 >
 > Maintain: when a milestone closes or a fact gets pinned, move the detail to the
 > right reference doc and leave only a one-line pointer here. Don't narrate
-> finished work — that's what [decisions.md](decisions.md) is for.
+> finished work — that's what [decisions.md](decisions.md) is for. And don't copy
+> volatile/derived facts into prose: reference the command (`npm test` for the
+> test count) or the code symbol (`CTRL_SCALE`, not its value), never a hand-kept
+> copy that goes stale.
 
 ## Where we are
 **Playable hot-seat, polished — and all chrome lives *on the board*.** Milestones
@@ -20,8 +23,8 @@ look-and-feel pass: the HUD/header are gone (title, New Game disclosure, dice, a
 per-nest turn notices all render inside the board SVG), the board is uncapped and
 fills the viewport, the dice sit dead-centre over HOME, and whose-turn shows as a
 gently pulsing corner wash. The **start-square exception** is shipped end-to-end —
-visual ownership arrows *and* engine (`legalMoves`, entry-only). 77 tests green
-(72 engine + 5 serializer), build + lint clean; `src/ui/` stays rules-free.
+visual ownership arrows *and* engine (`legalMoves`, entry-only). Tests + build +
+lint green (`npm test` for the count); `src/ui/` stays rules-free.
 
 The session-by-session *why* for all of the above is in [decisions.md](decisions.md)
 (newest first); the shipped rule + geometry facts are in
@@ -43,8 +46,8 @@ The session-by-session *why* for all of the above is in [decisions.md](decisions
 
 ## Next session — pick one
 - **Chrome size tuning** (the one open M6 item). The on-board chrome is sized in
-  *board* units (`CTRL_SCALE = 0.019` in [GameBoard.tsx](../src/ui/GameBoard.tsx);
-  dice = `DICE_SCALE = CTRL_SCALE × 1.5`), so now that the board fills the screen
+  *board* units (`CTRL_SCALE` in [GameBoard.tsx](../src/ui/GameBoard.tsx); the
+  dice scale is `DICE_SCALE`, a multiple of it), so now that the board fills the screen
   the pills / dice / notice can read oversized on a big monitor. Candidate fixes:
   lower the scales, or size chrome from the viewport so it stays constant as the
   board grows. Needs an eyeball at real size first.
