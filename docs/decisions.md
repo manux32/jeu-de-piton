@@ -10,6 +10,24 @@
 > [rules-and-lineage.md](rules-and-lineage.md), [board-model.md](board-model.md)).
 > Don't duplicate git history — capture reasoning a commit message wouldn't.
 
+- **2026-06-12** — **Dev scenario rig: knob editor, not a board editor; lazy-only,
+  not dead-branched.** Validating look-and-feel fixes (capture-click, HOME
+  grouping/highlight) meant reaching exact states tedious to play to, so we built a
+  dev-only rig under [`src/ui/dev/`](../src/ui/dev/) that injects a doctored
+  `GameView` through a new `load` reducer action (engine untouched; scenarios are
+  just `createGame` + `place()` position tweaks). Two decisions worth the ink:
+  (1) **Pivoted from a spatial board editor to a knob form** ([`StateEditor.tsx`](../src/ui/dev/StateEditor.tsx))
+  on user preference — it's far less code (no `Board.tsx` reverse-mapping / edit
+  mode) and doubles as living documentation of *which* `GameState` fields actually
+  drive the game (turn, pending-roll→phase, `extraTurnStreak`, per-piton position).
+  (2) **The whole dev surface must be a single lazy `import()` gated by
+  `import.meta.env.DEV`** ([`DevTools.tsx`](../src/ui/dev/DevTools.tsx) + its own
+  `dev.css`). The naïve `import.meta.env.DEV && <Panel/>` dead-branch did **not**
+  tree-shake — the static imports + the `import.meta.glob` scenario registry kept
+  ~2 kB of JS and the dev CSS anchored in the production bundle. The lazy-chunk
+  pattern makes prod byte-identical to pre-tooling; don't reintroduce a static dev
+  import. Scenarios are **one file each** auto-discovered via `import.meta.glob`, so
+  the planned S3 "save as scenario" is just writing a new file into `scenarios/`.
 - **2026-06-12** — **Rectangular cells are render-only, not a grid change.** The
   reference board's cells are wider across an arm than along it. Rather than make
   the *logical* grid non-uniform (which would entangle the 90° rotation tiling and

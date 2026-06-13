@@ -34,7 +34,7 @@ export type GameAction =
   | { type: 'roll'; value: number }
   | { type: 'pick'; move: Move }
   | { type: 'newGame'; playerCount: number }
-  // DEV-only: drop a fully-built view straight in (see devScenarios.ts).
+  // DEV-only: drop a fully-built view straight in (see src/ui/dev/).
   | { type: 'load'; view: GameView }
 
 const cap = (s: string) => s[0].toUpperCase() + s.slice(1)

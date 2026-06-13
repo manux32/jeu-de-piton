@@ -1,9 +1,9 @@
 /**
- * DEV-ONLY tools sidebar. Session 1 houses the scenario picker: a dropdown of
- * the auto-discovered scenarios plus a Load button that dispatches the chosen
- * scenario's view into the game (via `onLoad`). It holds no rules and no game
- * state of its own — it just builds a `GameView` and hands it up. Later sessions
- * grow this panel with the board-state editor and "save as scenario".
+ * DEV-ONLY tools sidebar. Hosts the scenario picker (a dropdown of the
+ * auto-discovered scenarios + a Load button) and the <StateEditor> knob form
+ * below it. It holds no rules and no game state of its own — it builds a
+ * `GameView` and hands it up via `onLoad` (App dispatches the `load` action).
+ * Still to come: "save as scenario" (serialize the current state to a file).
  *
  * Rendered only under `import.meta.env.DEV` (see App.tsx), so it never ships.
  */
