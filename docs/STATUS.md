@@ -87,6 +87,10 @@ board situations for validating UI/interaction fixes without playing up to them.
   ✅ S2 knob-based state editor. ⬜ S3 "save as scenario" (state→code
   serialization + name field + dev-only Vite middleware that writes a new file
   into `scenarios/`).
+  - *S3 serializer note:* emit the same shape as the hand-written scenario files
+    (the `place({…})` position map + `turn`/`lastRoll`/`phase` + a `notice`),
+    skipping nest-default pitons to keep output tidy. The three existing files
+    don't set `extraTurnStreak`, so only emit it when non-zero (it defaults to 0).
 
 ## Dev quick-ref
 - `npm test` (engine), `npm run build` (type-check + build), `npm run dev` (UI,
