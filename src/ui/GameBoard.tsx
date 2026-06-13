@@ -16,6 +16,7 @@ import type { GameState, Move } from '../engine'
 import { buildLayout, destinationCell, cellMid, cellStart } from './layout'
 import { Board } from './Board'
 import { Pitons } from './Pitons'
+import { DieFace } from './DieFace'
 import { PLAYER_HEX } from './colors'
 
 interface Props {
@@ -37,8 +38,6 @@ interface Props {
 // centred horizontally on its corner's nest cluster (see nestX in the body) and
 // vertically inset from the board edge by CTRL_INSET.
 const CTRL_SCALE = 0.019
-// The dice owns the board centre, so it reads larger than the corner chrome.
-const DICE_SCALE = CTRL_SCALE * 1.5
 // New Game is a disclosure: a single "New game" toggle when collapsed, the
 // toggle plus the 2/3/4 picker when open. The box widens when open so the
 // content always fits; either way it's centred on the nest, so it grows
@@ -47,8 +46,9 @@ const CTRL_W_CLOSED = 112
 const CTRL_W_OPEN = 264
 const CTRL_H = 52
 const CTRL_INSET = 0.4
-const DICE_W = 150
-const DICE_H = 56
+// The die is drawn natively in board units (see DieFace), centred over HOME. A
+// touch under the 3×3 HOME band so it owns the centre without crowding the arms.
+const DIE_SIZE = 2.4
 // Per-nest notice: a short line tucked just inside a player's own corner nest,
 // authored in px then scaled into board units like the other chrome. Narrow on
 // purpose — messages are kept terse so they fit a corner without crowding it.
@@ -87,13 +87,15 @@ export function GameBoard({
   const nestX = (corner: number) => layout.nestCentres[corner].cx
   const titleX = nestX(1)
   const ctrlX = nestX(0) - (ctrlW * CTRL_SCALE) / 2
-  // Dice rolls at the dead centre of the board, over the HOME area — rolling is
+  // The die sits at the dead centre of the board, over the HOME area — rolling is
   // the core gameplay act, so it earns the middle (see this session's decision).
-  // Centred on both axes; painted last (below) so it sits on top of the HOME
-  // label and any finished pitons. The die span is click-through (CSS) so the
-  // HOME-bound move target ring underneath stays clickable.
-  const diceX = layout.extent / 2 - (DICE_W * DICE_SCALE) / 2
-  const diceY = layout.extent / 2 - (DICE_H * DICE_SCALE) / 2
+  // Painted last (below) so it sits on top of any finished pitons; the HOME-bound
+  // move-target ring is painted after it again, so that stays clickable on top.
+  const dieCentre = layout.extent / 2
+  const canRoll = state.phase === 'awaiting-roll'
+  // Resting face shows the last value rolled; a fresh game (no roll yet) shows 1.
+  const dieValue = rolled ?? 1
+  const dieColor = PLAYER_HEX[state.players[state.turn].color]
   const over = state.phase === 'game-over'
 
   // Per-nest notices: each message sits in the corner of the player it concerns.
@@ -219,30 +221,19 @@ export function GameBoard({
 
       <Pitons state={state} layout={layout} moves={moves} onPick={onPick} />
 
-      {/* Dice, dead centre over HOME — painted after Pitons so the die/Roll sit
-          on top of any finished pitons clustered in the corners. foreignObject
-          scaled into board units, reusing .die / .pill styling. NB the
-          move-target markers are painted *after* this (below) so a HOME-bound
+      {/* The die, dead centre over HOME — painted after Pitons so it sits on top
+          of any finished pitons clustered in the corners. Drawn natively in board
+          units (DieFace), tinted to the acting player's colour like the nests.
+          The whole face is the roll button: tap it to roll when it's roll time.
+          The move-target markers are painted *after* this (below) so a HOME-bound
           target stays visible and clickable on top of the die. */}
-      <g transform={`translate(${diceX}, ${diceY}) scale(${DICE_SCALE})`}>
-        <foreignObject x={0} y={0} width={DICE_W} height={DICE_H}>
-          <div className="board-dice">
-            <span
-              className="die"
-              aria-label={rolled ? `rolled ${rolled}` : 'no roll yet'}
-            >
-              {rolled ?? '–'}
-            </span>
-            <button
-              type="button"
-              className="pill pill-on"
-              onClick={onRoll}
-              disabled={state.phase !== 'awaiting-roll'}
-            >
-              Roll
-            </button>
-          </div>
-        </foreignObject>
+      <g
+        onClick={canRoll ? onRoll : undefined}
+        style={{ cursor: canRoll ? 'pointer' : 'default' }}
+        role="button"
+        aria-label={rolled ? `rolled ${rolled}, roll again` : 'roll the die'}
+      >
+        <DieFace value={dieValue} cx={dieCentre} cy={dieCentre} size={DIE_SIZE} color={dieColor} />
       </g>
 
       {/* legal-move target markers — a tinted ring on each destination cell, in
