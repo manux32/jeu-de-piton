@@ -108,10 +108,13 @@ player, and the other two safe kinds (mid-arm +7, home-mouth +12) stay
 universally safe.
 
 The board marks this with the per-start **ownership arrow** (the colour triangle,
-see [board-model.md](board-model.md)). **Not yet in the engine** — `legalMoves`
-today still refuses entry onto any occupied entry square and forbids capture on a
-safe square; teaching it the owner-exception is a tracked next step (see
-[STATUS.md](STATUS.md)).
+see [board-model.md](board-model.md)), and the **engine implements it**:
+`legalMoves` offers a capturing entry move when a lone enemy sits on the player's
+own start. The exception is **entry-only** — the owner never re-touches its own
+start via normal movement (`homeEntryOffset` turns it into the home lane before a
+lap wraps round), so `resolveLanding` rightly keeps every safe square universally
+immune to *movement*-landings. (See the 2026-06-13 [decisions.md](decisions.md)
+entry for that scoping.)
 
 ### Board geometry — CONFIRMED
 The cabin board matches the standard **Selchow & Righter Parcheesi** layout
@@ -163,12 +166,11 @@ brand's bonus-move rules:
 - ~~Capture specifics **on** a safe/entry square~~ — **RESOLVED 2026-06-12** in
   the engine (rung 4): an enemy on a safe square can't be landed on, so capture
   there never arises. Confirm with real play if a surprise turns up.
-- ~~Enemy on your start square~~ — **RESOLVED 2026-06-13** (the friend): it's an
-  **exception** — you *may* capture it by exiting the nest onto your start; a start
-  square is safe only to non-owners (see "Start-square exception" above). The
-  visual cue (ownership arrows) shipped this session, but the **engine still
-  implements the old fully-safe behaviour** — the owner-exception is a pending
-  engine change, tracked in [STATUS.md](STATUS.md).
+- ~~Enemy on your start square~~ — **RESOLVED 2026-06-13** (the friend) **+ fully
+  shipped**: it's an **exception** — you *may* capture it by exiting the nest onto
+  your start; a start square is safe only to non-owners (see "Start-square
+  exception" above). Both the visual cue (ownership arrows) **and the engine**
+  (`legalMoves`, entry-only) are now done.
 - ~~Unplayable bonus 6~~ — **RESOLVED 2026-06-12** (confirmed with the friend):
   an unplayable 6 still grants the bonus roll **and still counts toward the
   three-in-a-row** — so three consecutive 6s trip the lose-leading penalty even

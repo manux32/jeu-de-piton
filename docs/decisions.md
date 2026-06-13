@@ -10,6 +10,21 @@
 > [rules-and-lineage.md](rules-and-lineage.md), [board-model.md](board-model.md)).
 > Don't duplicate git history — capture reasoning a commit message wouldn't.
 
+- **2026-06-13** — **Start-square exception implemented in the engine — and it's
+  *entry-only*.** Taught `legalMoves` the owner-exception (the visual cue shipped
+  earlier the same day; see the entry below): on an entry roll, a lone enemy on the
+  player's own start is now a **capturing entry move** (`captures: occupant.id`),
+  gated on `captureEnabled`; an ally there still blocks; an empty start is a plain
+  entry as before. *Non-obvious scoping:* the change touches **only** the entry
+  block — `resolveLanding`/`passageBlocked` keep treating every `safeSquares`
+  member as universally immune/blocking, deliberately. That's correct because a
+  piton **never re-touches its own start via normal movement**: `homeEntryOffset`
+  turns it off into its private lane ~5 squares before progress would wrap back to
+  offset 0, so the owner only ever meets its own start at the entry instant. So the
+  exception lives entirely at entry; movement-landing by *non-owners* on any start
+  stays blocked (a test pins this). Multiple capturing-entry moves are offered (one
+  per nested piton), but each is an *alternative* — `applyMove` brings out exactly
+  one piton (also pinned), so clicking to capture never empties the nest.
 - **2026-06-13** — **Start squares are safe *only for their owner*; marked with a
   colored "ownership arrow".** The friend resolved the long-open "enemy on your
   start square" question: it is an **exception** to the safe-square rule. An enemy
