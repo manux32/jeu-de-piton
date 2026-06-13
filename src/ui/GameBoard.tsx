@@ -34,11 +34,12 @@ interface Props {
   onRoll: () => void
 }
 
-// In-board HTML chrome (New Game controls, dice, per-nest notices) lives in the
-// SVG via foreignObject, authored at natural px then scaled into board units —
-// so it reuses the page's .pill / .die / .nest-notice styling rather than
-// re-expressing it in viewBox units. The corner chrome (title, New Game) is
-// centred horizontally on its corner's nest cluster (see nestX in the body) and
+// In-board HTML chrome (New Game controls, per-nest notices) lives in the SVG
+// via foreignObject, authored at natural px then scaled into board units — so it
+// reuses the page's .pill / .nest-notice styling rather than re-expressing it in
+// viewBox units. (The die is the exception: native SVG drawn directly in board
+// units — see DieFace.) The corner chrome (title, New Game) is centred
+// horizontally on its corner's nest cluster (see nestX in the body) and
 // vertically inset from the board edge by CTRL_INSET.
 const CTRL_SCALE = 0.019
 // New Game is a disclosure: a single "New game" toggle when collapsed, the
