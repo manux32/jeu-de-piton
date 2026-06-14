@@ -10,6 +10,39 @@
 > [rules-and-lineage.md](rules-and-lineage.md), [board-model.md](board-model.md)).
 > Don't duplicate git history — capture reasoning a commit message wouldn't.
 
+- **2026-06-13** — **Player-colour knobs centralized in `colors.ts`; deliberately
+  split from geometry; capture cue is the destination ring, not a halo.** Made
+  [colors.ts](../src/ui/colors.ts) the single owner of the *colour-appearance*
+  axis — hue (`PLAYER_HEX`, the lone per-colour data + extension point), lightening
+  (`tint(hex, amount)` *derives* light variants, retiring the hand-tuned
+  `PLAYER_HEX_LIGHT` parallel map), opacities, and the flash/wash *timing*. Two
+  delivery paths because keyframes can't read TS: plain SVG attributes import the
+  constant directly; animation-driven knobs are surfaced as CSS custom properties
+  by `boardThemeVars`, set once on the board `<svg>` root and inherited by every
+  animated descendant (generalizes the old one-off `--die-flash`; the same seam is
+  reusable by the future layout-knob pass). **Axis split is intentional:** size
+  knobs (ring radii/strokes, piton/hole radii, arrow geometry) stay with the
+  *renderer*, not `colors.ts` — the move-target ring sizes now sit in a named block
+  in [GameBoard.tsx](../src/ui/GameBoard.tsx) as the first slice of the planned
+  layout-knob centralization. **Open question deferred to that pass:** group knobs
+  by *concern* (colour vs geometry, as now) or by *function* (everything driving one
+  visual-feedback element, together)? User leans function for the feedback knobs;
+  settle it deliberately when consolidating layout knobs, not by accident.
+  **Action-pending flash family — one shared cadence (`FLASH_CADENCE_S`) so the
+  board pulses as one**; the die-swell and the opacity-pulse are two mechanisms but
+  one rate (no separate die-vs-piton cadence unless we split it later). The
+  whose-turn wash keeps its *own* `WASH_CADENCE_S` on purpose — it's a presence cue,
+  not an action prompt. **Non-obvious limit that shaped the capture cue:** CSS
+  animations are *not* globally phase-locked — equal `animation-duration` gives equal
+  frequency but the phase depends on each element's *start time*, and a state-gated
+  animation (die flash, restarting each turn) drifts against a continuously-running
+  one (the wash). Sync only holds for elements that *mount together*. That's why the
+  capture cue ended up as an **enlarged, flashing dashed destination ring** drawn on
+  the enemy (the capture move's target square *is* the enemy's): it mounts in the
+  same render as the capturing piton's halo, so the two pulse in lockstep — which a
+  separate enemy halo couldn't guarantee. (Earlier tries: swelling the enemy disc's
+  own fill read as confusing; a separate halo couldn't be reliably synced.) All
+  piton-destination rings are now dashed, including HOME, so they read as one family.
 - **2026-06-13** — **Chrome scales with the board, by design — the "chrome size
   tuning" item is retired (won't-do).** The parked M6 item *hypothesized* that
   on-board chrome (pills, die, notices), sized in *board* units (`CTRL_SCALE`,

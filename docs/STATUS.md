@@ -51,48 +51,23 @@ The session-by-session *why* for all of the above is in [decisions.md](decisions
   engine is variant-agnostic, so this is mostly *proving* a second variant (e.g.
   canonical Parcheesi) drops in with **no UI change** — likely a ruleset-picker
   beside the player-count pills in the New Game control.
-- **Centralize player-color knobs** (groundwork for more colors + player color
-  choice). Today the *hue* is centralized (`PLAYER_HEX`) but each element's
-  *lightening knob* is scattered: lane `fillOpacity 0.45` and nest-box `0.18`
-  inline in [Board.tsx](../src/ui/Board.tsx), the whose-turn wash opacities in CSS
-  (`nest-breathe` 0.18↔0.42, `.nest-active-wash-static` 0.3), and the die flash as
-  a hand-kept second map (`PLAYER_HEX_LIGHT`). Plan:
-  1. Make [colors.ts](../src/ui/colors.ts) the single owner. Keep `PLAYER_HEX` as
-     the only per-color data (the extension point). Add a `tint(hex, amount)`
-     helper (mix toward white) so light variants are *derived*, not a parallel map
-     that must grow with every new color — retires `PLAYER_HEX_LIGHT`. Each role
-     can still pass its own amount; they need not match.
-  2. Name the per-role knobs in one block there: lane fill, nest-box fill, wash
-     (static + breathe min/max), and the **action-pending flash family** (below).
-     Replace the inline/CSS magic numbers with these.
-  3. Feed the CSS-driven ones (wash breathe, all flashes) via CSS custom properties
-     set from TS — same pattern as the `--die-flash` var shipped this session — so
-     the numbers live in `colors.ts`, not split across the stylesheet. *(Time-boxed
-     fallback: centralize hues + solid tints only; leave CSS opacity knobs in CSS
-     and cross-reference.)*
+- **Centralize board-layout knobs.** The colour-knob pass (done — see
+  [decisions.md](decisions.md) 2026-06-13) built the model: [colors.ts](../src/ui/colors.ts)
+  owns the *colour* axis, and it deliberately left *geometry* (sizes) out. Those
+  size knobs are still scattered as inline constants — arrow shape + nest/box/hole
+  radii + strokes in [Board.tsx](../src/ui/Board.tsx)/[Pitons.tsx](../src/ui/Pitons.tsx),
+  chrome + die + the move-target ring sizes in [GameBoard.tsx](../src/ui/GameBoard.tsx)
+  (that last block is the seeded first slice). This effort consolidates them and
+  the TS→CSS-var seam (`boardThemeVars`) is reusable verbatim for any size knob a
+  CSS animation needs. **Decide up front:** group knobs by *concern* (colour vs
+  geometry, as now) or by *function* (everything driving one visual-feedback
+  element, together)? The user leans toward function-grouping for feedback knobs —
+  settle it as part of this pass.
 
-  **Action-pending flashes — one family, one set of knobs.** The deliberate rule
-  is: *only elements awaiting an action from a player flash.* Members today:
-  die roll-ready (`.die-square` fill swell → `--die-flash`), movable pitons
-  (`.piton-halo`, `piton-pulse`), and the HOME-reachable target (`.move-target-home`,
-  `piton-pulse`). They already share a 1.2s cadence (the lone 1.5s was the wash,
-  now static) — make that shared cadence a knob too, which settles the "different
-  rates" issue. Two mechanisms exist: a *fill-colour swell* (die, toward a light
-  tint) and a plain *opacity pulse* (halo/target); the system should hold both.
-  - **New member: capturable enemy pitons.** Give the current player obvious
-    feedback on which enemies a legal move would capture — flash them. Already
-    UI-derivable, no engine change: Pitons.tsx builds `captureByPiton` from moves
-    where `m.captures` is set, and tags those discs `.piton-target` (today only
-    `cursor:pointer`). **Preferred treatment:** swell the enemy disc toward the
-    *capturing* (current) player's tint — it reads as "this is mine to take" and
-    reuses the same fill-swell mechanism as the die. Fall back to a distinct
-    warning treatment only if the own-tint swell proves unclear against the
-    enemy's base hue.
-
-  Out of scope but the motivating direction: colors beyond 4 extend the engine
-  `PlayerColor` union + the palette; letting players *choose* builds on the
-  per-seat `players[].color` field that already exists (a picker that sets it with
-  uniqueness; seat→color stays the default).
+  *Colour-knob follow-ons (out of scope here, the motivating direction): colours
+  beyond 4 extend the engine `PlayerColor` union + the palette; letting players
+  *choose* builds on the per-seat `players[].color` field that already exists (a
+  picker that sets it with uniqueness; seat→colour stays the default).*
 
 ## Open rule details
 - **None open.** All cabin rules are confirmed and shipped as of 2026-06-13 — the
