@@ -26,9 +26,10 @@ import {
   CTRL_H,
   CTRL_INSET,
   DIE_SIZE,
-  NEST_NOTICE_W,
-  NEST_NOTICE_H,
-  NEST_NOTICE_GAP,
+  NOTICE_TEXT_SIZE,
+  NOTICE_OFFSET_X,
+  NOTICE_OFFSET_Y,
+  NOTICE_FONT_PX,
   TITLE_FONT_SIZE,
   TITLE_TOP,
   MOVE_TARGET_R,
@@ -64,8 +65,18 @@ interface Props {
 // the box widens (CTRL_W_CLOSED→CTRL_W_OPEN) so the 2/3/4 picker fits, growing
 // symmetrically about the nest centre.
 //
-// Every size knob this file draws with — title, chrome (px + CTRL_SCALE bridge),
-// die, and the three destination-ring variants — lives in theme.ts (GEOMETRY).
+// Every size knob this file draws with — title, chrome, die, the move rings, and
+// the notices — lives in theme.ts (GEOMETRY).
+
+// Notices and the New Game button are both shrunk HTML, but with INDEPENDENT
+// scales so tuning one never touches the other. The button uses CTRL_SCALE; a
+// notice uses `noticeScale`, derived so its text lands at NOTICE_TEXT_SIZE board
+// units (the px font it's built at, NOTICE_FONT_PX, cancels out — it only affects
+// crispness). NEST_NOTICE_W/H are just the invisible box the text sits in — not a
+// tuning knob, so they stay local here; widen only if a longer message clips.
+const NEST_NOTICE_W = 168
+const NEST_NOTICE_H = 48
+const noticeScale = NOTICE_TEXT_SIZE / NOTICE_FONT_PX
 
 export function GameBoard({
   state,
@@ -132,8 +143,8 @@ export function GameBoard({
         : null
   // Anchor the notice at the BOTTOM of the player's corner quadrant — the washed
   // area the nest sits in (same bounds as Board's whose-turn wash) — so it always
-  // clears the nest's holes/box. Centred horizontally on the nest cluster, its
-  // box dropped to the quadrant's lower edge, inset slightly so it isn't flush.
+  // clears the nest's holes/box. Centred horizontally on the nest cluster, then
+  // nudged by the NOTICE_OFFSET_* knobs (Y up from the quadrant's lower edge).
   const nestNotice = (p: number) => {
     const slots = layout.nestSlots[p]
     const cx = slots.reduce((a, s) => a + s.cx, 0) / slots.length
@@ -141,9 +152,9 @@ export function GameBoard({
     const { row: cr } = layout.homeCell
     const onTop = cy < cellMid(cr, layout)
     const qy1 = onTop ? cellStart(cr - 1, layout) : layout.extent
-    const boxH = NEST_NOTICE_H * CTRL_SCALE
-    const x = cx - (NEST_NOTICE_W * CTRL_SCALE) / 2
-    const y = qy1 - boxH - NEST_NOTICE_GAP
+    const boxH = NEST_NOTICE_H * noticeScale
+    const x = cx - (NEST_NOTICE_W * noticeScale) / 2 + NOTICE_OFFSET_X
+    const y = qy1 - boxH - NOTICE_OFFSET_Y
     return { x, y }
   }
 
@@ -231,7 +242,7 @@ export function GameBoard({
         return (
           <g
             key={`notice-${p}`}
-            transform={`translate(${x}, ${y}) scale(${CTRL_SCALE})`}
+            transform={`translate(${x}, ${y}) scale(${noticeScale})`}
           >
             <foreignObject x={0} y={0} width={NEST_NOTICE_W} height={NEST_NOTICE_H}>
               <div className={cls} role="status" aria-live="polite">

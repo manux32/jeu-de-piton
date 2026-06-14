@@ -48,6 +48,7 @@
  */
 
 import type { BoardGeometry, PitonPosition } from '../engine'
+import { SQUARE_WIDTH } from './theme'
 
 /** A cell on the board grid, in cell units (not pixels). */
 export interface Cell {
@@ -141,17 +142,17 @@ const SAFE_PHASE = 13
  */
 const SEAT_ROTATION = 3
 
-/**
- * Rectangular-cell look. Movement squares are drawn wider ACROSS an arm than they
- * are long ALONG it (matching the reference board). On the logical grid that means
- * the three central rows/columns — every arm's WIDTH, plus the HOME block — are
- * stretched by this factor, while the outer cells (each arm's LENGTH and the nest
- * corners) stay at unit size. Because the board is symmetric, the same stretch on
- * both axes makes the south arm's cells come out wide-and-short and the east arm's
- * identical cells tall-and-narrow — automatically, with no per-arm code. 1 = the
- * old uniform squares; raise it for chunkier arms (the photo sits near 1.6).
- */
-const ARM_WIDTH_SCALE = 1.9
+// Rectangular-cell look. Movement squares are drawn wider ACROSS an arm than they
+// are long ALONG it (matching the reference board): the three central rows/columns
+// — every arm's WIDTH, plus the HOME block — are stretched by this factor, while
+// the outer cells (each arm's LENGTH and the nest corners) stay at unit size.
+// Because the board is symmetric, the same stretch on both axes makes the south
+// arm's cells come out wide-and-short and the east arm's identical cells
+// tall-and-narrow — automatically, with no per-arm code.
+//
+// It's the one board-*shape* number that's exposed as a look knob (`SQUARE_WIDTH`
+// in theme.ts) because the user tweaks it; the truly-pinned topology constants
+// (SAFE_PHASE / SEAT_ROTATION) stay here, out of the tweak file.
 
 /**
  * Build the screen layout for a game with the given resolved geometry and player
@@ -191,7 +192,7 @@ export function buildLayout(
   // Built before the nests because they are positioned in render units.
   const edges: number[] = [0]
   for (let i = 0; i < gridSize; i++) {
-    const width = Math.abs(i - centre) <= 1 ? ARM_WIDTH_SCALE : 1
+    const width = Math.abs(i - centre) <= 1 ? SQUARE_WIDTH : 1
     edges.push(edges[i] + width)
   }
   const extent = edges[gridSize]

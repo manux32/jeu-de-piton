@@ -1,33 +1,23 @@
 /**
- * The board's look-and-feel knob board — the one place the game's *appearance*
- * lives, so polishing the look means editing values here and watching the dev
- * server hot-reload, not hunting hardcoded hex through the components.
+ * The board's tuning knobs — the one place to change how the game *looks*.
+ * Edit a value here and the dev server hot-reloads so you can see it; you should
+ * almost never have to hunt for a colour or size inside the drawing code.
  *
- * Kept in `src/ui` — it's presentation, not rules. The engine names players by
- * `PlayerColor` ('red' | 'blue' | 'yellow' | 'green', in seating order); this
- * turns those names into concrete board hues and owns every non-player surface
- * colour too (board background, movement squares, HOME, strokes, notice text).
+ * This file is presentation only (no game rules). The engine knows players by a
+ * colour name ('red' | 'blue' | 'yellow' | 'green', in seating order); this file
+ * turns those names into actual colours and owns every other board colour and
+ * size too.
  *
- * Sections below:
- *  - COLOURS — player hues, the neutral board-surface colours, strokes, notices,
- *    and the per-role opacity/timing knobs that modulate the player hues.
- *  - VFX / TIMING — the flash/wash/pulse animation knobs.
- *  - THE CSS-VAR SEAM — `boardThemeVars`, for the subset of COLOURS/TIMING that
- *    CSS consumes (see below).
- *  - GEOMETRY — every board *size*: cell strokes, arrow shape, nest/hole/piton/
- *    ring radii, the die, and the in-board chrome. Grouped by the element each
- *    knob shapes (not by property), so tuning one feedback element means one
- *    block. Mind the unit legend at the top of that section — unlike the colour
- *    axis (all hex), these live in three different coordinate spaces.
+ * What's where:
+ *  - COLOURS   — the player colours, every board surface/outline colour, and the
+ *                corner-notice text colours.
+ *  - MOTION    — the knobs for the things that pulse/flash/breathe, and how fast.
+ *  - GEOMETRY  — every size: square shape, outlines, the nests, the pieces, the
+ *                die, the move rings, the title, and the corner notices.
  *
- * Two delivery paths, by necessity — a knob reaches the screen by whoever draws it:
- *  - Knobs that are plain SVG presentation attributes (a rect's fill, a stroke
- *    colour) are imported straight into the TSX that draws the element.
- *  - Knobs consumed by CSS — animation keyframes, or styling on the in-board HTML
- *    chrome (notices, title) — can't read TS, so they're surfaced as CSS custom
- *    properties via `boardThemeVars`, set once on the board's <svg> root and
- *    inherited by every descendant. This file stays the single source; the
- *    stylesheet only references `var(--…)`.
+ * A couple of effects are animated by the stylesheet (CSS), which can't read this
+ * file. For just those, we hand the values over to CSS near the bottom
+ * (`boardThemeVars`) — you still tune the value above; that just forwards it.
  */
 import type { PlayerColor } from '../engine'
 
@@ -35,7 +25,10 @@ import type { PlayerColor } from '../engine'
 // COLOURS
 // ════════════════════════════════════════════════════════════════════════════
 
-// ── Player hues ─────────────────────────────────────────────────────────────
+// ── The four player colours ─────────────────────────────────────────────────
+// One colour per player. Everything else a player "owns" (their lane, nest,
+// pieces, halos) is derived from this single colour, so this is the only place
+// to change a player's colour — and the place to add more colours later.
 export const PLAYER_HEX: Record<PlayerColor, string> = {
   red: '#d24b40',
   blue: '#3d6fd0',
@@ -44,10 +37,10 @@ export const PLAYER_HEX: Record<PlayerColor, string> = {
 }
 
 /**
- * Mix a hex colour toward white. `amount` 0 = unchanged, 1 = white. Lets every
- * light variant be *derived* from the one `PLAYER_HEX` entry rather than kept as
- * a parallel hand-tuned map that has to grow with each new colour. Each role may
- * pass its own amount; they need not match.
+ * Lighten a colour toward white. `amount` 0 = unchanged, 1 = full white. Lets the
+ * lighter shades (e.g. the die's flash) be computed from the one player colour
+ * above instead of kept as a second hand-picked list. Each spot can ask for its
+ * own amount.
  */
 export function tint(hex: string, amount: number): string {
   const n = parseInt(hex.slice(1), 16)
@@ -60,67 +53,67 @@ export function tint(hex: string, amount: number): string {
   )
 }
 
-// ── Neutral board surfaces (non-player) ─────────────────────────────────────
-// The board's own colours, independent of who's playing. Tweak these to reskin
-// the board without touching the player hues.
-/** The board panel behind everything — the warm off-white the SVG sits on. */
+// ── The board's own colours (not tied to any player) ────────────────────────
+// Change these to re-skin the board without touching the player colours.
+/** The warm off-white behind the whole board. */
 export const BOARD_BG = '#faf8f2'
-/** A normal (non-safe) movement square on the shared track. */
+/** A normal (non-safe) square on the main track. */
 export const TRACK_FILL = '#ffffff'
-/** The 12 safe squares (starts, mid-arms, lane mouths). Dark so it can't be
- *  mistaken for a blue player's home-lane cells. */
+/** The 12 safe squares (starts, mid-arms, lane mouths). Dark on purpose so they
+ *  can't be mistaken for the blue player's lane. */
 export const SAFE_FILL = '#1a1a1a'
-/** The HOME block at the centre — the finish. */
+/** The big block in the very centre — the finish. */
 export const HOME_FILL = '#f3e7ec'
-/** The die-face background — the near-white the pips sit on. */
+/** The face of the die (the near-white the pips sit on). */
 export const DIE_FACE_FILL = '#fdfcf8'
-/** The empty nest holes — the near-white disc a waiting piton rests in. */
+/** The empty nest holes — the near-white disc a waiting piece sits in. */
 export const NEST_HOLE_FILL = '#fdfcf8'
 
-// ── Strokes / outlines (neutral) ────────────────────────────────────────────
-// Outline *colours* only; stroke widths are a geometry knob and live in the
-// GEOMETRY section below. Player-hued strokes (nest box, halos) derive from
-// PLAYER_HEX at the draw site and aren't knobs here.
-/** Outline of a home-lane runway cell. */
+// ── Outline (border) colours ────────────────────────────────────────────────
+// Just the colours here; how *thick* each outline is lives in GEOMETRY below.
+// (Outlines drawn in a player's own colour — nest border, halos — come straight
+//  from PLAYER_HEX, so there's no separate knob for those.)
+/** Border of a home-lane square. */
 export const LANE_STROKE = '#9a958c'
-/** Outline of a shared-track square. */
+/** Border of a main-track square. */
 export const TRACK_STROKE = '#8a857c'
-/** Outline of the central HOME block. */
+/** Border of the centre finish block. */
 export const HOME_STROKE = '#c79bab'
-/** Outline of a piton disc. */
+/** Border of a playing piece. */
 export const PITON_STROKE = '#2b2b2b'
-/** Outline that lifts a start-arrow off the dark safe square beneath it. */
+/** Thin outline that lifts a start-arrow off the dark safe square under it. */
 export const START_ARROW_STROKE = '#fdfcf8'
-/** Fill of the "Jeu de piton" title baked into the board (CSS-consumed). */
+/** Colour of the "Jeu de piton" title on the board. */
 export const TITLE_FILL = '#9b96a3'
 
-// ── Notice text (CSS-consumed) ──────────────────────────────────────────────
-// The per-nest message lines. Pinned (not theme-reactive) because the board is
-// always light, so the near-black text stays legible even in page dark mode.
-/** The event line — what just happened, in the acting player's corner. */
+// ── Corner-notice text colours ──────────────────────────────────────────────
+// The short lines in each player's corner. (Their size/position are notice knobs
+// in GEOMETRY below — search "corner notices".) Fixed dark colours, not theme-
+// reactive, because the board is always light so they stay readable either way.
+/** The "what just happened" line, in the corner of whoever acted. */
 export const NOTICE_EVENT = '#2b2733'
-/** The quieter turn-prompt ("Your turn" / "Pick a piton"). */
+/** The quieter prompt ("Your turn" / "Pick a piece"). */
 export const NOTICE_PROMPT = '#4a4456'
-/** The win announcement — the boldest, darkest of the three. */
+/** The win announcement — the boldest/darkest of the three. */
 export const NOTICE_WIN = '#08060d'
 
-// ── Per-role colour-opacity knobs ───────────────────────────────────────────
-// How strongly each element's player hue reads. Opacity/timing axis only; sizes
-// live with the geometry.
-
-/** Home-lane runway: the player hue at a soft fill so the white track shows through. */
+// ── How strongly a player's colour shows through ────────────────────────────
+// These are see-through amounts (0 = invisible, 1 = solid), not sizes.
+/** Home-lane fill: the player's colour at a soft wash so the white shows through. */
 export const LANE_FILL_OPACITY = 0.45
-/** Nest box backing: a fainter wash of the player hue behind the four holes. */
+/** Nest backing: a fainter wash of the player's colour behind the four holes. */
 export const NEST_BOX_FILL_OPACITY = 0.18
 
 /**
- * Whose-turn corner wash — the active player's hue washed over their corner
- * quadrant. `NEST_FLASH` picks the treatment: `false` holds a static opacity
- * (`WASH_STATIC`, the shipped default — lets the die be the only animated cue);
- * `true` "breathes" between `WASH_BREATHE_MIN`/`MAX` at `WASH_CADENCE_S`. The fill
- * is the player hue (set inline); these knobs are its opacity + rate. The wash is
- * a presence cue, not an action prompt, so it keeps its OWN cadence, independent
- * of the action-flash family below — the two need not, and by default don't, match.
+ * Whose-turn corner glow — the active player's colour washed over their corner.
+ * `NEST_FLASH` picks the style:
+ *   • false (current) — a steady glow at `WASH_STATIC` (lets the die be the only
+ *     thing that moves).
+ *   • true — the glow "breathes" between `WASH_BREATHE_MIN` and `_MAX`, taking
+ *     `WASH_CADENCE_S` seconds per breath.
+ * NOTE: while `NEST_FLASH` is false, the three breathe knobs below do nothing —
+ * flip it to true to see them. The breathing keeps its own speed on purpose; it's
+ * a calm "you're up" presence, separate from the action flashes in MOTION.
  */
 export const NEST_FLASH = false
 export const WASH_STATIC = 0.3
@@ -129,19 +122,20 @@ export const WASH_BREATHE_MAX = 0.42
 export const WASH_CADENCE_S = 1.2
 
 // ════════════════════════════════════════════════════════════════════════════
-// VFX / TIMING
+// MOTION  (the things that flash / pulse, and how fast)
 // ════════════════════════════════════════════════════════════════════════════
 
 /**
- * Action-pending flash family — the deliberate rule is *only elements awaiting an
- * action from a player flash*, and they share one cadence (`FLASH_CADENCE_S`) so
- * the board pulses as one. Two mechanisms, both fed from here:
- *  - a fill-colour *swell* toward the acting player's light tint
- *    (`FLASH_TINT_AMOUNT`) — currently just the die face while a roll is pending.
- *  - a plain *opacity pulse* (`PULSE_MIN`→`PULSE_MAX`) of a halo/marker stroked in
- *    the acting player's hue: the movable-piton halos, the capturable-enemy ring
- *    (`.move-target-capture` — the enlarged destination ring that lands on the
- *    enemy), and the HOME-reachable target.
+ * The "it's waiting on you" flashes. Only things that need an action from you
+ * flash, and they share one speed (`FLASH_CADENCE_S`) so the board pulses as one.
+ * Two looks, both tuned here:
+ *   • a colour *swell* toward the player's lighter shade (`FLASH_TINT_AMOUNT`) —
+ *     right now just the die face while you still have to tap to roll.
+ *   • a gentle fade in/out (`PULSE_MIN`→`PULSE_MAX`) of the markers drawn in the
+ *     player's colour: the halos around movable pieces, the ring on a capturable
+ *     enemy, and the HOME-finish ring.
+ * NOTE: `FLASH_TINT_AMOUNT` is only visible in the brief moment when it's your
+ * turn and you haven't rolled yet.
  */
 export const FLASH_TINT_AMOUNT = 0.55
 export const FLASH_CADENCE_S = 1.2
@@ -149,14 +143,22 @@ export const PULSE_MIN = 0.35
 export const PULSE_MAX = 0.9
 
 // ════════════════════════════════════════════════════════════════════════════
-// THE CSS-VAR SEAM
+// Handing a few values to the stylesheet (CSS)
 // ════════════════════════════════════════════════════════════════════════════
+// The animated effects above are run by CSS, which can't read this file, so we
+// forward the handful of values it needs here. You don't tune anything in this
+// block — change the named knobs above; this just passes them along.
 
 /**
- * The static (non-player-derived) colour knobs CSS consumes — board background,
- * title fill, the die-face rest state of the die-flash keyframe, and the three
- * notice colours. Constant, so kept out of the per-render function below.
+ * Internal: the corner-notice text is built at this many screen pixels, then
+ * shrunk down to `NOTICE_TEXT_SIZE` (see GEOMETRY). Because it's shrunk to a fixed
+ * target, this number only affects crispness, not the size you see — leave it.
+ * Lives here (not with the notice knobs) so CSS can read it just below.
  */
+export const NOTICE_FONT_PX = 18
+
+/** Constant values CSS needs (don't change in play) — board colour, title, the
+ *  die's resting face colour, the notice colours, and the notice text resolution. */
 const STATIC_BOARD_VARS: Record<string, string> = {
   '--board-bg': BOARD_BG,
   '--title-fill': TITLE_FILL,
@@ -164,15 +166,14 @@ const STATIC_BOARD_VARS: Record<string, string> = {
   '--notice-event': NOTICE_EVENT,
   '--notice-prompt': NOTICE_PROMPT,
   '--notice-win': NOTICE_WIN,
+  '--notice-font-px': `${NOTICE_FONT_PX}px`,
 }
 
 /**
- * The CSS-var seam: every colour knob CSS reads, surfaced as custom properties to
- * set on the board <svg> root (they inherit to every descendant). The static
- * surface/notice colours plus the player-*derived* animation knobs — `activeHex`
- * is the acting player's hue, and the flash swell target is derived from it here
- * so the stylesheet needs no colour data. Returns a plain string map; the caller
- * casts to `CSSProperties` (React types don't model arbitrary `--*` keys).
+ * Forwards every value CSS reads to the board, as CSS custom properties set once
+ * on the board's <svg> (they flow down to everything inside). The colour swell
+ * target is computed from `activeHex` (the current player's colour) here so the
+ * stylesheet needs no colour maths. Returns a plain map; the caller casts it.
  */
 export function boardThemeVars(activeHex: string): Record<string, string> {
   return {
@@ -189,93 +190,98 @@ export function boardThemeVars(activeHex: string): Record<string, string> {
 }
 
 // ════════════════════════════════════════════════════════════════════════════
-// GEOMETRY
+// GEOMETRY  (every size)
 // ════════════════════════════════════════════════════════════════════════════
 //
-// Every board *size*, in one place. Grouped by the element each knob shapes
-// (function-grouping), not by property — so tuning one visual element is one
-// block, the way the feedback rings/halo read as a unit on screen.
+// Grouped by the thing each knob shapes, so tuning one element means one block.
 //
-// UNIT LEGEND — geometry is NOT unit-homogeneous the way colour is (every colour
-// is just a hex); these numbers live in three coordinate spaces, so don't compare
-// a `0.4` to a `168` across groups:
-//   • CELL UNITS (the default, untagged) — viewBox space, 1.0 = one board cell.
-//     Radii, stroke widths, rx, pads, gaps. This is what the SVG draws in.
-//   • [ratio] — a dimensionless fraction of some reference length (the cell
-//     half-size for the arrow; the die's own `size` for the die internals), so
-//     the element scales as a unit. Tagged per knob.
-//   • [px] — chrome authored in natural pixels inside a <foreignObject>, then
-//     scaled into cell units by CTRL_SCALE (the px→cell bridge). A `168` [px] is
-//     far smaller on screen than a cell-unit `168` would be.
+// ABOUT THE NUMBERS — sizes here aren't all in the same unit (colours are easy:
+// they're all just colours; sizes aren't). Three kinds, so don't compare a 0.4 to
+// a 168 across groups:
+//   • CELLS (the default, untagged) — 1.0 = one board square. Almost everything
+//     is in this unit: radii, outline thickness, gaps, offsets. Half a square is
+//     0.5, and so on.
+//   • [share] — a fraction of something else (the square's half-width for the
+//     arrow; the die's own size for the die's insides), so the part scales with
+//     its parent. Tagged per knob.
+//   • [px] — a couple of HTML bits (the New Game button) are built at normal
+//     screen pixels and then shrunk onto the board. Those numbers are in pixels,
+//     a totally different scale — a "112" there is small on screen.
 
-// ── Board surfaces (the static cross + central HOME block) ──────────────────
-export const LANE_STROKE_W = 0.02
-export const TRACK_STROKE_W = 0.03
-export const HOME_RX = 0.4
-export const HOME_STROKE_W = 0.06
+// ── Board squares: shape ────────────────────────────────────────────────────
+// How fat the squares are ACROSS each arm of the cross. 1 = perfect squares;
+// higher = wider rectangles (the reference board is near 1.6). This only stretches
+// the across-the-arm direction; the length along the arm is always one square.
+// (Lives here as a look knob, but it actually drives the board layout in
+//  layout.ts — that's why it's the one size that reshapes the whole board.)
+export const SQUARE_WIDTH = 1.9
 
-// ── Start-arrow shape ───────────────────────────────────────────────────────
-// LENGTH/OFFSET_*/WIDTH are [ratio] of the start cell's half-size, resolved
-// along/across travel — four independent knobs (see Board's draw site for how
-// the apex/base are built). The stroke that lifts the arrow off the dark safe
-// square is a plain cell-unit width.
-export const ARROW_LENGTH = 0.7        // [ratio] apex distance from base, along travel
-export const ARROW_OFFSET_ALONG = -0.95 // [ratio] base offset along travel (signed)
-export const ARROW_OFFSET_ACROSS = 0.63 // [ratio] base offset across travel (signed)
-export const ARROW_WIDTH = 0.3         // [ratio] half the base width across travel
-export const ARROW_STROKE_W = 0.04
+// ── Board squares: outlines + the centre finish block ──────────────────────
+export const LANE_STROKE_W = 0.02   // home-lane square border thickness
+export const TRACK_STROKE_W = 0.03  // main-track square border thickness
+export const HOME_RX = 0.4          // corner rounding of the centre finish block
+export const HOME_STROKE_W = 0.06   // border thickness of the centre finish block
 
-// ── Nest (player corner: box, holes, whose-turn wash) ───────────────────────
-export const NEST_BOX_PAD = 0.8        // box margin beyond the outer hole centres
-export const NEST_BOX_RX = 0.5
-export const NEST_BOX_STROKE_W = 0.08
-export const NEST_HOLE_R = 0.36
-export const NEST_HOLE_STROKE_W = 0.05
-export const NEST_WASH_RX = 0.6        // whose-turn corner wash rounding
-export const NEST_WASH_INSET = 0.15    // wash inset from the quadrant edges
+// ── Start arrows (the little triangle on each player's start square) ────────
+// The first four are a [share] of the square's half-size, resolved along/across
+// the way the piece travels — four independent dials (the drawing code in
+// Board.tsx builds the triangle from them).
+export const ARROW_LENGTH = 0.7         // [share] how far the tip reaches, along travel
+export const ARROW_OFFSET_ALONG = -0.95 // [share] slide the base along travel (+/-)
+export const ARROW_OFFSET_ACROSS = 0.63 // [share] slide the base sideways (+/-)
+export const ARROW_WIDTH = 0.3          // [share] half the base width
+export const ARROW_STROKE_W = 0.04      // thin outline around the triangle
 
-// ── Piton disc, its movable-halo, and the finished-piton HOME cluster ───────
-export const PITON_R = 0.3
-export const PITON_STROKE_W = 0.05
-export const PITON_HALO_R = 0.46
-export const PITON_HALO_STROKE_W = 0.08
-export const HOME_FAN_SPREAD = 0.32    // ± fan offset within a finished group
-export const HOME_CLUSTER_MARGIN = 0.95 // inset of the group from HOME's edge
+// ── Nests (each player's corner: the box, the 4 holes, the whose-turn glow) ──
+export const NEST_BOX_PAD = 0.8        // how far the box extends past the outer holes
+export const NEST_BOX_RX = 0.5         // corner rounding of the box
+export const NEST_BOX_STROKE_W = 0.08  // box border thickness
+export const NEST_HOLE_R = 0.36        // radius of each empty hole
+export const NEST_HOLE_STROKE_W = 0.05 // hole border thickness
+export const NEST_WASH_RX = 0.6        // corner rounding of the whose-turn glow
+export const NEST_WASH_INSET = 0.15    // how far the glow sits in from the corner edges
 
-// ── Die (overall size in cell units; internals are [ratio] of that size) ────
-// The die is drawn natively in board units and scales as a unit from DIE_SIZE —
-// every internal proportion is a fraction of it (see DieFace).
-export const DIE_SIZE = 2.0
-export const DIE_PIP_STEP = 0.26       // [ratio] pip-grid spacing from centre
-export const DIE_PIP_R = 0.085         // [ratio] pip radius
-export const DIE_CORNER_RX = 0.18      // [ratio] rounded-square corner
-export const DIE_STROKE_W = 0.04       // [ratio] border width
+// ── Playing pieces (the disc, its "you can move me" halo, finished pieces) ──
+export const PITON_R = 0.3              // radius of a piece
+export const PITON_STROKE_W = 0.05      // piece border thickness
+export const PITON_HALO_R = 0.46        // radius of the halo around a movable piece
+export const PITON_HALO_STROKE_W = 0.08 // halo ring thickness
+export const HOME_FAN_SPREAD = 0.32     // how far apart finished pieces fan in a corner
+export const HOME_CLUSTER_MARGIN = 0.95 // how far the finished group sits from HOME's edge
 
-// ── Legal-move target rings (plain / capture / home) ────────────────────────
-// The renderer's size choice for each destination marker; colour, dash, and the
-// pulse animation are CSS (.move-target*). Capture is bigger so it rings the
-// enemy disc; home is biggest — the prize.
-export const MOVE_TARGET_R = 0.42
+// ── The die (overall size, then its insides as a [share] of that size) ──────
+// The whole die scales from DIE_SIZE; everything inside is a fraction of it.
+export const DIE_SIZE = 2.0          // side length of the die square
+export const DIE_PIP_STEP = 0.26     // [share] spacing of the pips from centre
+export const DIE_PIP_R = 0.085       // [share] pip radius
+export const DIE_CORNER_RX = 0.18    // [share] rounded corners
+export const DIE_STROKE_W = 0.04     // [share] border thickness
+
+// ── Move rings (shown on every square you can move to, after you roll) ──────
+// Three sizes, by what the move is. R = how wide the ring · STROKE_W = how thick.
+export const MOVE_TARGET_R = 0.42        // normal landing spot
 export const MOVE_TARGET_STROKE_W = 0.06
-export const CAPTURE_TARGET_R = 0.55
+export const CAPTURE_TARGET_R = 0.55     // landing on an enemy — bigger, circles them
 export const CAPTURE_TARGET_STROKE_W = 0.1
-export const HOME_TARGET_R = 2.2
+export const HOME_TARGET_R = 2.2         // reaching HOME to finish — biggest, the prize
 export const HOME_TARGET_STROKE_W = 0.12
 
-// ── In-board title (native SVG text, in cell units) ─────────────────────────
-export const TITLE_FONT_SIZE = 0.6
-export const TITLE_TOP = 0.5           // top inset (y, with hanging baseline)
+// ── The "Jeu de piton" title on the board ───────────────────────────────────
+export const TITLE_FONT_SIZE = 0.6   // text height
+export const TITLE_TOP = 0.5         // distance down from the top edge
 
-// ── In-board HTML chrome: New Game controls + per-nest notices ──────────────
-// Authored at the [px] sizes below inside a <foreignObject>, then wrapped in
-// `scale(CTRL_SCALE)` to land in cell units — CTRL_SCALE is the px→cell bridge.
-// The disclosure box widens (CLOSED→OPEN) so the 2/3/4 picker fits; INSET/GAP are
-// cell-unit placements (top inset of the controls; gap above a notice line).
-export const CTRL_SCALE = 0.019        // [bridge] px → cell units
-export const CTRL_W_CLOSED = 112       // [px]
-export const CTRL_W_OPEN = 264         // [px]
-export const CTRL_H = 52               // [px]
-export const CTRL_INSET = 0.4          // top inset, cell units
-export const NEST_NOTICE_W = 168       // [px]
-export const NEST_NOTICE_H = 48        // [px]
-export const NEST_NOTICE_GAP = 0.55    // gap above the notice, cell units
+// ── Corner notices (the "Your turn" / capture / win lines) ──────────────────
+// Colour them with NOTICE_EVENT / NOTICE_PROMPT / NOTICE_WIN up in COLOURS.
+export const NOTICE_TEXT_SIZE = 0.342 // text height, in squares (bigger = bigger text)
+export const NOTICE_OFFSET_X = 0      // nudge sideways from centred (+ = right)
+export const NOTICE_OFFSET_Y = 0.55   // how far up from the bottom of the corner
+
+// ── New Game button (built as HTML at [px] sizes, then shrunk onto the board) ─
+// CTRL_SCALE is the shrink factor (pixels → squares). The button widens from
+// CLOSED to OPEN so the 2/3/4 picker fits; INSET is how far down from the top it
+// sits. These size the New Game control only — notices have their own knobs above.
+export const CTRL_SCALE = 0.019      // shrink factor: button pixels → board squares
+export const CTRL_W_CLOSED = 112     // [px] button width, collapsed
+export const CTRL_W_OPEN = 264       // [px] button width, with the 2/3/4 picker open
+export const CTRL_H = 52             // [px] button height
+export const CTRL_INSET = 0.4        // distance down from the top edge

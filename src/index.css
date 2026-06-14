@@ -228,7 +228,9 @@ code {
   width: 100%;
   height: 100%;
   text-align: center;
-  font-size: 18px;
+  /* Base px the text is built at before GameBoard shrinks it to NOTICE_TEXT_SIZE;
+     single source is theme.ts (NOTICE_FONT_PX via boardThemeVars). */
+  font-size: var(--notice-font-px, 18px);
   font-weight: 600;
   line-height: 1.25;
   /* Notice colours — knobs in theme.ts via boardThemeVars (literal fallbacks). */
