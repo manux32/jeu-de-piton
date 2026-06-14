@@ -83,8 +83,11 @@ The session-by-session *why* for all of the above is in [decisions.md](decisions
     feedback on which enemies a legal move would capture — flash them. Already
     UI-derivable, no engine change: Pitons.tsx builds `captureByPiton` from moves
     where `m.captures` is set, and tags those discs `.piton-target` (today only
-    `cursor:pointer`). Open design call for next session: flash toward the
-    *capturing* player's tint vs. a distinct warning treatment — try both.
+    `cursor:pointer`). **Preferred treatment:** swell the enemy disc toward the
+    *capturing* (current) player's tint — it reads as "this is mine to take" and
+    reuses the same fill-swell mechanism as the die. Fall back to a distinct
+    warning treatment only if the own-tint swell proves unclear against the
+    enemy's base hue.
 
   Out of scope but the motivating direction: colors beyond 4 extend the engine
   `PlayerColor` union + the palette; letting players *choose* builds on the
