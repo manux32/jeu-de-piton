@@ -67,7 +67,7 @@ export const NEST_FLASH = true
 export const WASH_STATIC = 0.3
 export const WASH_BREATHE_MIN = 0.18
 export const WASH_BREATHE_MAX = 0.42
-export const WASH_CADENCE_S = 1.5
+export const WASH_CADENCE_S = 1.2
 
 /**
  * Action-pending flash family — the deliberate rule is *only elements awaiting an

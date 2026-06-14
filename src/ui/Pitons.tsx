@@ -79,9 +79,6 @@ export function Pitons({ state, layout, moves, onPick }: Props) {
   const captureByPiton = new Map(
     moves.filter((m) => m.captures).map((m) => [m.captures as string, m]),
   )
-  // The capturing (current) player's hue — the colour of the halo drawn around
-  // any enemy a legal move would capture.
-  const activeHex = PLAYER_HEX[state.players[state.turn].color]
 
   return (
     <g className="pitons">
@@ -102,18 +99,18 @@ export function Pitons({ state, layout, moves, onPick }: Props) {
           const { cx, cy } = centerFor(piton.position, p, layout, slot)
           return (
             <g key={piton.id}>
-              {/* Movable own piton: halo in the player's own hue. Capturable
-                  enemy: the SAME pulsing halo, but in the capturing (current)
-                  player's hue — "you can take this" — rather than recolouring the
-                  enemy disc itself. A piton is only ever one or the other. */}
-              {(ownMove || captureMove) && (
+              {/* Movable own piton: a pulsing halo in the player's own hue. (A
+                  capturable enemy gets no halo here — its cue is the enlarged
+                  flashing destination ring drawn in GameBoard, since the capture
+                  move's target square is the enemy's own.) */}
+              {ownMove && (
                 <circle
                   className="piton-halo"
                   cx={cx}
                   cy={cy}
                   r={0.46}
                   fill="none"
-                  stroke={ownMove ? hex : activeHex}
+                  stroke={hex}
                   strokeWidth={0.08}
                 />
               )}

@@ -264,13 +264,22 @@ export function GameBoard({
           // A HOME-bound move is the big prize — flag it with a larger, bolder,
           // pulsing marker so players don't miss the chance to finish a piton.
           const home = m.to.kind === 'finished'
+          // A capture's target square IS the enemy's, so this ring lands on them:
+          // enlarge it and let it pulse (in sync with the capturing piton's halo —
+          // both start when moves appear) as the "you can take this" cue.
+          const capture = m.captures != null
+          const cls = home
+            ? 'move-target move-target-home'
+            : capture
+              ? 'move-target move-target-capture'
+              : 'move-target'
           return (
             <circle
               key={`target-${i}`}
-              className={home ? 'move-target move-target-home' : 'move-target'}
+              className={cls}
               cx={cellMid(cell.col, layout)}
               cy={cellMid(cell.row, layout)}
-              r={home ? 0.85 : 0.42}
+              r={home ? 0.85 : capture ? 0.6 : 0.42}
               onClick={() => onPick(m)}
             />
           )

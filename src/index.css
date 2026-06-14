@@ -341,8 +341,8 @@ code {
 }
 
 /* A capturable enemy disc stays its own colour and just turns clickable; the
-   "you can take this" cue is a pulsing halo around it in the capturing player's
-   hue (the shared .piton-halo, drawn in Pitons), not a recolour of the disc. */
+   "you can take this" cue is the enlarged, flashing destination ring that lands
+   on it (.move-target-capture below), not a recolour or halo on the disc. */
 .piton-target {
   cursor: pointer;
 }
@@ -367,4 +367,14 @@ code {
 }
 .move-target-home:hover {
   fill-opacity: 0.3;
+}
+/* Capture move target — the enemy's own square, so this ring rings the enemy.
+   Bolder than a plain target and pulsing in the capturing player's hue (same
+   piton-pulse + cadence as that piton's halo, so the two stay in lockstep). */
+.move-target-capture {
+  stroke-width: 0.09;
+  animation: piton-pulse var(--flash-cadence) ease-in-out infinite;
+}
+.move-target-capture:hover {
+  fill-opacity: 0.2;
 }
