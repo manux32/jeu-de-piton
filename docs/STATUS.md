@@ -48,12 +48,17 @@ The session-by-session *why* for all of the above is in [decisions.md](decisions
 
 ## Next session — agreed: M5 variant layer
 The look-and-feel control surface is **complete**: [theme.ts](../src/ui/theme.ts)
-now owns colour, vfx timing, *and* geometry — the colour-knob pass plus the
-geometry-knob pass are both done (see [decisions.md](decisions.md) 2026-06-13 +
-06-14 ×2). Every board size lives in `theme.ts`'s `GEOMETRY` section, grouped by
-element with a unit legend; the three deferred questions (concern-vs-function,
-stroke-width placement, units) are settled there. No size knob is CSS-consumed
-yet, so `boardThemeVars` stays colour-only but reusable if a size ever animates.
+now owns colour, motion timing, *and* geometry (sections COLOURS / MOTION /
+GEOMETRY). Colour-knob + geometry-knob passes done, then a **knob-board usability
+pass** reorganized it around *user intent* in plain language — see
+[decisions.md](decisions.md) (2026-06-13 + 06-14 ×3). That pass also: graduated the
+square-shape knob `SQUARE_WIDTH` (was `ARM_WIDTH_SCALE`) from `layout.ts` into
+`theme.ts`; gave notices their own knobs (`NOTICE_TEXT_SIZE`/`OFFSET_X`/`OFFSET_Y`,
+split from the New Game button's scale); and flagged conditional knobs.
+**Knob-set audit is partial** — squares + notices done; the **die, New Game button,
+and start arrows** are the un-audited elements, to refine in future sessions *as
+needed* (not a blocking task). The principle is captured in memory
+(`knob-design-user-intent`).
 
 **M5 variant layer is the agreed next step.** The cabin ruleset already ships as a
 `Ruleset` and the engine is variant-agnostic, so this is mostly *proving* a second

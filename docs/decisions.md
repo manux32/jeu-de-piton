@@ -10,6 +10,32 @@
 > [rules-and-lineage.md](rules-and-lineage.md), [board-model.md](board-model.md)).
 > Don't duplicate git history — capture reasoning a commit message wouldn't.
 
+- **2026-06-14** — **Knob-board usability pass: organize by *user intent*, in plain
+  language.** After the geometry pass landed, the user (the actual person turning
+  these knobs) flagged that the surface was built for an engineer, not for him:
+  descriptions leaned on jargon (CSS-var seam, foreignObject, px→cell bridge,
+  `[ratio]`), several knobs appeared dead, and the set didn't match what he'd reach
+  for — useless knobs present, wanted ones missing or buried. The reframe (now the
+  standing principle for `theme.ts`, see also memory `knob-design-user-intent`):
+  **a knob maps to something you'd actually change for one element, named/described
+  plainly; one knob never drives two unrelated things.** Concretely this pass:
+  (1) **plain-language rewrite** of every comment, and conditional knobs now state
+  *when* they act (e.g. `WASH_BREATHE_*` only with `NEST_FLASH` on; `FLASH_TINT_AMOUNT`
+  only pre-roll) — that's why they "did nothing." Sections renamed to COLOURS /
+  MOTION / GEOMETRY; the CSS hand-off kept but de-jargoned. (2) **Square size became
+  a knob**: `ARM_WIDTH_SCALE` graduated from `layout.ts` to `theme.ts` as
+  `SQUARE_WIDTH` (layout.ts imports it) — *revising* the earlier "model constants
+  stay in layout" carve-out for this one value because the user tweaks it; the true
+  topology (`SAFE_PHASE`/`SEAT_ROTATION`) stayed put. (3) **Notices fixed**: the New
+  Game button and the notices shared one scale (`CTRL_SCALE`), so resizing notice
+  text also resized the button — split into an independent `noticeScale`. Exposed
+  the three things actually wanted — `NOTICE_TEXT_SIZE` (board units, per the user's
+  pick over raw px), `NOTICE_OFFSET_X/Y`, and the existing colours
+  (`NOTICE_EVENT/PROMPT/WIN`, cross-referenced). The plumbing `NEST_NOTICE_W/H`
+  demoted to GameBoard locals, `NEST_NOTICE_GAP` removed; `.nest-notice` font-size
+  now reads `--notice-font-px` so `theme.ts` is the single source. All
+  value-preserving (board renders identically). The die / New Game button / start
+  arrows are the un-audited elements, deferred to future sessions as needed.
 - **2026-06-14** — **Geometry-knob pass: every board *size* is now a knob in
   `theme.ts` (`GEOMETRY`).** Completes the look-and-feel control surface — colour
   (done) + timing + geometry all live in [theme.ts](../src/ui/theme.ts). Settled

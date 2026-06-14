@@ -25,7 +25,7 @@
  * Logical coordinates are in *cell units* (origin top-left, +x right, +y down).
  * The grid is uniform 19×19 *logically*, but cells RENDER at non-uniform sizes:
  * `buildLayout` emits an `edges[]` array of cumulative cell boundaries (the three
- * central rows/columns widened by `ARM_WIDTH_SCALE` for the rectangular-cell
+ * central rows/columns widened by `SQUARE_WIDTH` for the rectangular-cell
  * look). Renderers therefore map a logical `{col,row}` to pixels via the
  * `cellStart` / `cellSize` / `cellMid` helpers — into an SVG `viewBox="0 0 extent
  * extent"` — rather than assuming a cell is the unit square `[col,row]…[col+1,
@@ -89,7 +89,7 @@ export interface BoardLayout {
    * Cumulative cell-edge positions in *render units*, length `gridSize + 1`.
    * Cell index `i` spans `[edges[i], edges[i+1]]` on BOTH axes — the board is
    * 4-fold symmetric, so one array drives columns and rows alike. Non-uniform:
-   * the three central rows/columns are wider (see `ARM_WIDTH_SCALE`), giving the
+   * the three central rows/columns are wider (see `SQUARE_WIDTH`), giving the
    * rectangular-cell look. Renderers map a logical `{col,row}` to pixels through
    * `cellStart`/`cellSize`/`cellMid` below rather than assuming unit cells.
    */

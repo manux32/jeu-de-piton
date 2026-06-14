@@ -175,9 +175,13 @@ arms read as chunky bands rather than thin spikes. Implemented as a **render-onl
 change: the logical grid stays uniform 19×19, but `buildLayout` now emits an
 `edges[]` array of cumulative cell boundaries (non-uniform, palindromic — the
 three central rows/columns, i.e. each arm's width plus HOME, stretched by
-`ARM_WIDTH_SCALE`). Renderers map a logical `{col,row}` to pixels through
+`SQUARE_WIDTH`). Renderers map a logical `{col,row}` to pixels through
 `cellStart`/`cellSize`/`cellMid` instead of assuming unit cells. Because the same
 spacing drives both axes, the south arm's cells come out wide-and-short and the
 east arm's identical cells tall-and-narrow automatically — the 90° rotation model
-carries the orientation. Engine untouched. `ARM_WIDTH_SCALE` (currently 1.9) is
-the single knob: 1 = the old squares, higher = chunkier arms.
+carries the orientation. Engine untouched. `SQUARE_WIDTH` (currently 1.9) is
+the single knob: 1 = the old squares, higher = chunkier arms. It lives in
+`ui/theme.ts` (a user-facing look knob), imported by `layout.ts` — it's the one
+board-*shape* constant exposed for tweaking; the pinned topology constants
+(`SAFE_PHASE` / `SEAT_ROTATION`) stay in `layout.ts`. *(Renamed from
+`ARM_WIDTH_SCALE` and moved out of `layout.ts` on 2026-06-14.)*
