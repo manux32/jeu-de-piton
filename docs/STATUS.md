@@ -46,29 +46,21 @@ The session-by-session *why* for all of the above is in [decisions.md](decisions
   intended, not a defect — the one parked tuning item is retired (won't-do).
   *(Per-item rationale → [decisions.md](decisions.md).)*
 
-## Next session — agreed: centralize board-layout/geometry knobs
-The colour-knob pass is **complete** (see [decisions.md](decisions.md) 2026-06-13 +
-06-14): [theme.ts](../src/ui/theme.ts) now owns the whole *colour* axis — player
-hues *and* every neutral board surface, stroke, and notice colour — and
-deliberately leaves *geometry* (sizes) out. **The geometry pass is the agreed next
-step.** Those size knobs are still scattered as inline constants — arrow shape +
-nest/box/hole radii + strokes in [Board.tsx](../src/ui/Board.tsx)/[Pitons.tsx](../src/ui/Pitons.tsx),
-chrome + die + the move-target ring sizes in [GameBoard.tsx](../src/ui/GameBoard.tsx)
-(that last block is the seeded first slice). This effort consolidates them into a
-`GEOMETRY` section of `theme.ts`; the TS→CSS-var seam (`boardThemeVars`) is reusable
-verbatim for any size knob a CSS animation needs. **Two things to settle up front:**
-(1) note that stroke *colours* now live in `theme.ts` but stroke *widths* are still
-inline — decide whether width joins its colour or stays with the shape; (2) group
-knobs by *concern* (colour vs geometry, as now) or by *function* (everything driving
-one visual-feedback element, together)? The user leans toward function-grouping for
-feedback knobs — settle it as part of this pass.
+## Next session — agreed: M5 variant layer
+The look-and-feel control surface is **complete**: [theme.ts](../src/ui/theme.ts)
+now owns colour, vfx timing, *and* geometry — the colour-knob pass plus the
+geometry-knob pass are both done (see [decisions.md](decisions.md) 2026-06-13 +
+06-14 ×2). Every board size lives in `theme.ts`'s `GEOMETRY` section, grouped by
+element with a unit legend; the three deferred questions (concern-vs-function,
+stroke-width placement, units) are settled there. No size knob is CSS-consumed
+yet, so `boardThemeVars` stays colour-only but reusable if a size ever animates.
 
-**Deferred alternative — M5 variant layer.** The cabin ruleset already ships as a
+**M5 variant layer is the agreed next step.** The cabin ruleset already ships as a
 `Ruleset` and the engine is variant-agnostic, so this is mostly *proving* a second
 variant (e.g. canonical Parcheesi) drops in with **no UI change** — likely a
 ruleset-picker beside the player-count pills in the New Game control.
 
-  *Colour-knob follow-ons (out of scope here, the motivating direction): colours
+  *Colour-knob follow-ons (the motivating direction): colours
   beyond 4 extend the engine `PlayerColor` union + the palette; letting players
   *choose* builds on the per-seat `players[].color` field that already exists (a
   picker that sets it with uniqueness; seat→colour stays the default).*

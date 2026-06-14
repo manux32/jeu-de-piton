@@ -10,6 +10,35 @@
 > [rules-and-lineage.md](rules-and-lineage.md), [board-model.md](board-model.md)).
 > Don't duplicate git history — capture reasoning a commit message wouldn't.
 
+- **2026-06-14** — **Geometry-knob pass: every board *size* is now a knob in
+  `theme.ts` (`GEOMETRY`).** Completes the look-and-feel control surface — colour
+  (done) + timing + geometry all live in [theme.ts](../src/ui/theme.ts). Settled
+  the three questions the colour pass deferred: **(1) concern vs function
+  grouping → hybrid for a mechanical reason, not taste.** Colour and timing stay
+  their own axes because they carry machinery geometry doesn't (`tint()`,
+  player-hue derivation, the `boardThemeVars` CSS-var seam binds them); a
+  feedback ring's colour is player-derived and flows through that seam while its
+  radius is a static number, so co-locating would fragment the seam. So:
+  function-grouping lives *inside* the `GEOMETRY` section (one block per element —
+  board surfaces, arrow, nest, piton, die, target rings, chrome), not across the
+  whole file. **(2) stroke width vs colour →** widths (`X_STROKE_W`) go with
+  their shape's geometry, distinct from stroke *colours* (`X_STROKE`) in COLOURS;
+  the seeded GameBoard ring strokes were renamed `_STROKE` → `_STROKE_W` for that
+  convention. **(3) the new wrinkle colour didn't have — geometry isn't
+  unit-homogeneous.** Every colour is just hex; sizes span three coordinate
+  spaces (cell units / `[ratio]` of a reference length / `[px]` authored in a
+  foreignObject then scaled by the `CTRL_SCALE` px→cell bridge). A flat list
+  would invite reading a `0.4` and a `168` as the same kind of number, so the
+  section leads with a unit legend and tags every non-cell-unit knob. Function-
+  grouping happens to segregate the units anyway (the `[px]` knobs all belong to
+  the chrome group; the `[ratio]` ones to arrow/die). Folded in two knobs the
+  colour pass hadn't named (the title `fontSize`/`y`) and the die's *internal*
+  proportions (pip step/radius, corner, border — `[ratio]` of `DIE_SIZE`) so the
+  die is fully tunable, not half. `HOME_FAN`'s four ±0.32 offsets collapsed to
+  one `HOME_FAN_SPREAD`. No geometry knob is CSS-consumed today, so the CSS-var
+  seam stays colour-only (it remains reusable verbatim if a size ever needs to
+  animate). Value-preserving relocation — board renders identically; build + 77
+  tests + lint green.
 - **2026-06-14** — **`colors.ts` → `theme.ts`; every board colour is now a knob.**
   Renamed the colour file to [theme.ts](../src/ui/theme.ts) — it owns colour + vfx
   timing today and will absorb the geometry knobs in their own pass, becoming the
