@@ -17,7 +17,7 @@ import { buildLayout, destinationCell, cellMid, cellStart } from './layout'
 import { Board } from './Board'
 import { Pitons } from './Pitons'
 import { DieFace } from './DieFace'
-import { PLAYER_HEX, boardThemeVars } from './colors'
+import { PLAYER_HEX, boardThemeVars } from './theme'
 
 interface Props {
   state: GameState
@@ -63,7 +63,7 @@ const NEST_NOTICE_GAP = 0.55
 
 // Destination-ring sizing (board units) for the three legal-move target variants.
 // These are *geometry* knobs — the renderer's size choice — kept here, separate
-// from the colour knobs in colors.ts; they're the first slice of the planned
+// from the colour knobs in theme.ts; they're the first slice of the planned
 // layout-knob centralization. Colour, dash pattern, and the pulse animation stay
 // in CSS (.move-target*); radius + stroke width live here.
 //   plain   — a normal empty-square destination.
@@ -164,7 +164,7 @@ export function GameBoard({
       aria-label="jeu de piton board"
       // Colour knobs the CSS animations read (flash tint/cadence, wash, pulse),
       // derived from the acting player's hue. Set once here; inherited by every
-      // animated descendant. Single source: colors.ts.
+      // animated descendant. Single source: theme.ts.
       style={boardThemeVars(dieColor) as CSSProperties}
     >
       <Board state={state} layout={layout} />

@@ -14,7 +14,7 @@
 import type { GameState, PitonPosition } from '../../engine'
 import type { GameView } from '../useGame'
 import { place } from './scenario'
-import { PLAYER_HEX } from '../colors'
+import { PLAYER_HEX } from '../theme'
 
 interface Props {
   view: GameView

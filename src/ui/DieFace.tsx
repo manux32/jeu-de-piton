@@ -6,6 +6,7 @@
  * box of circles — see Board's nestSlots) so the die reads as a sibling of the
  * nests rather than a bolted-on widget.
  */
+import { SURFACE_CREAM } from './theme'
 
 // Which of the 3×3 grid cells carry a pip for each value, in units of the grid
 // step (cols/rows at −1, 0, +1 from centre). Standard western die pip layout.
@@ -44,7 +45,7 @@ export function DieFace({ value, cx, cy, size, color }: Props) {
         width={size}
         height={size}
         rx={size * 0.18}
-        fill="#fdfcf8"
+        fill={SURFACE_CREAM}
         stroke={color}
         strokeWidth={size * 0.04}
       />

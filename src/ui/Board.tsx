@@ -9,16 +9,24 @@
  */
 import type { GameState } from '../engine'
 import { type BoardLayout, cellStart, cellSize, cellMid } from './layout'
-import { PLAYER_HEX, LANE_FILL_OPACITY, NEST_BOX_FILL_OPACITY, NEST_FLASH } from './colors'
+import {
+  PLAYER_HEX,
+  LANE_FILL_OPACITY,
+  NEST_BOX_FILL_OPACITY,
+  NEST_FLASH,
+  TRACK_FILL,
+  SAFE_FILL,
+  HOME_FILL,
+  SURFACE_CREAM,
+  LANE_STROKE,
+  TRACK_STROKE,
+  HOME_STROKE,
+} from './theme'
 
 interface Props {
   state: GameState
   layout: BoardLayout
 }
-
-/** Fill for the 12 safe squares (starts, mid-arms, home-lane mouths). Black so
- * it can't be mistaken for a blue player's home-lane cells. */
-const SAFE_FILL = '#1a1a1a'
 
 /**
  * Start-arrow shape — four independent knobs, each a fraction of the start
@@ -55,7 +63,7 @@ export function Board({ state, layout }: Props) {
             height={cellSize(c.row, layout)}
             fill={hex}
             fillOpacity={LANE_FILL_OPACITY}
-            stroke="#9a958c"
+            stroke={LANE_STROKE}
             strokeWidth={0.02}
           />
         ))
@@ -69,8 +77,8 @@ export function Board({ state, layout }: Props) {
           y={cellStart(c.row, layout)}
           width={cellSize(c.col, layout)}
           height={cellSize(c.row, layout)}
-          fill={safe.has(i) ? SAFE_FILL : '#ffffff'}
-          stroke="#8a857c"
+          fill={safe.has(i) ? SAFE_FILL : TRACK_FILL}
+          stroke={TRACK_STROKE}
           strokeWidth={0.03}
         />
       ))}
@@ -118,7 +126,7 @@ export function Board({ state, layout }: Props) {
             key={`start-arrow-${p}`}
             points={`${ax},${ay} ${bx + px * hb},${by + py * hb} ${bx - px * hb},${by - py * hb}`}
             fill={PLAYER_HEX[player.color]}
-            stroke="#fdfcf8"
+            stroke={SURFACE_CREAM}
             strokeWidth={0.04}
             strokeLinejoin="round"
           />
@@ -132,7 +140,7 @@ export function Board({ state, layout }: Props) {
         // The player to act gets their whole corner quadrant — the blank board
         // region between two arms, behind the nest — washed in their colour as the
         // whose-turn cue. It ships as a static highlight; flip NEST_FLASH
-        // (colors.ts) to make it breathe. See docs/decisions.md (2026-06-13).
+        // (theme.ts) to make it breathe. See docs/decisions.md (2026-06-13).
         const active = p === state.turn
         const minCx = Math.min(...slots.map((s) => s.cx))
         const maxCx = Math.max(...slots.map((s) => s.cx))
@@ -187,7 +195,7 @@ export function Board({ state, layout }: Props) {
                 cx={s.cx}
                 cy={s.cy}
                 r={0.36}
-                fill="#fdfcf8"
+                fill={SURFACE_CREAM}
                 stroke={hex}
                 strokeWidth={0.05}
               />
@@ -205,8 +213,8 @@ export function Board({ state, layout }: Props) {
         width={cellStart(layout.homeCell.col + 2, layout) - cellStart(layout.homeCell.col - 1, layout)}
         height={cellStart(layout.homeCell.row + 2, layout) - cellStart(layout.homeCell.row - 1, layout)}
         rx={0.4}
-        fill="#f3e7ec"
-        stroke="#c79bab"
+        fill={HOME_FILL}
+        stroke={HOME_STROKE}
         strokeWidth={0.06}
       />
     </g>

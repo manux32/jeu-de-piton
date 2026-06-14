@@ -9,7 +9,7 @@
  */
 import type { GameState, Move, PitonPosition } from '../engine'
 import { type BoardLayout, type Cell, cellMid, cellStart } from './layout'
-import { PLAYER_HEX } from './colors'
+import { PLAYER_HEX, PITON_STROKE } from './theme'
 
 interface Props {
   state: GameState
@@ -126,7 +126,7 @@ export function Pitons({ state, layout, moves, onPick }: Props) {
                 cy={cy}
                 r={0.3}
                 fill={hex}
-                stroke="#2b2b2b"
+                stroke={PITON_STROKE}
                 strokeWidth={0.05}
                 onClick={clickMove ? () => onPick(clickMove) : undefined}
               />

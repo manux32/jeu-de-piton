@@ -172,7 +172,9 @@ code {
   margin: 0 auto;
   aspect-ratio: 1 / 1;
   border-radius: 8px;
-  background: #faf8f2;
+  /* Board surface colour — knob in theme.ts, delivered via boardThemeVars on
+     this same <svg>. Literal fallback keeps the look if the var is ever absent. */
+  background: var(--board-bg, #faf8f2);
   box-shadow: var(--shadow);
 }
 
@@ -229,7 +231,8 @@ code {
   font-size: 18px;
   font-weight: 600;
   line-height: 1.25;
-  color: #2b2733;
+  /* Notice colours — knobs in theme.ts via boardThemeVars (literal fallbacks). */
+  color: var(--notice-event, #2b2733);
   pointer-events: none;
 }
 /* The current-player turn prompt is the quieter of the two — it's the baseline
@@ -237,18 +240,18 @@ code {
 .nest-notice-prompt {
   font-style: italic;
   font-weight: 500;
-  color: #4a4456;
+  color: var(--notice-prompt, #4a4456);
 }
 .nest-notice-win {
   font-weight: 600;
-  color: #08060d;
+  color: var(--notice-win, #08060d);
 }
 
 /* Game title rendered inside the board SVG (top-left). Drawn on the always-light
    board background, so a fixed dark fill reads in either page theme. Sized in
    viewBox units by <text font-size>, so it scales with the board. */
 .board-title {
-  fill: #9b96a3;
+  fill: var(--title-fill, #9b96a3);
   font-family: var(--heading);
   font-weight: 600;
   letter-spacing: -0.02px;
@@ -270,7 +273,7 @@ code {
 }
 
 /* Whose-turn corner wash: a shallow "breathing" pulse between WASH_BREATHE_MIN/MAX
-   at WASH_CADENCE_S (knobs in colors.ts) — a far gentler opacity swing than the
+   at WASH_CADENCE_S (knobs in theme.ts) — a far gentler opacity swing than the
    piton/home alarm pulse, so a large area pulsing every turn reads as presence,
    not alarm. Used only when NEST_FLASH is on; the static variant below ships as
    the default. */
@@ -296,7 +299,7 @@ code {
 /* --- board interaction --------------------------------------------------- */
 /* The centre die (native SVG, see DieFace). Three states: `ready` flashes the
    square's fill toward the acting player's light tint (--flash-tint, set on the
-   board <svg> root from colors.ts) to invite the tap when a roll is pending; `idle` dims the
+   board <svg> root from theme.ts) to invite the tap when a roll is pending; `idle` dims the
    whole die once the roll is done and it isn't actionable (awaiting a move, or
    game over); the plain class (full opacity, no flash) holds while a roll
    animates. Opacity transitions smooth the hand-off between states. */
@@ -318,7 +321,7 @@ code {
 @keyframes die-flash {
   0%,
   100% {
-    fill: #fdfcf8;
+    fill: var(--surface-cream, #fdfcf8);
   }
   50% {
     fill: var(--flash-tint);
