@@ -38,6 +38,12 @@ const ARROW_OFFSET_ALONG = -0.95
 const ARROW_OFFSET_ACROSS = 0.63
 const ARROW_WIDTH = 0.3
 
+// Dev toggle: whether the whose-turn corner wash *breathes* (animated pulse) or
+// sits as a static highlight. Off lets us trial a board with only the die
+// flashing, so two elements aren't pulsing at once. Flip to compare; the wash
+// shows either way — only the animation is gated.
+const NEST_FLASH = false
+
 export function Board({ state, layout }: Props) {
   const safe = new Set(state.ruleset.safeSquares)
 
@@ -161,7 +167,7 @@ export function Board({ state, layout }: Props) {
           <g key={`nest-${p}`}>
             {active && (
               <rect
-                className="nest-active-wash"
+                className={NEST_FLASH ? 'nest-active-wash' : 'nest-active-wash-static'}
                 x={qx0 + inset}
                 y={qy0 + inset}
                 width={qx1 - qx0 - inset * 2}

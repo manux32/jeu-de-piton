@@ -275,6 +275,12 @@ code {
 .nest-active-wash {
   animation: nest-breathe 1.5s ease-in-out infinite;
 }
+/* Static variant (NEST_FLASH off): the wash still marks whose turn it is, but
+   holds a fixed mid-pulse opacity instead of breathing — so the die can be the
+   only animated cue on the board. */
+.nest-active-wash-static {
+  fill-opacity: 0.3;
+}
 @keyframes nest-breathe {
   0%,
   100% {
@@ -286,17 +292,22 @@ code {
 }
 
 /* --- board interaction --------------------------------------------------- */
-/* The centre die (native SVG, see DieFace). Three states: `ready` pulses to
-   invite the tap when a roll is pending; `idle` dims it back once the roll is
-   done and it isn't actionable (awaiting a move, or game over); the plain class
-   (full opacity, no pulse) holds while a roll animates. Opacity transitions
-   smooth the hand-off between states. */
+/* The centre die (native SVG, see DieFace). Three states: `ready` flashes the
+   square's fill toward the acting player's light tint (--die-flash, set on the
+   group in GameBoard) to invite the tap when a roll is pending; `idle` dims the
+   whole die once the roll is done and it isn't actionable (awaiting a move, or
+   game over); the plain class (full opacity, no flash) holds while a roll
+   animates. Opacity transitions smooth the hand-off between states. */
 .board-die {
   cursor: default;
   transition: opacity 0.2s ease;
 }
 .board-die-ready {
   cursor: pointer;
+}
+/* Flash the face fill (not the whole-die opacity) so the pulse reads as a soft
+   colour swell, echoing the nest wash rather than a dimming blink. */
+.board-die-ready .die-square {
   animation: die-flash 1.2s ease-in-out infinite;
 }
 .board-die-idle {
@@ -305,10 +316,10 @@ code {
 @keyframes die-flash {
   0%,
   100% {
-    opacity: 0.6;
+    fill: #fdfcf8;
   }
   50% {
-    opacity: 1;
+    fill: var(--die-flash);
   }
 }
 

@@ -38,6 +38,7 @@ export function DieFace({ value, cx, cy, size, color }: Props) {
   return (
     <g>
       <rect
+        className="die-square"
         x={cx - half}
         y={cy - half}
         width={size}

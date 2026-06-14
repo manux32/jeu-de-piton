@@ -11,13 +11,13 @@
  * `notice` / `noticeOwner` and the `onPick` / `onRoll` / `onNewGame` callbacks; it adds no
  * rules of its own (every decision is the engine's, made in App).
  */
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type CSSProperties } from 'react'
 import type { GameState, Move } from '../engine'
 import { buildLayout, destinationCell, cellMid, cellStart } from './layout'
 import { Board } from './Board'
 import { Pitons } from './Pitons'
 import { DieFace } from './DieFace'
-import { PLAYER_HEX } from './colors'
+import { PLAYER_HEX, PLAYER_HEX_LIGHT } from './colors'
 
 interface Props {
   state: GameState
@@ -100,9 +100,13 @@ export function GameBoard({
   // Clicks roll only when it's roll time and no roll is already animating.
   const canRoll = state.phase === 'awaiting-roll' && !rolling
   const dieColor = PLAYER_HEX[state.players[state.turn].color]
-  // Die feedback: pulse to invite the tap when a roll is pending; dim once the
-  // roll is done and the die isn't actionable (awaiting a move, or game over).
-  // It stays plain — full opacity, no pulse — while a roll is animating.
+  // Light tint the die-square fill flashes toward when a roll is pending — the
+  // acting player's hue, fed to the .die-square animation via a CSS variable.
+  const dieFlash = PLAYER_HEX_LIGHT[state.players[state.turn].color]
+  // Die feedback: when a roll is pending the white face flashes toward the
+  // player's light tint to invite the tap; once the roll is done and the die
+  // isn't actionable (awaiting a move, or game over) it dims. It stays plain —
+  // full opacity, no flash — while a roll is animating.
   const dieClass = canRoll
     ? 'board-die board-die-ready'
     : rolling
@@ -241,6 +245,7 @@ export function GameBoard({
           target stays visible and clickable on top of the die. */}
       <g
         className={dieClass}
+        style={{ '--die-flash': dieFlash } as CSSProperties}
         onClick={canRoll ? onRoll : undefined}
         role="button"
         aria-label={rolling ? 'rolling the die' : canRoll ? 'roll the die' : `die showing ${face}`}
