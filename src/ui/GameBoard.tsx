@@ -71,9 +71,9 @@ const NEST_NOTICE_GAP = 0.55
 //   home    — finishing a piton; biggest, the prize.
 const MOVE_TARGET_R = 0.42
 const MOVE_TARGET_STROKE = 0.06
-const CAPTURE_TARGET_R = 0.6
-const CAPTURE_TARGET_STROKE = 0.09
-const HOME_TARGET_R = 0.85
+const CAPTURE_TARGET_R = 0.55
+const CAPTURE_TARGET_STROKE = 0.1
+const HOME_TARGET_R = 2.2
 const HOME_TARGET_STROKE = 0.12
 
 export function GameBoard({

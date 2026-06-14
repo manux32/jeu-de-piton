@@ -269,9 +269,11 @@ code {
   cursor: not-allowed;
 }
 
-/* Whose-turn corner wash: a shallow "breathing" pulse around the static 0.28
-   opacity. Same 1.2s cadence as the piton/home alarm pulse but a far gentler
-   opacity swing, so a large area pulsing every turn reads as presence, not alarm. */
+/* Whose-turn corner wash: a shallow "breathing" pulse between WASH_BREATHE_MIN/MAX
+   at WASH_CADENCE_S (knobs in colors.ts) — a far gentler opacity swing than the
+   piton/home alarm pulse, so a large area pulsing every turn reads as presence,
+   not alarm. Used only when NEST_FLASH is on; the static variant below ships as
+   the default. */
 .nest-active-wash {
   animation: nest-breathe var(--wash-cadence) ease-in-out infinite;
 }

@@ -130,9 +130,9 @@ export function Board({ state, layout }: Props) {
       {layout.nestSlots.map((slots, p) => {
         const hex = PLAYER_HEX[state.players[p].color]
         // The player to act gets their whole corner quadrant — the blank board
-        // region between two arms, behind the nest — washed in their colour, and
-        // that wash *breathes* (a gentle opacity pulse) so every player can see
-        // whose turn it is without hesitation. See docs/decisions.md (2026-06-13).
+        // region between two arms, behind the nest — washed in their colour as the
+        // whose-turn cue. It ships as a static highlight; flip NEST_FLASH
+        // (colors.ts) to make it breathe. See docs/decisions.md (2026-06-13).
         const active = p === state.turn
         const minCx = Math.min(...slots.map((s) => s.cx))
         const maxCx = Math.max(...slots.map((s) => s.cx))

@@ -123,7 +123,9 @@
   amplitude, not cadence** — the wash uses a far shallower opacity swing
   (0.18↔0.42 around the static 0.28) than the piton/home alarm pulse (0.35↔0.9),
   so a large area pulsing *every* turn reads as calm presence, not alarm, even at
-  the same 1.x-second rate. (2) **The single bottom-right notice became two
+  the same 1.x-second rate. *(Superseded 2026-06-13: the wash now ships **static**
+  — `NEST_FLASH` off — with its opacity/cadence as knobs in `colors.ts`; the breathe
+  is opt-in. See the top entry.)* (2) **The single bottom-right notice became two
   per-nest lines**, each rendered in the corner of the player it concerns: the
   **event line** (what just happened — `Capture!`, `Roll again`, `No move — pass`,
   `Three 6s — sent home`, `Wins! 🎉`) sits in the **acting** player's nest; a

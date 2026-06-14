@@ -76,9 +76,9 @@ export const WASH_CADENCE_S = 1.2
  *  - a fill-colour *swell* toward the acting player's light tint
  *    (`FLASH_TINT_AMOUNT`) — currently just the die face while a roll is pending.
  *  - a plain *opacity pulse* (`PULSE_MIN`→`PULSE_MAX`) of a halo/marker stroked in
- *    the acting player's hue: the movable-piton halos, the capturable-enemy halo
- *    (same halo, drawn around the enemy in the capturing player's colour), and the
- *    HOME-reachable target.
+ *    the acting player's hue: the movable-piton halos, the capturable-enemy ring
+ *    (`.move-target-capture` — the enlarged destination ring that lands on the
+ *    enemy), and the HOME-reachable target.
  */
 export const FLASH_TINT_AMOUNT = 0.55
 export const FLASH_CADENCE_S = 1.2
