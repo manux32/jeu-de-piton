@@ -63,7 +63,7 @@ export const NEST_BOX_FILL_OPACITY = 0.18
  * a presence cue, not an action prompt, so it keeps its OWN cadence, independent
  * of the action-flash family below — the two need not, and by default don't, match.
  */
-export const NEST_FLASH = true
+export const NEST_FLASH = false
 export const WASH_STATIC = 0.3
 export const WASH_BREATHE_MIN = 0.18
 export const WASH_BREATHE_MAX = 0.42

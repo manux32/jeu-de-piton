@@ -61,6 +61,21 @@ const NEST_NOTICE_H = 48
 // Gap below the cluster's lowest hole before the notice line, in board units.
 const NEST_NOTICE_GAP = 0.55
 
+// Destination-ring sizing (board units) for the three legal-move target variants.
+// These are *geometry* knobs — the renderer's size choice — kept here, separate
+// from the colour knobs in colors.ts; they're the first slice of the planned
+// layout-knob centralization. Colour, dash pattern, and the pulse animation stay
+// in CSS (.move-target*); radius + stroke width live here.
+//   plain   — a normal empty-square destination.
+//   capture — lands on the enemy being taken; bigger so it rings the disc.
+//   home    — finishing a piton; biggest, the prize.
+const MOVE_TARGET_R = 0.42
+const MOVE_TARGET_STROKE = 0.06
+const CAPTURE_TARGET_R = 0.6
+const CAPTURE_TARGET_STROKE = 0.09
+const HOME_TARGET_R = 0.85
+const HOME_TARGET_STROKE = 0.12
+
 export function GameBoard({
   state,
   moves,
@@ -273,13 +288,20 @@ export function GameBoard({
             : capture
               ? 'move-target move-target-capture'
               : 'move-target'
+          const r = home ? HOME_TARGET_R : capture ? CAPTURE_TARGET_R : MOVE_TARGET_R
+          const strokeWidth = home
+            ? HOME_TARGET_STROKE
+            : capture
+              ? CAPTURE_TARGET_STROKE
+              : MOVE_TARGET_STROKE
           return (
             <circle
               key={`target-${i}`}
               className={cls}
               cx={cellMid(cell.col, layout)}
               cy={cellMid(cell.row, layout)}
-              r={home ? 0.85 : capture ? 0.6 : 0.42}
+              r={r}
+              strokeWidth={strokeWidth}
               onClick={() => onPick(m)}
             />
           )

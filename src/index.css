@@ -347,32 +347,32 @@ code {
   cursor: pointer;
 }
 
+/* Colour + dash + pulse only; the ring's size (radius, stroke width) is set
+   inline from the geometry knobs in GameBoard. Every destination ring is dashed
+   — including HOME now — so the piton-destination cue reads as one family. */
 .move-target {
   fill: currentColor;
   fill-opacity: 0.06;
   stroke: currentColor;
-  stroke-width: 0.06;
   stroke-dasharray: 0.18 0.14;
   cursor: pointer;
 }
 .move-target:hover {
   fill-opacity: 0.2;
 }
-/* HOME-bound move target — bolder, solid, and pulsing to draw the eye. */
+/* HOME-bound move target — the big prize: heavier fill and pulsing to draw the
+   eye (size set inline; stays dashed like the rest). */
 .move-target-home {
   fill-opacity: 0.16;
-  stroke-width: 0.12;
-  stroke-dasharray: none;
   animation: piton-pulse var(--flash-cadence) ease-in-out infinite;
 }
 .move-target-home:hover {
   fill-opacity: 0.3;
 }
 /* Capture move target — the enemy's own square, so this ring rings the enemy.
-   Bolder than a plain target and pulsing in the capturing player's hue (same
-   piton-pulse + cadence as that piton's halo, so the two stay in lockstep). */
+   Pulsing in the capturing player's hue (same piton-pulse + cadence as that
+   piton's halo, so the two stay in lockstep). */
 .move-target-capture {
-  stroke-width: 0.09;
   animation: piton-pulse var(--flash-cadence) ease-in-out infinite;
 }
 .move-target-capture:hover {
