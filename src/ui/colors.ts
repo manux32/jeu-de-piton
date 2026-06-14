@@ -56,11 +56,14 @@ export const NEST_BOX_FILL_OPACITY = 0.18
 
 /**
  * Whose-turn corner wash — the active player's hue washed over their corner
- * quadrant. The fill is the player hue (set inline); these are its *opacity*. A
- * static hold (the shipped default) plus the min/max + cadence of the optional
- * "breathing" pulse (gated by Board's `NEST_FLASH`). Presence cue, not an alarm,
- * so the breathe swing is gentle and a touch slower than the action flashes.
+ * quadrant. `NEST_FLASH` picks the treatment: `false` holds a static opacity
+ * (`WASH_STATIC`, the shipped default — lets the die be the only animated cue);
+ * `true` "breathes" between `WASH_BREATHE_MIN`/`MAX` at `WASH_CADENCE_S`. The fill
+ * is the player hue (set inline); these knobs are its opacity + rate. The wash is
+ * a presence cue, not an action prompt, so it keeps its OWN cadence, independent
+ * of the action-flash family below — the two need not, and by default don't, match.
  */
+export const NEST_FLASH = true
 export const WASH_STATIC = 0.3
 export const WASH_BREATHE_MIN = 0.18
 export const WASH_BREATHE_MAX = 0.42
@@ -68,12 +71,14 @@ export const WASH_CADENCE_S = 1.5
 
 /**
  * Action-pending flash family — the deliberate rule is *only elements awaiting an
- * action from a player flash*, and they share one cadence so the board pulses as
- * one. Two mechanisms, both fed from here:
- *  - a fill-colour *swell* toward the acting player's light tint (the die face
- *    while a roll is pending; a capturable enemy disc, reading "this is mine to
- *    take"), and
- *  - a plain *opacity pulse* (movable-piton halos, the HOME-reachable target).
+ * action from a player flash*, and they share one cadence (`FLASH_CADENCE_S`) so
+ * the board pulses as one. Two mechanisms, both fed from here:
+ *  - a fill-colour *swell* toward the acting player's light tint
+ *    (`FLASH_TINT_AMOUNT`) — currently just the die face while a roll is pending.
+ *  - a plain *opacity pulse* (`PULSE_MIN`→`PULSE_MAX`) of a halo/marker stroked in
+ *    the acting player's hue: the movable-piton halos, the capturable-enemy halo
+ *    (same halo, drawn around the enemy in the capturing player's colour), and the
+ *    HOME-reachable target.
  */
 export const FLASH_TINT_AMOUNT = 0.55
 export const FLASH_CADENCE_S = 1.2

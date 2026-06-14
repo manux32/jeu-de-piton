@@ -340,21 +340,11 @@ code {
   }
 }
 
-/* A capturable enemy disc — same action-pending flash family as the die, but the
-   swell runs between the disc's own hue (--piton-base, set per-disc in Pitons)
-   and the acting player's flash tint, reading as "this is mine to take". */
+/* A capturable enemy disc stays its own colour and just turns clickable; the
+   "you can take this" cue is a pulsing halo around it in the capturing player's
+   hue (the shared .piton-halo, drawn in Pitons), not a recolour of the disc. */
 .piton-target {
   cursor: pointer;
-  animation: capture-swell var(--flash-cadence) ease-in-out infinite;
-}
-@keyframes capture-swell {
-  0%,
-  100% {
-    fill: var(--piton-base);
-  }
-  50% {
-    fill: var(--flash-tint);
-  }
 }
 
 .move-target {

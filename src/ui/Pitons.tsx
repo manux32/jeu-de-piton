@@ -7,7 +7,6 @@
  * capture move also makes its *target* enemy clickable, since that disc sits
  * over the destination marker and would otherwise swallow the click.
  */
-import type { CSSProperties } from 'react'
 import type { GameState, Move, PitonPosition } from '../engine'
 import { type BoardLayout, type Cell, cellMid, cellStart } from './layout'
 import { PLAYER_HEX } from './colors'
@@ -80,6 +79,9 @@ export function Pitons({ state, layout, moves, onPick }: Props) {
   const captureByPiton = new Map(
     moves.filter((m) => m.captures).map((m) => [m.captures as string, m]),
   )
+  // The capturing (current) player's hue — the colour of the halo drawn around
+  // any enemy a legal move would capture.
+  const activeHex = PLAYER_HEX[state.players[state.turn].color]
 
   return (
     <g className="pitons">
@@ -100,14 +102,18 @@ export function Pitons({ state, layout, moves, onPick }: Props) {
           const { cx, cy } = centerFor(piton.position, p, layout, slot)
           return (
             <g key={piton.id}>
-              {ownMove && (
+              {/* Movable own piton: halo in the player's own hue. Capturable
+                  enemy: the SAME pulsing halo, but in the capturing (current)
+                  player's hue — "you can take this" — rather than recolouring the
+                  enemy disc itself. A piton is only ever one or the other. */}
+              {(ownMove || captureMove) && (
                 <circle
                   className="piton-halo"
                   cx={cx}
                   cy={cy}
                   r={0.46}
                   fill="none"
-                  stroke={hex}
+                  stroke={ownMove ? hex : activeHex}
                   strokeWidth={0.08}
                 />
               )}
@@ -125,11 +131,6 @@ export function Pitons({ state, layout, moves, onPick }: Props) {
                 fill={hex}
                 stroke="#2b2b2b"
                 strokeWidth={0.05}
-                // A capturable enemy swells from its own hue toward the acting
-                // player's flash tint — same fill-swell mechanism as the die. Its
-                // base hue is handed to the keyframe as a var (the disc's own
-                // colour differs per piton, so it can't be baked into the CSS).
-                style={captureMove ? ({ '--piton-base': hex } as CSSProperties) : undefined}
                 onClick={clickMove ? () => onPick(clickMove) : undefined}
               />
             </g>

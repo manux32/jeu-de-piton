@@ -9,7 +9,7 @@
  */
 import type { GameState } from '../engine'
 import { type BoardLayout, cellStart, cellSize, cellMid } from './layout'
-import { PLAYER_HEX, LANE_FILL_OPACITY, NEST_BOX_FILL_OPACITY } from './colors'
+import { PLAYER_HEX, LANE_FILL_OPACITY, NEST_BOX_FILL_OPACITY, NEST_FLASH } from './colors'
 
 interface Props {
   state: GameState
@@ -37,12 +37,6 @@ const ARROW_LENGTH = 0.7
 const ARROW_OFFSET_ALONG = -0.95
 const ARROW_OFFSET_ACROSS = 0.63
 const ARROW_WIDTH = 0.3
-
-// Dev toggle: whether the whose-turn corner wash *breathes* (animated pulse) or
-// sits as a static highlight. Off lets us trial a board with only the die
-// flashing, so two elements aren't pulsing at once. Flip to compare; the wash
-// shows either way — only the animation is gated.
-const NEST_FLASH = false
 
 export function Board({ state, layout }: Props) {
   const safe = new Set(state.ruleset.safeSquares)
