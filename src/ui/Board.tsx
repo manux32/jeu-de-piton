@@ -9,7 +9,7 @@
  */
 import type { GameState } from '../engine'
 import { type BoardLayout, cellStart, cellSize, cellMid } from './layout'
-import { PLAYER_HEX } from './colors'
+import { PLAYER_HEX, LANE_FILL_OPACITY, NEST_BOX_FILL_OPACITY } from './colors'
 
 interface Props {
   state: GameState
@@ -60,7 +60,7 @@ export function Board({ state, layout }: Props) {
             width={cellSize(c.col, layout)}
             height={cellSize(c.row, layout)}
             fill={hex}
-            fillOpacity={0.45}
+            fillOpacity={LANE_FILL_OPACITY}
             stroke="#9a958c"
             strokeWidth={0.02}
           />
@@ -183,7 +183,7 @@ export function Board({ state, layout }: Props) {
               height={h}
               rx={0.5}
               fill={hex}
-              fillOpacity={0.18}
+              fillOpacity={NEST_BOX_FILL_OPACITY}
               stroke={hex}
               strokeWidth={0.08}
             />

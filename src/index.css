@@ -273,28 +273,28 @@ code {
    opacity. Same 1.2s cadence as the piton/home alarm pulse but a far gentler
    opacity swing, so a large area pulsing every turn reads as presence, not alarm. */
 .nest-active-wash {
-  animation: nest-breathe 1.5s ease-in-out infinite;
+  animation: nest-breathe var(--wash-cadence) ease-in-out infinite;
 }
 /* Static variant (NEST_FLASH off): the wash still marks whose turn it is, but
    holds a fixed mid-pulse opacity instead of breathing — so the die can be the
    only animated cue on the board. */
 .nest-active-wash-static {
-  fill-opacity: 0.3;
+  fill-opacity: var(--wash-static);
 }
 @keyframes nest-breathe {
   0%,
   100% {
-    fill-opacity: 0.18;
+    fill-opacity: var(--wash-breathe-min);
   }
   50% {
-    fill-opacity: 0.42;
+    fill-opacity: var(--wash-breathe-max);
   }
 }
 
 /* --- board interaction --------------------------------------------------- */
 /* The centre die (native SVG, see DieFace). Three states: `ready` flashes the
-   square's fill toward the acting player's light tint (--die-flash, set on the
-   group in GameBoard) to invite the tap when a roll is pending; `idle` dims the
+   square's fill toward the acting player's light tint (--flash-tint, set on the
+   board <svg> root from colors.ts) to invite the tap when a roll is pending; `idle` dims the
    whole die once the roll is done and it isn't actionable (awaiting a move, or
    game over); the plain class (full opacity, no flash) holds while a roll
    animates. Opacity transitions smooth the hand-off between states. */
@@ -308,7 +308,7 @@ code {
 /* Flash the face fill (not the whole-die opacity) so the pulse reads as a soft
    colour swell, echoing the nest wash rather than a dimming blink. */
 .board-die-ready .die-square {
-  animation: die-flash 1.2s ease-in-out infinite;
+  animation: die-flash var(--flash-cadence) ease-in-out infinite;
 }
 .board-die-idle {
   opacity: 0.4;
@@ -319,7 +319,7 @@ code {
     fill: #fdfcf8;
   }
   50% {
-    fill: var(--die-flash);
+    fill: var(--flash-tint);
   }
 }
 
@@ -328,15 +328,32 @@ code {
 }
 .piton-halo {
   pointer-events: none;
-  animation: piton-pulse 1.2s ease-in-out infinite;
+  animation: piton-pulse var(--flash-cadence) ease-in-out infinite;
 }
 @keyframes piton-pulse {
   0%,
   100% {
-    opacity: 0.35;
+    opacity: var(--pulse-min);
   }
   50% {
-    opacity: 0.9;
+    opacity: var(--pulse-max);
+  }
+}
+
+/* A capturable enemy disc — same action-pending flash family as the die, but the
+   swell runs between the disc's own hue (--piton-base, set per-disc in Pitons)
+   and the acting player's flash tint, reading as "this is mine to take". */
+.piton-target {
+  cursor: pointer;
+  animation: capture-swell var(--flash-cadence) ease-in-out infinite;
+}
+@keyframes capture-swell {
+  0%,
+  100% {
+    fill: var(--piton-base);
+  }
+  50% {
+    fill: var(--flash-tint);
   }
 }
 
@@ -351,15 +368,12 @@ code {
 .move-target:hover {
   fill-opacity: 0.2;
 }
-.piton-target {
-  cursor: pointer;
-}
 /* HOME-bound move target — bolder, solid, and pulsing to draw the eye. */
 .move-target-home {
   fill-opacity: 0.16;
   stroke-width: 0.12;
   stroke-dasharray: none;
-  animation: piton-pulse 1.2s ease-in-out infinite;
+  animation: piton-pulse var(--flash-cadence) ease-in-out infinite;
 }
 .move-target-home:hover {
   fill-opacity: 0.3;

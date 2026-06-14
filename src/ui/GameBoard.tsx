@@ -17,7 +17,7 @@ import { buildLayout, destinationCell, cellMid, cellStart } from './layout'
 import { Board } from './Board'
 import { Pitons } from './Pitons'
 import { DieFace } from './DieFace'
-import { PLAYER_HEX, PLAYER_HEX_LIGHT } from './colors'
+import { PLAYER_HEX, boardThemeVars } from './colors'
 
 interface Props {
   state: GameState
@@ -100,9 +100,6 @@ export function GameBoard({
   // Clicks roll only when it's roll time and no roll is already animating.
   const canRoll = state.phase === 'awaiting-roll' && !rolling
   const dieColor = PLAYER_HEX[state.players[state.turn].color]
-  // Light tint the die-square fill flashes toward when a roll is pending — the
-  // acting player's hue, fed to the .die-square animation via a CSS variable.
-  const dieFlash = PLAYER_HEX_LIGHT[state.players[state.turn].color]
   // Die feedback: when a roll is pending the white face flashes toward the
   // player's light tint to invite the tap; once the roll is done and the die
   // isn't actionable (awaiting a move, or game over) it dims. It stays plain —
@@ -150,6 +147,10 @@ export function GameBoard({
       viewBox={`0 0 ${layout.extent} ${layout.extent}`}
       role="img"
       aria-label="jeu de piton board"
+      // Colour knobs the CSS animations read (flash tint/cadence, wash, pulse),
+      // derived from the acting player's hue. Set once here; inherited by every
+      // animated descendant. Single source: colors.ts.
+      style={boardThemeVars(dieColor) as CSSProperties}
     >
       <Board state={state} layout={layout} />
 
@@ -245,7 +246,6 @@ export function GameBoard({
           target stays visible and clickable on top of the die. */}
       <g
         className={dieClass}
-        style={{ '--die-flash': dieFlash } as CSSProperties}
         onClick={canRoll ? onRoll : undefined}
         role="button"
         aria-label={rolling ? 'rolling the die' : canRoll ? 'roll the die' : `die showing ${face}`}

@@ -7,6 +7,7 @@
  * capture move also makes its *target* enemy clickable, since that disc sits
  * over the destination marker and would otherwise swallow the click.
  */
+import type { CSSProperties } from 'react'
 import type { GameState, Move, PitonPosition } from '../engine'
 import { type BoardLayout, type Cell, cellMid, cellStart } from './layout'
 import { PLAYER_HEX } from './colors'
@@ -124,6 +125,11 @@ export function Pitons({ state, layout, moves, onPick }: Props) {
                 fill={hex}
                 stroke="#2b2b2b"
                 strokeWidth={0.05}
+                // A capturable enemy swells from its own hue toward the acting
+                // player's flash tint — same fill-swell mechanism as the die. Its
+                // base hue is handed to the keyframe as a var (the disc's own
+                // colour differs per piton, so it can't be baked into the CSS).
+                style={captureMove ? ({ '--piton-base': hex } as CSSProperties) : undefined}
                 onClick={clickMove ? () => onPick(clickMove) : undefined}
               />
             </g>
