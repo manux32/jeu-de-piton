@@ -9,7 +9,16 @@
  */
 import type { GameState, Move, PitonPosition } from '../engine'
 import { type BoardLayout, type Cell, cellMid, cellStart } from './layout'
-import { PLAYER_HEX, PITON_STROKE } from './theme'
+import {
+  PLAYER_HEX,
+  PITON_STROKE,
+  PITON_R,
+  PITON_STROKE_W,
+  PITON_HALO_R,
+  PITON_HALO_STROKE_W,
+  HOME_FAN_SPREAD,
+  HOME_CLUSTER_MARGIN,
+} from './theme'
 
 interface Props {
   state: GameState
@@ -21,10 +30,10 @@ interface Props {
 
 /** Small fan-out within one player's HOME group so its pitons don't stack. */
 const HOME_FAN: Cell[] = [
-  { col: -0.32, row: -0.32 },
-  { col: 0.32, row: -0.32 },
-  { col: -0.32, row: 0.32 },
-  { col: 0.32, row: 0.32 },
+  { col: -HOME_FAN_SPREAD, row: -HOME_FAN_SPREAD },
+  { col: HOME_FAN_SPREAD, row: -HOME_FAN_SPREAD },
+  { col: -HOME_FAN_SPREAD, row: HOME_FAN_SPREAD },
+  { col: HOME_FAN_SPREAD, row: HOME_FAN_SPREAD },
 ]
 
 /**
@@ -44,7 +53,7 @@ function homeCluster(layout: BoardLayout, playerIndex: number, slot: number) {
   const dirRow = Math.sign(nestCy - cellMid(homeCell.row, layout))
   const homeHalf =
     (cellStart(homeCell.col + 2, layout) - cellStart(homeCell.col - 1, layout)) / 2
-  const push = homeHalf - 0.95 // toward the player's corner, with a margin
+  const push = homeHalf - HOME_CLUSTER_MARGIN // toward the player's corner, with a margin
   const fan = HOME_FAN[slot % HOME_FAN.length]
   return {
     cx: cellMid(homeCell.col, layout) + dirCol * push + fan.col,
@@ -108,10 +117,10 @@ export function Pitons({ state, layout, moves, onPick }: Props) {
                   className="piton-halo"
                   cx={cx}
                   cy={cy}
-                  r={0.46}
+                  r={PITON_HALO_R}
                   fill="none"
                   stroke={hex}
-                  strokeWidth={0.08}
+                  strokeWidth={PITON_HALO_STROKE_W}
                 />
               )}
               <circle
@@ -124,10 +133,10 @@ export function Pitons({ state, layout, moves, onPick }: Props) {
                 }
                 cx={cx}
                 cy={cy}
-                r={0.3}
+                r={PITON_R}
                 fill={hex}
                 stroke={PITON_STROKE}
-                strokeWidth={0.05}
+                strokeWidth={PITON_STROKE_W}
                 onClick={clickMove ? () => onPick(clickMove) : undefined}
               />
             </g>

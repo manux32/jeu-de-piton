@@ -22,30 +22,29 @@ import {
   LANE_STROKE,
   TRACK_STROKE,
   HOME_STROKE,
+  // geometry
+  LANE_STROKE_W,
+  TRACK_STROKE_W,
+  HOME_RX,
+  HOME_STROKE_W,
+  ARROW_LENGTH,
+  ARROW_OFFSET_ALONG,
+  ARROW_OFFSET_ACROSS,
+  ARROW_WIDTH,
+  ARROW_STROKE_W,
+  NEST_BOX_PAD,
+  NEST_BOX_RX,
+  NEST_BOX_STROKE_W,
+  NEST_HOLE_R,
+  NEST_HOLE_STROKE_W,
+  NEST_WASH_RX,
+  NEST_WASH_INSET,
 } from './theme'
 
 interface Props {
   state: GameState
   layout: BoardLayout
 }
-
-/**
- * Start-arrow shape — four independent knobs, each a fraction of the start
- * cell's half-size resolved along/across the direction of travel. Tweak freely.
- * The BASE is the anchor: changing the length grows/shrinks the apex out from a
- * fixed base; the two offsets slide the whole (un-skewed) arrow around the cell.
- *   ARROW_LENGTH       — apex distance from the base, along travel (1 = half the
- *                        cell length, 2 = the full cell length).
- *   ARROW_OFFSET_ALONG — base position along travel from the cell centre
- *                        (signed: + toward the leading edge, − toward trailing).
- *   ARROW_OFFSET_ACROSS— base position across travel from the cell centre
- *                        (signed: slides the arrow sideways within the cell).
- *   ARROW_WIDTH        — half the base width across the cell (1 = full width).
- */
-const ARROW_LENGTH = 0.7
-const ARROW_OFFSET_ALONG = -0.95
-const ARROW_OFFSET_ACROSS = 0.63
-const ARROW_WIDTH = 0.3
 
 export function Board({ state, layout }: Props) {
   const safe = new Set(state.ruleset.safeSquares)
@@ -65,7 +64,7 @@ export function Board({ state, layout }: Props) {
             fill={hex}
             fillOpacity={LANE_FILL_OPACITY}
             stroke={LANE_STROKE}
-            strokeWidth={0.02}
+            strokeWidth={LANE_STROKE_W}
           />
         ))
       })}
@@ -80,7 +79,7 @@ export function Board({ state, layout }: Props) {
           height={cellSize(c.row, layout)}
           fill={safe.has(i) ? SAFE_FILL : TRACK_FILL}
           stroke={TRACK_STROKE}
-          strokeWidth={0.03}
+          strokeWidth={TRACK_STROKE_W}
         />
       ))}
 
@@ -128,7 +127,7 @@ export function Board({ state, layout }: Props) {
             points={`${ax},${ay} ${bx + px * hb},${by + py * hb} ${bx - px * hb},${by - py * hb}`}
             fill={PLAYER_HEX[player.color]}
             stroke={START_ARROW_STROKE}
-            strokeWidth={0.04}
+            strokeWidth={ARROW_STROKE_W}
             strokeLinejoin="round"
           />
         )
@@ -147,7 +146,7 @@ export function Board({ state, layout }: Props) {
         const maxCx = Math.max(...slots.map((s) => s.cx))
         const minCy = Math.min(...slots.map((s) => s.cy))
         const maxCy = Math.max(...slots.map((s) => s.cy))
-        const pad = 0.8 // box margin beyond the outer hole centres
+        const pad = NEST_BOX_PAD // box margin beyond the outer hole centres
         const x = minCx - pad
         const y = minCy - pad
         const w = maxCx - minCx + pad * 2
@@ -164,7 +163,7 @@ export function Board({ state, layout }: Props) {
         const qx1 = onLeft ? cellStart(cc - 1, layout) : layout.extent
         const qy0 = onTop ? 0 : cellStart(cr + 2, layout)
         const qy1 = onTop ? cellStart(cr - 1, layout) : layout.extent
-        const inset = 0.15
+        const inset = NEST_WASH_INSET
 
         return (
           <g key={`nest-${p}`}>
@@ -175,7 +174,7 @@ export function Board({ state, layout }: Props) {
                 y={qy0 + inset}
                 width={qx1 - qx0 - inset * 2}
                 height={qy1 - qy0 - inset * 2}
-                rx={0.6}
+                rx={NEST_WASH_RX}
                 fill={hex}
               />
             )}
@@ -184,21 +183,21 @@ export function Board({ state, layout }: Props) {
               y={y}
               width={w}
               height={h}
-              rx={0.5}
+              rx={NEST_BOX_RX}
               fill={hex}
               fillOpacity={NEST_BOX_FILL_OPACITY}
               stroke={hex}
-              strokeWidth={0.08}
+              strokeWidth={NEST_BOX_STROKE_W}
             />
             {slots.map((s, n) => (
               <circle
                 key={`slot-${p}-${n}`}
                 cx={s.cx}
                 cy={s.cy}
-                r={0.36}
+                r={NEST_HOLE_R}
                 fill={NEST_HOLE_FILL}
                 stroke={hex}
-                strokeWidth={0.05}
+                strokeWidth={NEST_HOLE_STROKE_W}
               />
             ))}
           </g>
@@ -213,10 +212,10 @@ export function Board({ state, layout }: Props) {
         y={cellStart(layout.homeCell.row - 1, layout)}
         width={cellStart(layout.homeCell.col + 2, layout) - cellStart(layout.homeCell.col - 1, layout)}
         height={cellStart(layout.homeCell.row + 2, layout) - cellStart(layout.homeCell.row - 1, layout)}
-        rx={0.4}
+        rx={HOME_RX}
         fill={HOME_FILL}
         stroke={HOME_STROKE}
-        strokeWidth={0.06}
+        strokeWidth={HOME_STROKE_W}
       />
     </g>
   )

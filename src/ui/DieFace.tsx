@@ -6,7 +6,7 @@
  * box of circles — see Board's nestSlots) so the die reads as a sibling of the
  * nests rather than a bolted-on widget.
  */
-import { DIE_FACE_FILL } from './theme'
+import { DIE_FACE_FILL, DIE_PIP_STEP, DIE_PIP_R, DIE_CORNER_RX, DIE_STROKE_W } from './theme'
 
 // Which of the 3×3 grid cells carry a pip for each value, in units of the grid
 // step (cols/rows at −1, 0, +1 from centre). Standard western die pip layout.
@@ -33,8 +33,8 @@ interface Props {
 
 export function DieFace({ value, cx, cy, size, color }: Props) {
   const half = size / 2
-  const step = size * 0.26 // pip grid spacing from centre
-  const pipR = size * 0.085
+  const step = size * DIE_PIP_STEP // pip grid spacing from centre
+  const pipR = size * DIE_PIP_R
 
   return (
     <g>
@@ -44,10 +44,10 @@ export function DieFace({ value, cx, cy, size, color }: Props) {
         y={cy - half}
         width={size}
         height={size}
-        rx={size * 0.18}
+        rx={size * DIE_CORNER_RX}
         fill={DIE_FACE_FILL}
         stroke={color}
-        strokeWidth={size * 0.04}
+        strokeWidth={size * DIE_STROKE_W}
       />
       {(PIPS[value] ?? PIPS[1]).map(([dx, dy], i) => (
         <circle

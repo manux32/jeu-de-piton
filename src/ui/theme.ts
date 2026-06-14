@@ -12,11 +12,13 @@
  *  - COLOURS — player hues, the neutral board-surface colours, strokes, notices,
  *    and the per-role opacity/timing knobs that modulate the player hues.
  *  - VFX / TIMING — the flash/wash/pulse animation knobs.
- *  - THE CSS-VAR SEAM — `boardThemeVars`, for the subset of the above that CSS
- *    consumes (see below).
- * GEOMETRY (cell/piton/ring sizes, stroke *widths*, arrow shape) is a separate
- * axis still inline in Board/Pitons/GameBoard, slated to join this file in its
- * own pass; this file owns colour + timing, not sizes.
+ *  - THE CSS-VAR SEAM — `boardThemeVars`, for the subset of COLOURS/TIMING that
+ *    CSS consumes (see below).
+ *  - GEOMETRY — every board *size*: cell strokes, arrow shape, nest/hole/piton/
+ *    ring radii, the die, and the in-board chrome. Grouped by the element each
+ *    knob shapes (not by property), so tuning one feedback element means one
+ *    block. Mind the unit legend at the top of that section — unlike the colour
+ *    axis (all hex), these live in three different coordinate spaces.
  *
  * Two delivery paths, by necessity — a knob reaches the screen by whoever draws it:
  *  - Knobs that are plain SVG presentation attributes (a rect's fill, a stroke
@@ -76,8 +78,8 @@ export const DIE_FACE_FILL = '#fdfcf8'
 export const NEST_HOLE_FILL = '#fdfcf8'
 
 // ── Strokes / outlines (neutral) ────────────────────────────────────────────
-// Outline *colours* only; stroke widths are a geometry knob and stay inline with
-// the shapes for now. Player-hued strokes (nest box, halos) derive from
+// Outline *colours* only; stroke widths are a geometry knob and live in the
+// GEOMETRY section below. Player-hued strokes (nest box, halos) derive from
 // PLAYER_HEX at the draw site and aren't knobs here.
 /** Outline of a home-lane runway cell. */
 export const LANE_STROKE = '#9a958c'
@@ -185,3 +187,95 @@ export function boardThemeVars(activeHex: string): Record<string, string> {
     '--wash-cadence': `${WASH_CADENCE_S}s`,
   }
 }
+
+// ════════════════════════════════════════════════════════════════════════════
+// GEOMETRY
+// ════════════════════════════════════════════════════════════════════════════
+//
+// Every board *size*, in one place. Grouped by the element each knob shapes
+// (function-grouping), not by property — so tuning one visual element is one
+// block, the way the feedback rings/halo read as a unit on screen.
+//
+// UNIT LEGEND — geometry is NOT unit-homogeneous the way colour is (every colour
+// is just a hex); these numbers live in three coordinate spaces, so don't compare
+// a `0.4` to a `168` across groups:
+//   • CELL UNITS (the default, untagged) — viewBox space, 1.0 = one board cell.
+//     Radii, stroke widths, rx, pads, gaps. This is what the SVG draws in.
+//   • [ratio] — a dimensionless fraction of some reference length (the cell
+//     half-size for the arrow; the die's own `size` for the die internals), so
+//     the element scales as a unit. Tagged per knob.
+//   • [px] — chrome authored in natural pixels inside a <foreignObject>, then
+//     scaled into cell units by CTRL_SCALE (the px→cell bridge). A `168` [px] is
+//     far smaller on screen than a cell-unit `168` would be.
+
+// ── Board surfaces (the static cross + central HOME block) ──────────────────
+export const LANE_STROKE_W = 0.02
+export const TRACK_STROKE_W = 0.03
+export const HOME_RX = 0.4
+export const HOME_STROKE_W = 0.06
+
+// ── Start-arrow shape ───────────────────────────────────────────────────────
+// LENGTH/OFFSET_*/WIDTH are [ratio] of the start cell's half-size, resolved
+// along/across travel — four independent knobs (see Board's draw site for how
+// the apex/base are built). The stroke that lifts the arrow off the dark safe
+// square is a plain cell-unit width.
+export const ARROW_LENGTH = 0.7        // [ratio] apex distance from base, along travel
+export const ARROW_OFFSET_ALONG = -0.95 // [ratio] base offset along travel (signed)
+export const ARROW_OFFSET_ACROSS = 0.63 // [ratio] base offset across travel (signed)
+export const ARROW_WIDTH = 0.3         // [ratio] half the base width across travel
+export const ARROW_STROKE_W = 0.04
+
+// ── Nest (player corner: box, holes, whose-turn wash) ───────────────────────
+export const NEST_BOX_PAD = 0.8        // box margin beyond the outer hole centres
+export const NEST_BOX_RX = 0.5
+export const NEST_BOX_STROKE_W = 0.08
+export const NEST_HOLE_R = 0.36
+export const NEST_HOLE_STROKE_W = 0.05
+export const NEST_WASH_RX = 0.6        // whose-turn corner wash rounding
+export const NEST_WASH_INSET = 0.15    // wash inset from the quadrant edges
+
+// ── Piton disc, its movable-halo, and the finished-piton HOME cluster ───────
+export const PITON_R = 0.3
+export const PITON_STROKE_W = 0.05
+export const PITON_HALO_R = 0.46
+export const PITON_HALO_STROKE_W = 0.08
+export const HOME_FAN_SPREAD = 0.32    // ± fan offset within a finished group
+export const HOME_CLUSTER_MARGIN = 0.95 // inset of the group from HOME's edge
+
+// ── Die (overall size in cell units; internals are [ratio] of that size) ────
+// The die is drawn natively in board units and scales as a unit from DIE_SIZE —
+// every internal proportion is a fraction of it (see DieFace).
+export const DIE_SIZE = 2.0
+export const DIE_PIP_STEP = 0.26       // [ratio] pip-grid spacing from centre
+export const DIE_PIP_R = 0.085         // [ratio] pip radius
+export const DIE_CORNER_RX = 0.18      // [ratio] rounded-square corner
+export const DIE_STROKE_W = 0.04       // [ratio] border width
+
+// ── Legal-move target rings (plain / capture / home) ────────────────────────
+// The renderer's size choice for each destination marker; colour, dash, and the
+// pulse animation are CSS (.move-target*). Capture is bigger so it rings the
+// enemy disc; home is biggest — the prize.
+export const MOVE_TARGET_R = 0.42
+export const MOVE_TARGET_STROKE_W = 0.06
+export const CAPTURE_TARGET_R = 0.55
+export const CAPTURE_TARGET_STROKE_W = 0.1
+export const HOME_TARGET_R = 2.2
+export const HOME_TARGET_STROKE_W = 0.12
+
+// ── In-board title (native SVG text, in cell units) ─────────────────────────
+export const TITLE_FONT_SIZE = 0.6
+export const TITLE_TOP = 0.5           // top inset (y, with hanging baseline)
+
+// ── In-board HTML chrome: New Game controls + per-nest notices ──────────────
+// Authored at the [px] sizes below inside a <foreignObject>, then wrapped in
+// `scale(CTRL_SCALE)` to land in cell units — CTRL_SCALE is the px→cell bridge.
+// The disclosure box widens (CLOSED→OPEN) so the 2/3/4 picker fits; INSET/GAP are
+// cell-unit placements (top inset of the controls; gap above a notice line).
+export const CTRL_SCALE = 0.019        // [bridge] px → cell units
+export const CTRL_W_CLOSED = 112       // [px]
+export const CTRL_W_OPEN = 264         // [px]
+export const CTRL_H = 52               // [px]
+export const CTRL_INSET = 0.4          // top inset, cell units
+export const NEST_NOTICE_W = 168       // [px]
+export const NEST_NOTICE_H = 48        // [px]
+export const NEST_NOTICE_GAP = 0.55    // gap above the notice, cell units

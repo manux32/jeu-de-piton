@@ -17,7 +17,27 @@ import { buildLayout, destinationCell, cellMid, cellStart } from './layout'
 import { Board } from './Board'
 import { Pitons } from './Pitons'
 import { DieFace } from './DieFace'
-import { PLAYER_HEX, boardThemeVars } from './theme'
+import {
+  PLAYER_HEX,
+  boardThemeVars,
+  CTRL_SCALE,
+  CTRL_W_CLOSED,
+  CTRL_W_OPEN,
+  CTRL_H,
+  CTRL_INSET,
+  DIE_SIZE,
+  NEST_NOTICE_W,
+  NEST_NOTICE_H,
+  NEST_NOTICE_GAP,
+  TITLE_FONT_SIZE,
+  TITLE_TOP,
+  MOVE_TARGET_R,
+  MOVE_TARGET_STROKE_W,
+  CAPTURE_TARGET_R,
+  CAPTURE_TARGET_STROKE_W,
+  HOME_TARGET_R,
+  HOME_TARGET_STROKE_W,
+} from './theme'
 
 interface Props {
   state: GameState
@@ -40,41 +60,12 @@ interface Props {
 // viewBox units. (The die is the exception: native SVG drawn directly in board
 // units — see DieFace.) The corner chrome (title, New Game) is centred
 // horizontally on its corner's nest cluster (see nestX in the body) and
-// vertically inset from the board edge by CTRL_INSET.
-const CTRL_SCALE = 0.019
-// New Game is a disclosure: a single "New game" toggle when collapsed, the
-// toggle plus the 2/3/4 picker when open. The box widens when open so the
-// content always fits; either way it's centred on the nest, so it grows
+// vertically inset from the board edge by CTRL_INSET. New Game is a disclosure:
+// the box widens (CTRL_W_CLOSED→CTRL_W_OPEN) so the 2/3/4 picker fits, growing
 // symmetrically about the nest centre.
-const CTRL_W_CLOSED = 112
-const CTRL_W_OPEN = 264
-const CTRL_H = 52
-const CTRL_INSET = 0.4
-// The die is drawn natively in board units (see DieFace), centred over HOME. A
-// touch under the 3×3 HOME band so it owns the centre without crowding the arms.
-const DIE_SIZE = 2.0
-// Per-nest notice: a short line tucked just inside a player's own corner nest,
-// authored in px then scaled into board units like the other chrome. Narrow on
-// purpose — messages are kept terse so they fit a corner without crowding it.
-const NEST_NOTICE_W = 168
-const NEST_NOTICE_H = 48
-// Gap below the cluster's lowest hole before the notice line, in board units.
-const NEST_NOTICE_GAP = 0.55
-
-// Destination-ring sizing (board units) for the three legal-move target variants.
-// These are *geometry* knobs — the renderer's size choice — kept here, separate
-// from the colour knobs in theme.ts; they're the first slice of the planned
-// layout-knob centralization. Colour, dash pattern, and the pulse animation stay
-// in CSS (.move-target*); radius + stroke width live here.
-//   plain   — a normal empty-square destination.
-//   capture — lands on the enemy being taken; bigger so it rings the disc.
-//   home    — finishing a piton; biggest, the prize.
-const MOVE_TARGET_R = 0.42
-const MOVE_TARGET_STROKE = 0.06
-const CAPTURE_TARGET_R = 0.55
-const CAPTURE_TARGET_STROKE = 0.1
-const HOME_TARGET_R = 2.2
-const HOME_TARGET_STROKE = 0.12
+//
+// Every size knob this file draws with — title, chrome (px + CTRL_SCALE bridge),
+// die, and the three destination-ring variants — lives in theme.ts (GEOMETRY).
 
 export function GameBoard({
   state,
@@ -174,8 +165,8 @@ export function GameBoard({
       <text
         className="board-title"
         x={titleX}
-        y={0.5}
-        fontSize={0.6}
+        y={TITLE_TOP}
+        fontSize={TITLE_FONT_SIZE}
         textAnchor="middle"
         dominantBaseline="hanging"
       >
@@ -290,10 +281,10 @@ export function GameBoard({
               : 'move-target'
           const r = home ? HOME_TARGET_R : capture ? CAPTURE_TARGET_R : MOVE_TARGET_R
           const strokeWidth = home
-            ? HOME_TARGET_STROKE
+            ? HOME_TARGET_STROKE_W
             : capture
-              ? CAPTURE_TARGET_STROKE
-              : MOVE_TARGET_STROKE
+              ? CAPTURE_TARGET_STROKE_W
+              : MOVE_TARGET_STROKE_W
           return (
             <circle
               key={`target-${i}`}
