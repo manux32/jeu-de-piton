@@ -63,13 +63,29 @@ The session-by-session *why* for all of the above is in [decisions.md](decisions
      that must grow with every new color — retires `PLAYER_HEX_LIGHT`. Each role
      can still pass its own amount; they need not match.
   2. Name the per-role knobs in one block there: lane fill, nest-box fill, wash
-     (static + breathe min/max), die-flash amount. Replace the inline/CSS magic
-     numbers with these.
-  3. Feed the CSS-driven ones (wash breathe, die flash) via CSS custom properties
+     (static + breathe min/max), and the **action-pending flash family** (below).
+     Replace the inline/CSS magic numbers with these.
+  3. Feed the CSS-driven ones (wash breathe, all flashes) via CSS custom properties
      set from TS — same pattern as the `--die-flash` var shipped this session — so
      the numbers live in `colors.ts`, not split across the stylesheet. *(Time-boxed
      fallback: centralize hues + solid tints only; leave CSS opacity knobs in CSS
      and cross-reference.)*
+
+  **Action-pending flashes — one family, one set of knobs.** The deliberate rule
+  is: *only elements awaiting an action from a player flash.* Members today:
+  die roll-ready (`.die-square` fill swell → `--die-flash`), movable pitons
+  (`.piton-halo`, `piton-pulse`), and the HOME-reachable target (`.move-target-home`,
+  `piton-pulse`). They already share a 1.2s cadence (the lone 1.5s was the wash,
+  now static) — make that shared cadence a knob too, which settles the "different
+  rates" issue. Two mechanisms exist: a *fill-colour swell* (die, toward a light
+  tint) and a plain *opacity pulse* (halo/target); the system should hold both.
+  - **New member: capturable enemy pitons.** Give the current player obvious
+    feedback on which enemies a legal move would capture — flash them. Already
+    UI-derivable, no engine change: Pitons.tsx builds `captureByPiton` from moves
+    where `m.captures` is set, and tags those discs `.piton-target` (today only
+    `cursor:pointer`). Open design call for next session: flash toward the
+    *capturing* player's tint vs. a distinct warning treatment — try both.
+
   Out of scope but the motivating direction: colors beyond 4 extend the engine
   `PlayerColor` union + the palette; letting players *choose* builds on the
   per-seat `players[].color` field that already exists (a picker that sets it with
