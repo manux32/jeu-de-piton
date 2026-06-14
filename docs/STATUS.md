@@ -51,6 +51,29 @@ The session-by-session *why* for all of the above is in [decisions.md](decisions
   engine is variant-agnostic, so this is mostly *proving* a second variant (e.g.
   canonical Parcheesi) drops in with **no UI change** — likely a ruleset-picker
   beside the player-count pills in the New Game control.
+- **Centralize player-color knobs** (groundwork for more colors + player color
+  choice). Today the *hue* is centralized (`PLAYER_HEX`) but each element's
+  *lightening knob* is scattered: lane `fillOpacity 0.45` and nest-box `0.18`
+  inline in [Board.tsx](../src/ui/Board.tsx), the whose-turn wash opacities in CSS
+  (`nest-breathe` 0.18↔0.42, `.nest-active-wash-static` 0.3), and the die flash as
+  a hand-kept second map (`PLAYER_HEX_LIGHT`). Plan:
+  1. Make [colors.ts](../src/ui/colors.ts) the single owner. Keep `PLAYER_HEX` as
+     the only per-color data (the extension point). Add a `tint(hex, amount)`
+     helper (mix toward white) so light variants are *derived*, not a parallel map
+     that must grow with every new color — retires `PLAYER_HEX_LIGHT`. Each role
+     can still pass its own amount; they need not match.
+  2. Name the per-role knobs in one block there: lane fill, nest-box fill, wash
+     (static + breathe min/max), die-flash amount. Replace the inline/CSS magic
+     numbers with these.
+  3. Feed the CSS-driven ones (wash breathe, die flash) via CSS custom properties
+     set from TS — same pattern as the `--die-flash` var shipped this session — so
+     the numbers live in `colors.ts`, not split across the stylesheet. *(Time-boxed
+     fallback: centralize hues + solid tints only; leave CSS opacity knobs in CSS
+     and cross-reference.)*
+  Out of scope but the motivating direction: colors beyond 4 extend the engine
+  `PlayerColor` union + the palette; letting players *choose* builds on the
+  per-seat `players[].color` field that already exists (a picker that sets it with
+  uniqueness; seat→color stays the default).
 
 ## Open rule details
 - **None open.** All cabin rules are confirmed and shipped as of 2026-06-13 — the
