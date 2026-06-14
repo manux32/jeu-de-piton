@@ -17,7 +17,8 @@ import {
   TRACK_FILL,
   SAFE_FILL,
   HOME_FILL,
-  SURFACE_CREAM,
+  NEST_HOLE_FILL,
+  START_ARROW_STROKE,
   LANE_STROKE,
   TRACK_STROKE,
   HOME_STROKE,
@@ -126,7 +127,7 @@ export function Board({ state, layout }: Props) {
             key={`start-arrow-${p}`}
             points={`${ax},${ay} ${bx + px * hb},${by + py * hb} ${bx - px * hb},${by - py * hb}`}
             fill={PLAYER_HEX[player.color]}
-            stroke={SURFACE_CREAM}
+            stroke={START_ARROW_STROKE}
             strokeWidth={0.04}
             strokeLinejoin="round"
           />
@@ -195,7 +196,7 @@ export function Board({ state, layout }: Props) {
                 cx={s.cx}
                 cy={s.cy}
                 r={0.36}
-                fill={SURFACE_CREAM}
+                fill={NEST_HOLE_FILL}
                 stroke={hex}
                 strokeWidth={0.05}
               />

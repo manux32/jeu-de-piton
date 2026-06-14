@@ -70,13 +70,10 @@ export const TRACK_FILL = '#ffffff'
 export const SAFE_FILL = '#1a1a1a'
 /** The HOME block at the centre — the finish. */
 export const HOME_FILL = '#f3e7ec'
-/**
- * The cream "piece face" shared by the die face, the empty nest holes, and the
- * outline that lifts a start-arrow off the dark safe square beneath it — they're
- * meant to read as one material, so one knob moves them together. Split into
- * separate constants if you ever want the die to differ from the nest holes.
- */
-export const SURFACE_CREAM = '#fdfcf8'
+/** The die-face background — the near-white the pips sit on. */
+export const DIE_FACE_FILL = '#fdf8fc'
+/** The empty nest holes — the near-white disc a waiting piton rests in. */
+export const NEST_HOLE_FILL = '#fdf8fc'
 
 // ── Strokes / outlines (neutral) ────────────────────────────────────────────
 // Outline *colours* only; stroke widths are a geometry knob and stay inline with
@@ -90,6 +87,8 @@ export const TRACK_STROKE = '#8a857c'
 export const HOME_STROKE = '#c79bab'
 /** Outline of a piton disc. */
 export const PITON_STROKE = '#2b2b2b'
+/** Outline that lifts a start-arrow off the dark safe square beneath it. */
+export const START_ARROW_STROKE = '#fdf8fc'
 /** Fill of the "Jeu de piton" title baked into the board (CSS-consumed). */
 export const TITLE_FILL = '#9b96a3'
 
@@ -153,13 +152,13 @@ export const PULSE_MAX = 0.9
 
 /**
  * The static (non-player-derived) colour knobs CSS consumes — board background,
- * title fill, the cream piece-face rest state of the die-flash keyframe, and the
- * three notice colours. Constant, so kept out of the per-render function below.
+ * title fill, the die-face rest state of the die-flash keyframe, and the three
+ * notice colours. Constant, so kept out of the per-render function below.
  */
 const STATIC_BOARD_VARS: Record<string, string> = {
   '--board-bg': BOARD_BG,
   '--title-fill': TITLE_FILL,
-  '--surface-cream': SURFACE_CREAM,
+  '--die-face': DIE_FACE_FILL,
   '--notice-event': NOTICE_EVENT,
   '--notice-prompt': NOTICE_PROMPT,
   '--notice-win': NOTICE_WIN,

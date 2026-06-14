@@ -14,10 +14,11 @@
   Renamed the colour file to [theme.ts](../src/ui/theme.ts) — it owns colour + vfx
   timing today and will absorb the geometry knobs in their own pass, becoming the
   one look-and-feel control surface. Promoted the remaining hardcoded board colours
-  into named knobs there: board background, track/safe/HOME fills, a shared
-  `SURFACE_CREAM` piece-face (die face + nest holes + start-arrow outline read as
-  one material, so one knob moves them together), the neutral strokes, the title
-  fill, and the three notice colours. **The carve-out that drove the shape:**
+  into named knobs there: board background, track/safe/HOME fills, the die face,
+  nest holes and start-arrow outline (each its *own* knob — they share a near-white
+  today but are unrelated elements, so independent control beats DRY-by-coincidence
+  for a polish file), the neutral strokes, the title fill, and the three notice
+  colours. **The carve-out that drove the shape:**
   look-and-feel knobs and board-*model* constants are different animals —
   `SAFE_PHASE`/`SEAT_ROTATION` (pinned against the reference board) stay in
   [layout.ts](../src/ui/layout.ts), out of the tweak file, so a polish session can't
