@@ -321,7 +321,7 @@ code {
 @keyframes die-flash {
   0%,
   100% {
-    fill: var(--die-face, #fdf8fc);
+    fill: var(--die-face, #fdfcf8);
   }
   50% {
     fill: var(--flash-tint);

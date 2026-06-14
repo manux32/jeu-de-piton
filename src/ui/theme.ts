@@ -71,9 +71,9 @@ export const SAFE_FILL = '#1a1a1a'
 /** The HOME block at the centre — the finish. */
 export const HOME_FILL = '#f3e7ec'
 /** The die-face background — the near-white the pips sit on. */
-export const DIE_FACE_FILL = '#fdf8fc'
+export const DIE_FACE_FILL = '#fdfcf8'
 /** The empty nest holes — the near-white disc a waiting piton rests in. */
-export const NEST_HOLE_FILL = '#fdf8fc'
+export const NEST_HOLE_FILL = '#fdfcf8'
 
 // ── Strokes / outlines (neutral) ────────────────────────────────────────────
 // Outline *colours* only; stroke widths are a geometry knob and stay inline with
@@ -88,7 +88,7 @@ export const HOME_STROKE = '#c79bab'
 /** Outline of a piton disc. */
 export const PITON_STROKE = '#2b2b2b'
 /** Outline that lifts a start-arrow off the dark safe square beneath it. */
-export const START_ARROW_STROKE = '#fdf8fc'
+export const START_ARROW_STROKE = '#fdfcf8'
 /** Fill of the "Jeu de piton" title baked into the board (CSS-consumed). */
 export const TITLE_FILL = '#9b96a3'
 
