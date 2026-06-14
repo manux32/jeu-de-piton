@@ -51,13 +51,15 @@ The session-by-session *why* for all of the above is in [decisions.md](decisions
   engine is variant-agnostic, so this is mostly *proving* a second variant (e.g.
   canonical Parcheesi) drops in with **no UI change** — likely a ruleset-picker
   beside the player-count pills in the New Game control.
-- **Centralize board-layout knobs.** The colour-knob pass (done — see
-  [decisions.md](decisions.md) 2026-06-13) built the model: [colors.ts](../src/ui/colors.ts)
-  owns the *colour* axis, and it deliberately left *geometry* (sizes) out. Those
+- **Centralize board-layout knobs.** The colour-knob pass is **complete** (see
+  [decisions.md](decisions.md) 2026-06-13 + 06-14): [theme.ts](../src/ui/theme.ts)
+  now owns the whole *colour* axis — player hues *and* every neutral board surface,
+  stroke, and notice colour — and deliberately leaves *geometry* (sizes) out. Those
   size knobs are still scattered as inline constants — arrow shape + nest/box/hole
   radii + strokes in [Board.tsx](../src/ui/Board.tsx)/[Pitons.tsx](../src/ui/Pitons.tsx),
   chrome + die + the move-target ring sizes in [GameBoard.tsx](../src/ui/GameBoard.tsx)
-  (that last block is the seeded first slice). This effort consolidates them and
+  (that last block is the seeded first slice). This effort consolidates them into
+  the GEOMETRY section of `theme.ts` and
   the TS→CSS-var seam (`boardThemeVars`) is reusable verbatim for any size knob a
   CSS animation needs. **Decide up front:** group knobs by *concern* (colour vs
   geometry, as now) or by *function* (everything driving one visual-feedback

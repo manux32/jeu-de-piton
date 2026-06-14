@@ -10,9 +10,24 @@
 > [rules-and-lineage.md](rules-and-lineage.md), [board-model.md](board-model.md)).
 > Don't duplicate git history — capture reasoning a commit message wouldn't.
 
-- **2026-06-13** — **Player-colour knobs centralized in `colors.ts`; deliberately
+- **2026-06-14** — **`colors.ts` → `theme.ts`; every board colour is now a knob.**
+  Renamed the colour file to [theme.ts](../src/ui/theme.ts) — it owns colour + vfx
+  timing today and will absorb the geometry knobs in their own pass, becoming the
+  one look-and-feel control surface. Promoted the remaining hardcoded board colours
+  into named knobs there: board background, track/safe/HOME fills, a shared
+  `SURFACE_CREAM` piece-face (die face + nest holes + start-arrow outline read as
+  one material, so one knob moves them together), the neutral strokes, the title
+  fill, and the three notice colours. **The carve-out that drove the shape:**
+  look-and-feel knobs and board-*model* constants are different animals —
+  `SAFE_PHASE`/`SEAT_ROTATION` (pinned against the reference board) stay in
+  [layout.ts](../src/ui/layout.ts), out of the tweak file, so a polish session can't
+  nudge the board topology by accident. CSS-consumed colours (board bg, title,
+  die-flash rest state, notices) extend the existing `boardThemeVars` seam, with
+  literal fallbacks in the stylesheet. Pure relocation — values unchanged, board
+  renders identically.
+- **2026-06-13** — **Player-colour knobs centralized in `theme.ts`; deliberately
   split from geometry; capture cue is the destination ring, not a halo.** Made
-  [colors.ts](../src/ui/colors.ts) the single owner of the *colour-appearance*
+  [theme.ts](../src/ui/theme.ts) the single owner of the *colour-appearance*
   axis — hue (`PLAYER_HEX`, the lone per-colour data + extension point), lightening
   (`tint(hex, amount)` *derives* light variants, retiring the hand-tuned
   `PLAYER_HEX_LIGHT` parallel map), opacities, and the flash/wash *timing*. Two
@@ -22,7 +37,7 @@
   animated descendant (generalizes the old one-off `--die-flash`; the same seam is
   reusable by the future layout-knob pass). **Axis split is intentional:** size
   knobs (ring radii/strokes, piton/hole radii, arrow geometry) stay with the
-  *renderer*, not `colors.ts` — the move-target ring sizes now sit in a named block
+  *renderer*, not `theme.ts` — the move-target ring sizes now sit in a named block
   in [GameBoard.tsx](../src/ui/GameBoard.tsx) as the first slice of the planned
   layout-knob centralization. **Open question deferred to that pass:** group knobs
   by *concern* (colour vs geometry, as now) or by *function* (everything driving one
@@ -124,7 +139,7 @@
   (0.18↔0.42 around the static 0.28) than the piton/home alarm pulse (0.35↔0.9),
   so a large area pulsing *every* turn reads as calm presence, not alarm, even at
   the same 1.x-second rate. *(Superseded 2026-06-13: the wash now ships **static**
-  — `NEST_FLASH` off — with its opacity/cadence as knobs in `colors.ts`; the breathe
+  — `NEST_FLASH` off — with its opacity/cadence as knobs in `theme.ts`; the breathe
   is opt-in. See the top entry.)* (2) **The single bottom-right notice became two
   per-nest lines**, each rendered in the corner of the player it concerns: the
   **event line** (what just happened — `Capture!`, `Roll again`, `No move — pass`,
@@ -323,7 +338,7 @@
   their own arm. The engine still owns no screen geometry — `buildLayout` is the
   sole index→pixel map, so direction (counter-clockwise) lives only here.
   Component split: `<GameBoard>` (memoizes layout) → `<Board>` (static cross) +
-  `<Pitons>` (overlay); player colors per arm in `ui/colors.ts`. UI stays
+  `<Pitons>` (overlay); player colors per arm in `ui/theme.ts`. UI stays
   rules-free (reads state, no `applyMove` yet). Verified by rasterizing a
   throwaway SVG render against `references/` (Selchow & Righter layout) — clean
   match: continuous ring, 12 safe squares 3-per-arm, lanes on the right arms.
