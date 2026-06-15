@@ -76,8 +76,8 @@ ruleset-picker beside the player-count pills in the New Game control.
   resolved items, lives in [rules-and-lineage.md](rules-and-lineage.md).
 
 ## Dev quick-ref
-- `npm test` (engine), `npm run build` (type-check + build), `npm run dev` (UI,
-  port 5173 — see CLAUDE.md session-start policy).
+- Basic commands (`npm install`/`dev`/`build`/`test`) → [README](../README.md#develop).
+  Dev server is port 5173 — see [CLAUDE.md](../CLAUDE.md) session-start policy.
 - **Dev scenario panel** (dev builds only) lets you drop into doctored board states
   to validate UI fixes — feature-complete; how it works → [dev-tooling.md](dev-tooling.md).
 - Eyeball a render **without** the dev server via a throwaway Vitest →

@@ -30,11 +30,6 @@ managed handle + fresh state). **If nothing is running, leave it down** — don'
 start it until the user asks or until you actually need it to do work this
 session. (Launch with `NODE_OPTIONS=--use-system-ca npm run dev`, backgrounded.)
 
-## Commits (working-style reminder)
-**Commit each meaningful step locally on your own initiative — don't ask first.**
-Group changes and confirm before *pushing*. (This mirrors a standing personal
-preference that's easy to forget mid-session.)
-
 ## Architecture (do not violate)
 - **`src/engine/`** = pure rules core, **no React/DOM imports**. Unit-testable in
   isolation. Rule variants are `Ruleset` config objects, not code branches.
@@ -45,15 +40,11 @@ preference that's easy to forget mid-session.)
   it there.
 
 ## Shared knowledge base
-Cross-cutting home knowledge lives in the shared KB one level up — start at
-[`../../knowledge/index.md`](../../knowledge/index.md). Most relevant here:
+The shared KB is one level up; the meta [`../../CLAUDE.md`](../../CLAUDE.md) covers what it
+is and what belongs there. Pages most relevant to *this* project:
 - [`../../knowledge/vscode-setup.md`](../../knowledge/vscode-setup.md) — dev environment / per-stack setup
 - [`../../knowledge/git-setup.md`](../../knowledge/git-setup.md) — git toolchain + new-machine recreation
 - [`../../knowledge/toolchain.md`](../../knowledge/toolchain.md) — installed tooling
-
-Durable cross-project knowledge belongs in the KB, not here. Project-specific
-docs all live under [docs/](docs/) (only this `CLAUDE.md` and `README.md` sit at
-the repo root). Fast-moving status → [docs/STATUS.md](docs/STATUS.md).
 
 ## This-machine note
 Node was installed via winget mid-2026; if `node`/`npm` aren't on a fresh
