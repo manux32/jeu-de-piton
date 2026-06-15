@@ -11,9 +11,6 @@ engine framework — the game is turn-based discrete state, not real-time.
 - **Game lineage + canonical rules + house-rules** → [docs/rules-and-lineage.md](docs/rules-and-lineage.md)
 - **Current status + next steps** → [docs/STATUS.md](docs/STATUS.md)
 
-> **Current state + next steps → [docs/STATUS.md](docs/STATUS.md)** — the single source of
-> truth for status, deliberately not restated here so it can't drift.
-
 ## Develop
 
 ```bash

@@ -39,13 +39,6 @@ session. (Launch with `NODE_OPTIONS=--use-system-ca npm run dev`, backgrounded.)
   re-litigate the engine/UI split or the no-Phaser decision without revisiting
   it there.
 
-## Shared knowledge base
-The shared KB is one level up; the meta [`../../CLAUDE.md`](../../CLAUDE.md) covers what it
-is and what belongs there. Pages most relevant to *this* project:
-- [`../../knowledge/vscode-setup.md`](../../knowledge/vscode-setup.md) — dev environment / per-stack setup
-- [`../../knowledge/git-setup.md`](../../knowledge/git-setup.md) — git toolchain + new-machine recreation
-- [`../../knowledge/toolchain.md`](../../knowledge/toolchain.md) — installed tooling
-
 ## This-machine note
 Node was installed via winget mid-2026; if `node`/`npm` aren't on a fresh
 shell's PATH, refresh from the machine env. Corporate TLS interception on this
