@@ -30,6 +30,11 @@ managed handle + fresh state). **If nothing is running, leave it down** — don'
 start it until the user asks or until you actually need it to do work this
 session. (Launch with `NODE_OPTIONS=--use-system-ca npm run dev`, backgrounded.)
 
+**Never ask the user about the dev server** — not whether to start, stop, restart,
+or leave it running. Apply the policy above silently: restart a stale one when you
+need it, leave it otherwise. The user manages its lifecycle and will say if they
+want it shut down; don't prompt about it.
+
 ## Architecture (do not violate)
 - **`src/engine/`** = pure rules core, **no React/DOM imports**. Unit-testable in
   isolation. Rule variants are `Ruleset` config objects, not code branches.
