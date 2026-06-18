@@ -11,13 +11,22 @@ engine framework — the game is turn-based discrete state, not real-time.
 - **Game lineage + canonical rules + house-rules** → [docs/rules-and-lineage.md](docs/rules-and-lineage.md)
 - **Current status + next steps** → [docs/STATUS.md](docs/STATUS.md)
 
+## Play
+
+Live, installable, offline-capable: **https://manux32.github.io/jeu-de-piton/**
+
+On an iPad, open it in Safari → Share → **Add to Home Screen** for a fullscreen,
+offline hot-seat game (use the device rotation lock to keep it portrait). Pushing to
+`main` redeploys it via GitHub Actions.
+
 ## Develop
 
 ```bash
 npm install
-npm run dev      # local dev server
-npm run build    # type-check + production build
-npm test         # engine unit tests (Vitest)
+npm run dev        # local dev server (serves at /jeu-de-piton/ — see vite base)
+npm run build      # type-check + production build (+ PWA service worker/manifest)
+npm test           # engine unit tests (Vitest)
+npm run make:icons # regenerate PWA icons from public/favicon.svg
 ```
 
 ## Layout

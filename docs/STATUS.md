@@ -38,11 +38,13 @@ All look-and-feel is knob-driven from [theme.ts](../src/ui/theme.ts) (COLOURS /
 MOTION / GEOMETRY) and all UI copy from [strings.ts](../src/ui/strings.ts) — the
 control surface is complete (bar the knob-set audit; see Backlog).
 
-**Now shippable to mobile:** an installable, offline-first PWA (`vite-plugin-pwa`)
-deployed to GitHub Pages via [`.github/workflows/deploy.yml`](../.github/workflows/deploy.yml)
-— built to play hot-seat on an iPad at the cabin with no internet (why + the iOS
-cache caveat → [decisions.md](decisions.md) 2026-06-18). One-time setup: repo
-**Settings → Pages → Source = GitHub Actions**.
+**Live on mobile:** an installable, offline-first PWA (`vite-plugin-pwa`) ships to
+GitHub Pages from `main` via [`.github/workflows/deploy.yml`](../.github/workflows/deploy.yml)
+— **https://manux32.github.io/jeu-de-piton/** (repo public; Pages source = GitHub
+Actions). Add-to-Home-Screen on an iPad gives a fullscreen, offline hot-seat game;
+the board is **full-bleed** and **portrait-locked** (iOS ignores the manifest lock,
+so it relies on the device rotation lock). The *why* + the iOS cache/orientation
+caveats are in [decisions.md](decisions.md) 2026-06-18.
 
 The session-by-session *why* for all of the above is in [decisions.md](decisions.md)
 (newest first); the shipped rule + geometry facts are in
@@ -91,3 +93,5 @@ the candidate list below, in no particular order:
   to validate UI fixes — feature-complete; how it works → [dev-tooling.md](dev-tooling.md).
 - Eyeball a render **without** the dev server via a throwaway Vitest →
   `references/` SVG → `scripts/render-board.mjs` (details in [dev-tooling.md](dev-tooling.md)).
+- **Deploy:** push `main` → the GitHub Action builds + publishes to Pages (live URL
+  above). PWA icons regenerate from `public/favicon.svg` via `npm run make:icons`.

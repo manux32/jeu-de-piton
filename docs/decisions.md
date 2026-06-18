@@ -31,6 +31,22 @@
   as a **"Skip turn"** button tucked *inside* the New Game disclosure, right of the
   2/3/4 pills — behind another button + styled apart so it's never a play-time
   mis-tap. It's a *recovery* tool, not a fix; the real bug is unrepro'd (STATUS backlog).
+  **Follow-ons the same day:** (a) **Repo made public** — free Pages serves public
+  repos only; the toggle is reversible, and going private merely downs the live site
+  (an already-installed PWA keeps running from its cache). (b) **Board went
+  full-bleed** — dropped the shell padding entirely (superseding the earlier ~56px
+  height reserve from the 2026-06-14 sizing below), so the square board fills the
+  viewport's limiting axis edge-to-edge; the only remaining inset is
+  `env(safe-area-inset-*)` (0 on desktop; the iPad's home-indicator clearance when
+  installed). A one-line regression en route — accidentally deleting `.board-shell`'s
+  `max-width: none`, letting the 640px `.app-shell` cap shrink the board, then
+  defending it for several turns as "inherent geometry" — is the cautionary tale
+  behind the new global `feedback_suspect_own_change` memory. (c) **Orientation lock
+  is OS-side, not in-app:** the manifest sets `orientation: 'portrait'` (honoured on
+  Android/desktop), but **iOS ignores PWA orientation lock and `screen.orientation.lock()`
+  is unsupported in iOS Safari** — no in-app way to lock it, so use the iPad's
+  rotation lock. The reusable half of all this is filed in the home KB (its
+  PWA-on-mobile and static-hosting pages).
 - **2026-06-17** — **QOL polish pass: the nest reads as a nest (not a die), the
   roll prompt lives on the die, and a win is unmissable.** A batch of user-driven
   legibility fixes; the *why* per item (blow-by-blow is in the commits):

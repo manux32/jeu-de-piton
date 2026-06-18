@@ -34,6 +34,12 @@ until the core is fun.
 - **SVG board** (not canvas, not Phaser): the board *is* vector art, and cells +
   pitons become real DOM elements, so clicks/hover come for free. Phaser was ruled
   out — this game has no real-time loop or physics to justify it.
+- **Distribution: installable PWA, no backend.** Builds to a static site served
+  over HTTPS from GitHub Pages; `vite-plugin-pwa` adds a manifest + offline service
+  worker so it installs to a home screen and runs with no network — fitting the
+  hot-seat, no-internet cabin use (the engine is all client-side, so there's nothing
+  to host but files). Rationale + the iOS caveats → [decisions.md](decisions.md)
+  (2026-06-18); reusable how-to is in the home KB's PWA/static-hosting pages.
 
 ## The split that matters: pure rules core ↔ UI
 **A pure rules core is separated from the UI.** This is what makes "change the
