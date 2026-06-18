@@ -71,7 +71,10 @@ export default defineConfig({
         theme_color: '#1c1330',
         background_color: '#1c1330',
         display: 'standalone',
-        orientation: 'any',
+        // Locked to portrait: the square board fills the width with no side gaps
+        // there, whereas landscape leaves left/right gutters. (Installed-PWA lock;
+        // iOS reads it at "Add to Home Screen" time — see decisions.md caveat.)
+        orientation: 'portrait',
         icons: [
           { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' },
           { src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png' },
