@@ -6,8 +6,8 @@
  *
  * Shape rules (docs/STATUS.md S3 note): a `place({…})` position map that skips
  * nest-default pitons; turn/lastRoll/phase set on the spread; `extraTurnStreak`
- * emitted only when non-zero (it defaults to 0). One `description` line feeds
- * both the picker tooltip and the loaded notice (see scenario.ts).
+ * emitted only when non-zero (it defaults to 0). The `description` line is the
+ * picker tooltip only (loaded scenarios carry no notice — see scenario.ts).
  */
 import type { PitonPosition } from '../../engine'
 import type { GameView } from '../useGame'
@@ -44,7 +44,7 @@ function positionLiteral(pos: PitonPosition): string {
 export interface ScenarioMeta {
   /** Picker label; slugified into the id + filename. */
   name: string
-  /** One line: tooltip + notice. */
+  /** One line: the picker tooltip. */
   description: string
 }
 

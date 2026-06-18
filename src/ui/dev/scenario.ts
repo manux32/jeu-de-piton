@@ -26,22 +26,33 @@ export interface DevScenario {
   /** Short label shown in the picker. */
   label: string
   /**
-   * One line describing what the scenario sets up / what to look at. Single
-   * source of truth: shown as the picker tooltip *and* stamped as the `notice`
-   * when loaded (see `loadScenario`). Scenarios therefore don't set a notice
-   * themselves — `build` returns board state only.
+   * One line describing what the scenario sets up / what to look at. Shown only
+   * as the picker tooltip in the dev panel — deliberately NOT stamped into the
+   * board `notice`, so a loaded scenario shows the same notices a real game
+   * would (letting notice changes be tested in place). `build` returns board
+   * state only; the notice is whatever the loaded state warrants (none).
    */
   description: string
   build: () => Omit<GameView, 'notice'>
 }
 
 /**
- * Turn a scenario into a loadable view: its board state plus a notice derived
- * from `description`. The `Dev:` prefix marks it as synthetic so it reads
- * differently from a real gameplay notice.
+ * Turn a scenario into a loadable view: its board state with no notice, so the
+ * board reads exactly as a real game in that state would (the real gameplay
+ * notices then appear as you act from it).
  */
 export function loadScenario(s: DevScenario): GameView {
-  return { ...s.build(), notice: `Dev: ${s.description}` }
+  const view = s.build()
+  // No real `roll` action ran, so `rolledBy` (who rolled the shown value) was
+  // never recorded. In a real game an awaiting-move state's `rolled` belongs to
+  // the current player, so default it to that — then the last-roll nest die
+  // behaves as it would in a real game once the turn passes. A scenario can
+  // still set its own rolledBy to override.
+  return {
+    ...view,
+    notice: null,
+    rolledBy: view.rolledBy ?? (view.rolled != null ? view.game.turn : null),
+  }
 }
 
 /** Immutably override a few pitons' positions on a freshly-built game. */
