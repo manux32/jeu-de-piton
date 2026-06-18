@@ -22,7 +22,7 @@ import {
   type GameState,
   type Move,
 } from '../engine'
-import { NOTICE } from './strings'
+import { NOTICE, joinNotice, type Notice } from './strings'
 
 export interface GameView {
   game: GameState
@@ -34,8 +34,9 @@ export interface GameView {
    *  becomes a "Roll" prompt for whoever's up). Optional: the dev scenario
    *  loader may omit it. */
   rolledBy?: number | null
-  /** One-line feedback about the last engine event, or null. */
-  notice: string | null
+  /** One-line feedback about the last engine event, or null. A list of text runs
+   *  so part of it (e.g. a captured colour's name) can be tinted — see Notice. */
+  notice: Notice | null
   /**
    * Which player the `notice` is about — the player who just acted (so the board
    * can anchor the message in *their* nest). Optional: omitted by the dev
@@ -107,11 +108,20 @@ function reducer(view: GameView, action: GameAction): GameView {
       if (next.phase === 'game-over') {
         return { game: next, rolled: view.rolled, rolledBy: view.rolledBy, notice: NOTICE.win, noticeOwner: prev.turn }
       }
-      const parts: string[] = []
-      if (action.move.captures) parts.push(NOTICE.capture)
+      const parts: Notice[] = []
+      if (action.move.captures) {
+        // Name the captured colour in the notice (e.g. "Capture! (red)"), tinted
+        // in that player's colour. Read the colour off the captured piton's owner
+        // in the pre-move state, not by parsing the id, so it stays correct if the
+        // id scheme ever changes.
+        const captured = prev.players
+          .flatMap((pl) => pl.pitons)
+          .find((pt) => pt.id === action.move.captures)
+        if (captured) parts.push(NOTICE.capture(captured.owner))
+      }
       // Turn unchanged after a move ⇒ the roll earned another go (a 6).
       if (next.turn === prev.turn) parts.push(NOTICE.rollAgain)
-      const notice = parts.join(NOTICE.separator) || null
+      const notice = parts.length ? joinNotice(parts) : null
       // Keep the rolled face + its roller on display through the move and into
       // the next player's awaiting-roll — once the turn moves on, the board shows
       // that value as a small die in the roller's nest while the centre die
