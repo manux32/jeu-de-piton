@@ -17,9 +17,12 @@ a full `GameView`. Three pieces:
 - **Scenario picker** — scenarios are one file each under
   [`scenarios/`](../src/ui/dev/scenarios/), auto-discovered via `import.meta.glob`
   ([`registry.ts`](../src/ui/dev/registry.ts)); `DevScenario` + `place()` in
-  [`scenario.ts`](../src/ui/dev/scenario.ts). Each carries one `description` (picker
-  tooltip + `Dev:`-prefixed notice via `loadScenario`); `build()` returns board
-  state only.
+  [`scenario.ts`](../src/ui/dev/scenario.ts). Each carries one `description` — the
+  **picker tooltip only**. A loaded scenario carries **no** notice, so the board
+  reads exactly as a real game in that state would (real gameplay notices then
+  appear as you act — letting notice changes be tested in place); `loadScenario`
+  also defaults `rolledBy` to the current player so the last-roll nest die behaves
+  normally. `build()` returns board state only.
 - **State editor** ([`StateEditor.tsx`](../src/ui/dev/StateEditor.tsx)) — a knob
   form (not a spatial board editor) over the fields a scenario sets (turn, pending
   roll→phase, `extraTurnStreak`, per-piton position). Controlled reflection of the

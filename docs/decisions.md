@@ -10,6 +10,40 @@
 > [rules-and-lineage.md](rules-and-lineage.md), [board-model.md](board-model.md)).
 > Don't duplicate git history — capture reasoning a commit message wouldn't.
 
+- **2026-06-17** — **QOL polish pass: the nest reads as a nest (not a die), the
+  roll prompt lives on the die, and a win is unmissable.** A batch of user-driven
+  legibility fixes; the *why* per item (blow-by-blow is in the commits):
+  **(1) Nest enclosure square → circle.** Four holes in a rounded *square* read as a
+  die's 4-face; a circle around the same 2×2 kills that false cue without moving the
+  holes. Radius derives from the hole cluster + `NEST_BOX_PAD`; hole spacing became
+  its own knob (`NEST_HOLE_SPACING`, the circle follows it); `NEST_BOX_RX` retired.
+  **(2) The centre die shows a "Roll" prompt when it's your turn to roll**, instead
+  of holding last turn's pips — the held value **relocates to the roller's nest** as
+  a small die (left-aligned to their whose-turn highlight area, on the notice line).
+  It shows only when the centre *isn't* already showing that value as pips: once the
+  turn passes, **and** on a roll-again 6 (back to awaiting-roll, centre showing the
+  prompt) where it backs the "Roll again" notice — never twice. A `rolledBy` field
+  was added to the view state so the board knows whose roll the held value was.
+  **(3) Win popup.** A win was only a nest line; now a content-sized panel over the
+  board centre announces "{Colour} wins!" in the winner's hue, tap-to-dismiss — the
+  full-board wrapper is click-through so New Game stays live, and dismissal re-arms
+  on the next win (tracked by game-state identity). Knobs `WIN_TEXT_SIZE` /
+  `WIN_PANEL_BG`.
+  **(4) Notices became rich text** — a `Notice` is a list of optionally-tinted
+  segments — so a capture **names the captured colour in its own colour**
+  ("Capture! (red)"). The colour is read off the captured piton's `owner` in the
+  pre-move state, not by parsing the id.
+  **(5) UI copy centralized in [`src/ui/strings.ts`](../src/ui/strings.ts)**
+  (TITLE/DIE/PROMPT/NOTICE/WIN). Copy is its own axis — kept out of `theme.ts`
+  (sizes/colours) and out of the drawing code; it's the single seam a future French
+  translation would swap.
+  **(6) Dev scenarios no longer override the board notice.** `loadScenario` stamped
+  the description as a `Dev:` notice, which masked the real gameplay notices and made
+  them impossible to test in place; it now loads with **no** notice (the description
+  stays the picker tooltip) and defaults `rolledBy` to the current player so the
+  last-roll nest die behaves as in a real game. *(Reverses the notice half of the
+  2026-06-13 "Dev rig S3" decision — see that entry.)*
+  All knobs live in `theme.ts`; build + 77 tests + lint green.
 - **2026-06-14** — **Knob-board usability pass: organize by *user intent*, in plain
   language.** After the geometry pass landed, the user (the actual person turning
   these knobs) flagged that the surface was built for an engineer, not for him:
@@ -308,7 +342,10 @@
   `description`** — they were the *same concept* (a one-line description) duplicated
   across two surfaces (picker tooltip vs HUD banner), so `build()` now returns board
   state only and `loadScenario` stamps the `Dev:`-prefixed notice from the single
-  `description`. (2) **Deliberately did *not* merge `id` and `label`** — superficially
+  `description`. *(Superseded 2026-06-17: the notice-stamping was removed — it masked
+  the real gameplay notices; `description` is now picker-tooltip-only. The
+  `build()`-returns-board-state-only shape stays.)* (2) **Deliberately did *not*
+  merge `id` and `label`** — superficially
   similar, but they are *different* concepts (a slug-constrained machine id that is
   also the filename, vs free display text), so they can't be one string. The genuine
   redundancy is `id`-equals-filename; the clean fix would be to derive `id` from the

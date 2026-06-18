@@ -26,6 +26,14 @@ gently pulsing corner wash. The **start-square exception** is shipped end-to-end
 visual ownership arrows *and* engine (`legalMoves`, entry-only). Tests + build +
 lint green (`npm test` for the count); `src/ui/` stays rules-free.
 
+A **2026-06-17 QOL pass** refined the chrome further: nests are **circles** (not
+die-like squares); the centre die shows a **"Roll" prompt** on your turn with the
+last roll **relocated into the roller's nest** (and shown again on a roll-again 6);
+a win raises a **tap-to-dismiss popup** over the board; capture notices **name the
+captured colour** in its own colour; and all UI copy now lives in
+[`strings.ts`](../src/ui/strings.ts). QOL fine-tuning is ongoing (docs get a fuller
+cleanup once it settles). Per-item *why* → [decisions.md](decisions.md).
+
 The session-by-session *why* for all of the above is in [decisions.md](decisions.md)
 (newest first); the shipped rule + geometry facts are in
 [rules-and-lineage.md](rules-and-lineage.md) and [board-model.md](board-model.md).

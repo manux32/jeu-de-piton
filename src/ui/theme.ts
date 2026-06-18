@@ -13,7 +13,7 @@
  *                corner-notice text colours.
  *  - MOTION    — the knobs for the things that pulse/flash/breathe, and how fast.
  *  - GEOMETRY  — every size: square shape, outlines, the nests, the pieces, the
- *                die, the move rings, the title, and the corner notices.
+ *                die, the move rings, the title, the corner notices, and the win popup.
  *
  * A couple of effects are animated by the stylesheet (CSS), which can't read this
  * file. For just those, we hand the values over to CSS near the bottom
