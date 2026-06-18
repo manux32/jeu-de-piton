@@ -260,6 +260,15 @@ code {
   user-select: none;
 }
 
+/* The "Roll" prompt drawn on the die when it's a player's turn to roll (in place
+   of pips). Heading font to match the title; fill is the player's tint, set
+   inline by DieFace. Sized in viewBox units, so it scales with the board. */
+.die-label {
+  font-family: var(--heading);
+  font-weight: 700;
+  user-select: none;
+}
+
 /* --- shared bits -------------------------------------------------------- */
 /* .swatch: dev StateEditor colour chip. */
 .swatch {

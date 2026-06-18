@@ -13,7 +13,7 @@ const DevTools = import.meta.env.DEV
 
 function App() {
   const [view, dispatch] = useGame(4)
-  const { game, rolled, notice, noticeOwner } = view
+  const { game, rolled, notice, noticeOwner, rolledBy } = view
 
   // The roll sequencer owns the die's spin/settle/handover timing (view-only);
   // it generates the value, peeks the engine for the post-settle branch, and
@@ -36,6 +36,8 @@ function App() {
         rolling={rolling}
         notice={notice}
         noticeOwner={noticeOwner}
+        rolled={rolled}
+        rolledBy={rolledBy}
         onPick={(move) => dispatch({ type: 'pick', move })}
         onNewGame={(playerCount) => dispatch({ type: 'newGame', playerCount })}
         onRoll={roll}

@@ -240,6 +240,9 @@ export const NEST_HOLE_R = 0.36        // radius of each empty hole
 export const NEST_HOLE_STROKE_W = 0.05 // hole border thickness
 export const NEST_WASH_RX = 0.6        // corner rounding of the whose-turn glow
 export const NEST_WASH_INSET = 0.15    // how far the glow sits in from the corner edges
+export const NEST_LAST_ROLL_DIE = 0.8           // side length of the small "last roll" die shown at the left of a player's nest notice
+export const NEST_LAST_ROLL_DIE_OFFSET_X = 0.2  // gap from the left edge of the whose-turn highlight area to the die (bigger = further right)
+export const NEST_LAST_ROLL_DIE_OFFSET_Y = 0    // fine vertical nudge from centred-on-the-notice-text (+ = down)
 
 // ── Playing pieces (the disc, its "you can move me" halo, finished pieces) ──
 export const PITON_R = 0.3              // radius of a piece
@@ -256,6 +259,8 @@ export const DIE_PIP_STEP = 0.26     // [share] spacing of the pips from centre
 export const DIE_PIP_R = 0.085       // [share] pip radius
 export const DIE_CORNER_RX = 0.18    // [share] rounded corners
 export const DIE_STROKE_W = 0.04     // [share] border thickness
+export const DIE_PROMPT_TEXT = 0.25       // [share] size of the "Roll" prompt text shown on the die when it's a player's turn to roll
+export const DIE_PROMPT_OFFSET_X = 0.04   // [share] nudge the prompt text sideways to look centred (+ = right)
 
 // ── Move rings (shown on every square you can move to, after you roll) ──────
 // Three sizes, by what the move is. R = how wide the ring · STROKE_W = how thick.

@@ -22,12 +22,18 @@ import {
   type GameState,
   type Move,
 } from '../engine'
+import { NOTICE } from './strings'
 
 export interface GameView {
   game: GameState
   /** Die face to display — the most recent roll, held until someone rolls
    *  again; null only before any roll has happened (a fresh game). */
   rolled: number | null
+  /** Which player rolled the held `rolled` value. Lets the board show that roll
+   *  as a small die in *their* nest once the turn has moved on (the centre die
+   *  becomes a "Roll" prompt for whoever's up). Optional: the dev scenario
+   *  loader may omit it. */
+  rolledBy?: number | null
   /** One-line feedback about the last engine event, or null. */
   notice: string | null
   /**
@@ -69,7 +75,7 @@ function reducer(view: GameView, action: GameAction): GameView {
       // A roll with a legal move drops us into awaiting-move — no message; the
       // board lights up the movable pitons instead.
       if (next.phase === 'awaiting-move') {
-        return { game: next, rolled: action.value, notice: null, noticeOwner: null }
+        return { game: next, rolled: action.value, rolledBy: roller, notice: null, noticeOwner: null }
       }
 
       // No legal move, yet the turn stayed put ⇒ an unplayable bonus 6: nothing
@@ -79,7 +85,8 @@ function reducer(view: GameView, action: GameAction): GameView {
         return {
           game: next,
           rolled: action.value,
-          notice: 'No move — roll again',
+          rolledBy: roller,
+          notice: NOTICE.noMoveRollAgain,
           noticeOwner: roller,
         }
       }
@@ -88,8 +95,8 @@ function reducer(view: GameView, action: GameAction): GameView {
       // observing whether the roller lost a piton to its nest (the 3rd-6 streak
       // penalty) versus an ordinary no-legal-move forfeit.
       const penalized = nestCount(next, roller) > nestCount(prev, roller)
-      const notice = penalized ? 'Three 6s — sent home' : 'No move — pass'
-      return { game: next, rolled: action.value, notice, noticeOwner: roller }
+      const notice = penalized ? NOTICE.threeSixes : NOTICE.noMovePass
+      return { game: next, rolled: action.value, rolledBy: roller, notice, noticeOwner: roller }
     }
 
     case 'pick': {
@@ -98,17 +105,18 @@ function reducer(view: GameView, action: GameAction): GameView {
       const next = applyMove(prev, action.move)
 
       if (next.phase === 'game-over') {
-        return { game: next, rolled: view.rolled, notice: 'Wins! 🎉', noticeOwner: prev.turn }
+        return { game: next, rolled: view.rolled, rolledBy: view.rolledBy, notice: NOTICE.win, noticeOwner: prev.turn }
       }
       const parts: string[] = []
-      if (action.move.captures) parts.push('Capture!')
+      if (action.move.captures) parts.push(NOTICE.capture)
       // Turn unchanged after a move ⇒ the roll earned another go (a 6).
-      if (next.turn === prev.turn) parts.push('Roll again')
-      const notice = parts.join(' · ') || null
-      // Keep the rolled face on display through the move and into the next
-      // player's awaiting-roll — the die shows the last value rolled until
-      // someone rolls again (it resets to null, shown as 1, only on a new game).
-      return { game: next, rolled: view.rolled, notice, noticeOwner: notice ? prev.turn : null }
+      if (next.turn === prev.turn) parts.push(NOTICE.rollAgain)
+      const notice = parts.join(NOTICE.separator) || null
+      // Keep the rolled face + its roller on display through the move and into
+      // the next player's awaiting-roll — once the turn moves on, the board shows
+      // that value as a small die in the roller's nest while the centre die
+      // becomes a "Roll" prompt. (Both reset only on a new game.)
+      return { game: next, rolled: view.rolled, rolledBy: view.rolledBy, notice, noticeOwner: notice ? prev.turn : null }
     }
   }
 }

@@ -17,6 +17,7 @@ import { buildLayout, destinationCell, cellMid, cellStart } from './layout'
 import { Board } from './Board'
 import { Pitons } from './Pitons'
 import { DieFace } from './DieFace'
+import { TITLE, PROMPT, DIE } from './strings'
 import {
   PLAYER_HEX,
   boardThemeVars,
@@ -26,6 +27,10 @@ import {
   CTRL_H,
   CTRL_INSET,
   DIE_SIZE,
+  NEST_LAST_ROLL_DIE,
+  NEST_LAST_ROLL_DIE_OFFSET_X,
+  NEST_LAST_ROLL_DIE_OFFSET_Y,
+  NEST_WASH_INSET,
   NOTICE_TEXT_SIZE,
   NOTICE_OFFSET_X,
   NOTICE_OFFSET_Y,
@@ -50,6 +55,11 @@ interface Props {
   notice: string | null
   /** Player the notice is about (defaults to the current player if omitted). */
   noticeOwner?: number | null
+  /** The held die value (last roll), shown as a small die in the roller's nest
+   *  once the turn has moved on. Differs from `face`, which carries the spin. */
+  rolled: number | null
+  /** Which player rolled `rolled` (see useGame.GameView.rolledBy). */
+  rolledBy?: number | null
   onPick: (move: Move) => void
   onNewGame: (playerCount: number) => void
   onRoll: () => void
@@ -85,6 +95,8 @@ export function GameBoard({
   rolling,
   notice,
   noticeOwner,
+  rolled,
+  rolledBy,
   onPick,
   onNewGame,
   onRoll,
@@ -137,9 +149,9 @@ export function GameBoard({
   const eventOwner = notice == null ? null : noticeOwner ?? state.turn
   const prompt =
     state.phase === 'awaiting-roll'
-      ? 'Your turn'
+      ? PROMPT.awaitingRoll
       : state.phase === 'awaiting-move'
-        ? 'Pick a piton'
+        ? PROMPT.awaitingMove
         : null
   // Anchor the notice at the BOTTOM of the player's corner quadrant — the washed
   // area the nest sits in (same bounds as Board's whose-turn wash) — so it always
@@ -157,6 +169,37 @@ export function GameBoard({
     const y = qy1 - boxH - NOTICE_OFFSET_Y
     return { x, y }
   }
+
+  // The last completed roll, shown as a small die in the roller's nest — but only
+  // once the turn has moved on (while the roller was acting, the centre die
+  // carried their number). The value is the held `rolled` (not `face`, which
+  // carries the spin). It's left-aligned to the roller's whose-turn highlight
+  // quadrant (same left edge as Board's wash) and sits on the notice's vertical
+  // line — far enough left that it clears the centred notice text without
+  // crowding it (so the notice keeps its full width and never clips).
+  const lastRollMark =
+    rolled != null && rolledBy != null && rolledBy !== state.turn
+      ? (() => {
+          const { y } = nestNotice(rolledBy)
+          // The notice text bottom-aligns in its band (CSS .nest-notice
+          // align-items: flex-end), so its line sits at the band's bottom edge.
+          // Centre the die on that line (one text line tall, line-height 1.25),
+          // then apply the fine vertical nudge knob.
+          const bandBottom = y + NEST_NOTICE_H * noticeScale
+          const textCentreY = bandBottom - (NOTICE_TEXT_SIZE * 1.25) / 2
+          const slots = layout.nestSlots[rolledBy]
+          const clusterCx = slots.reduce((a, s) => a + s.cx, 0) / slots.length
+          const onLeft = clusterCx < cellMid(layout.homeCell.col, layout)
+          const washLeft =
+            (onLeft ? 0 : cellStart(layout.homeCell.col + 2, layout)) + NEST_WASH_INSET
+          return {
+            value: rolled,
+            cx: washLeft + NEST_LAST_ROLL_DIE_OFFSET_X + NEST_LAST_ROLL_DIE / 2,
+            cy: textCentreY + NEST_LAST_ROLL_DIE_OFFSET_Y,
+            color: PLAYER_HEX[state.players[rolledBy].color],
+          }
+        })()
+      : null
 
   return (
     <svg
@@ -181,7 +224,7 @@ export function GameBoard({
         textAnchor="middle"
         dominantBaseline="hanging"
       >
-        Jeu de piton
+        {TITLE}
       </text>
 
       {/* New Game, top-right — a disclosure: the "New game" toggle alone until
@@ -253,6 +296,19 @@ export function GameBoard({
         )
       })}
 
+      {/* The last completed roll, as a small die in the roller's nest (left of
+          their notice) — shown only once the turn has moved on, so it never
+          duplicates the centre die the roller was reading while they acted. */}
+      {lastRollMark && (
+        <DieFace
+          value={lastRollMark.value}
+          cx={lastRollMark.cx}
+          cy={lastRollMark.cy}
+          size={NEST_LAST_ROLL_DIE}
+          color={lastRollMark.color}
+        />
+      )}
+
       <Pitons state={state} layout={layout} moves={moves} onPick={onPick} />
 
       {/* The die, dead centre over HOME — painted after Pitons so it sits on top
@@ -267,7 +323,14 @@ export function GameBoard({
         role="button"
         aria-label={rolling ? 'rolling the die' : canRoll ? 'roll the die' : `die showing ${face}`}
       >
-        <DieFace value={face} cx={dieCentre} cy={dieCentre} size={DIE_SIZE} color={dieColor} />
+        <DieFace
+          value={face}
+          cx={dieCentre}
+          cy={dieCentre}
+          size={DIE_SIZE}
+          color={dieColor}
+          label={canRoll ? DIE.rollPrompt : undefined}
+        />
       </g>
 
       {/* legal-move target markers — a tinted ring on each destination cell, in
