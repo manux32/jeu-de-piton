@@ -215,6 +215,17 @@ code {
 .board-controls .muted {
   color: #6b6375;
 }
+/* "Skip turn" escape hatch beside the count picker: force the turn on to unstick
+   a wedged game. Muted + dashed so it reads as a utility, never a count pill, and
+   so it can't be fat-fingered for one mid-play. */
+.board-controls .pill-skip {
+  border-style: dashed;
+  color: #6b6375;
+}
+.board-controls .pill-skip:hover {
+  border-color: #aa3bff;
+  color: #08060d;
+}
 
 /* Per-nest notice: a short line anchored in a player's own corner. The event
    line (what just happened) sits in the acting player's nest; the turn prompt

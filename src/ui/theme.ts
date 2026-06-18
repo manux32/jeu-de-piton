@@ -293,10 +293,11 @@ export const WIN_TEXT_SIZE = 1.5      // text height of the win announcement, in
 
 // ── New Game button (built as HTML at [px] sizes, then shrunk onto the board) ─
 // CTRL_SCALE is the shrink factor (pixels → squares). The button widens from
-// CLOSED to OPEN so the 2/3/4 picker fits; INSET is how far down from the top it
-// sits. These size the New Game control only — notices have their own knobs above.
+// CLOSED to OPEN so the 2/3/4 picker + "Skip turn" escape hatch fit; INSET is how
+// far down from the top it sits. These size the New Game control only — notices
+// have their own knobs above.
 export const CTRL_SCALE = 0.019      // shrink factor: button pixels → board squares
 export const CTRL_W_CLOSED = 112     // [px] button width, collapsed
-export const CTRL_W_OPEN = 264       // [px] button width, with the 2/3/4 picker open
+export const CTRL_W_OPEN = 356       // [px] button width, with the 2/3/4 picker + "Skip turn" open
 export const CTRL_H = 52             // [px] button height
 export const CTRL_INSET = 0.4        // distance down from the top edge

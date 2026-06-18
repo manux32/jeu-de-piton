@@ -40,6 +40,7 @@ function App() {
         rolledBy={rolledBy}
         onPick={(move) => dispatch({ type: 'pick', move })}
         onNewGame={(playerCount) => dispatch({ type: 'newGame', playerCount })}
+        onForceNextTurn={() => dispatch({ type: 'forceNextTurn' })}
         onRoll={roll}
       />
 

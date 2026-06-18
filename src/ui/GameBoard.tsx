@@ -64,6 +64,9 @@ interface Props {
   rolledBy?: number | null
   onPick: (move: Move) => void
   onNewGame: (playerCount: number) => void
+  /** Escape hatch: force the turn to the next player to unstick a wedged game.
+   *  Sits behind the New Game disclosure so it can't be hit during normal play. */
+  onForceNextTurn: () => void
   onRoll: () => void
 }
 
@@ -101,6 +104,7 @@ export function GameBoard({
   rolledBy,
   onPick,
   onNewGame,
+  onForceNextTurn,
   onRoll,
 }: Props) {
   const layout = useMemo(
@@ -278,6 +282,23 @@ export function GameBoard({
                   {n}
                 </button>
               ))}
+            {/* Escape hatch, right of the count picker: force the turn on to
+                unstick a wedged game. Tucked behind the New Game disclosure (and
+                styled apart from the count pills) so it's never a play-time
+                mis-tap. See the stuck-turn bug in the STATUS backlog. */}
+            {pickerOpen && (
+              <button
+                type="button"
+                className="pill pill-skip"
+                aria-label="force the turn to the next player (unstick a wedged game)"
+                onClick={() => {
+                  onForceNextTurn()
+                  setPickerOpen(false)
+                }}
+              >
+                Skip turn
+              </button>
+            )}
           </div>
         </foreignObject>
       </g>

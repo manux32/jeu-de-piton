@@ -18,6 +18,7 @@ import {
   applyMove,
   applyRoll,
   createGame,
+  forceNextTurn,
   JEU_DE_PITON,
   type GameState,
   type Move,
@@ -49,6 +50,8 @@ export type GameAction =
   | { type: 'roll'; value: number }
   | { type: 'pick'; move: Move }
   | { type: 'newGame'; playerCount: number }
+  // Escape hatch: force the turn to the next player to unstick a wedged game.
+  | { type: 'forceNextTurn' }
   // DEV-only: drop a fully-built view straight in (see src/ui/dev/).
   | { type: 'load'; view: GameView }
 
@@ -66,6 +69,19 @@ function reducer(view: GameView, action: GameAction): GameView {
 
     case 'load':
       return action.view
+
+    case 'forceNextTurn': {
+      // Unstick a wedged game: hand the turn on, clearing any stale notice. A
+      // finished game has no "next turn", so leave game-over untouched.
+      if (view.game.phase === 'game-over') return view
+      return {
+        game: forceNextTurn(view.game),
+        rolled: view.rolled,
+        rolledBy: view.rolledBy,
+        notice: null,
+        noticeOwner: null,
+      }
+    }
 
     case 'roll': {
       const prev = view.game
