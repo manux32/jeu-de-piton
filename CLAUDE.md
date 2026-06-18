@@ -6,7 +6,7 @@ root glue at [`../../CLAUDE.md`](../../CLAUDE.md).
 
 ## Orientation — docs are tiered; load lazily
 **At session start, read only [docs/STATUS.md](docs/STATUS.md)** (current state +
-next steps + open questions). Everything else is **reference — open it only when a
+backlog + open questions). Everything else is **reference — open it only when a
 task touches that area**, to keep session context lean:
 - **Architecture & vision** (engine/UI split, tech choices, goals/non-goals) →
   [docs/architecture.md](docs/architecture.md)

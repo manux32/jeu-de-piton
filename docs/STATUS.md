@@ -1,7 +1,7 @@
 # jeu-de-piton — status
 
 > **Fast-moving tracker — skim at session start.** Keep it short: *current state,
-> next steps, live open questions, dev quick-ref* only. Durable material lives
+> backlog, live open questions, dev quick-ref* only. Durable material lives
 > elsewhere — don't let it pile up here:
 > - architecture / vision → [architecture.md](architecture.md)
 > - rules → [rules-and-lineage.md](rules-and-lineage.md) · board geometry →
@@ -34,49 +34,37 @@ captured colour** in its own colour; and all UI copy now lives in
 [`strings.ts`](../src/ui/strings.ts). QOL fine-tuning is ongoing (docs get a fuller
 cleanup once it settles). Per-item *why* → [decisions.md](decisions.md).
 
+All look-and-feel is knob-driven from [theme.ts](../src/ui/theme.ts) (COLOURS /
+MOTION / GEOMETRY) and all UI copy from [strings.ts](../src/ui/strings.ts) — the
+control surface is complete (bar the knob-set audit; see Backlog).
+
 The session-by-session *why* for all of the above is in [decisions.md](decisions.md)
 (newest first); the shipped rule + geometry facts are in
 [rules-and-lineage.md](rules-and-lineage.md) and [board-model.md](board-model.md).
 
-## Build checklist
-- ✅ **M1** scaffold — Vite + React + TS, own repo.
-- ✅ **M2** engine core — state model, path-aware moves, capture, the 6, lane +
-  exact HOME + win. (`src/engine/`, Vitest.)
-- ✅ **M3** SVG board render — `buildLayout` index→screen map; `<GameBoard>` →
-  `<Board>` + `<Pitons>`. (`src/ui/`.)
-- ✅ **M4** interaction loop — `useGame` reducer, roll → highlight legal moves →
-  click-to-move.
-- ⬜ **M5** variant layer.
-- ✅ **M6** polish — rectangular cells, capture-click fix, HOME grouping/highlight,
-  viewport-fit, chrome-moved-on-board, fill-the-screen, nest centring,
-  dice-at-centre, turn-clarity cues, start-square arrows + engine, die HUD (SVG
-  pip-face, tap-to-roll, spin/settle, pulse/dim). Chrome scaling with the board is
-  intended, not a defect — the one parked tuning item is retired (won't-do).
-  *(Per-item rationale → [decisions.md](decisions.md).)*
+## Backlog — unscheduled; pick the next task with the user
+Nothing is pre-committed for next session. The game is mature, so future work is
+most likely **UI polish** or a **rule-variant layer** — but a new idea may surface,
+so decide with the user at the start of each session. This section names a
+*specific* next task **only** when we've explicitly agreed one; otherwise it's just
+the candidate list below, in no particular order:
 
-## Next session — agreed: M5 variant layer
-The look-and-feel control surface is **complete**: [theme.ts](../src/ui/theme.ts)
-now owns colour, motion timing, *and* geometry (sections COLOURS / MOTION /
-GEOMETRY). Colour-knob + geometry-knob passes done, then a **knob-board usability
-pass** reorganized it around *user intent* in plain language — see
-[decisions.md](decisions.md) (2026-06-13 + 06-14 ×3). That pass also: graduated the
-square-shape knob `SQUARE_WIDTH` (was `ARM_WIDTH_SCALE`) from `layout.ts` into
-`theme.ts`; gave notices their own knobs (`NOTICE_TEXT_SIZE`/`OFFSET_X`/`OFFSET_Y`,
-split from the New Game button's scale); and flagged conditional knobs.
-**Knob-set audit is partial** — squares + notices done; the **die, New Game button,
-and start arrows** are the un-audited elements, to refine in future sessions *as
-needed* (not a blocking task). The principle is captured in memory
-(`knob-design-user-intent`).
-
-**M5 variant layer is the agreed next step.** The cabin ruleset already ships as a
-`Ruleset` and the engine is variant-agnostic, so this is mostly *proving* a second
-variant (e.g. canonical Parcheesi) drops in with **no UI change** — likely a
-ruleset-picker beside the player-count pills in the New Game control.
-
-  *Colour-knob follow-ons (the motivating direction): colours
-  beyond 4 extend the engine `PlayerColor` union + the palette; letting players
-  *choose* builds on the per-seat `players[].color` field that already exists (a
-  picker that sets it with uniqueness; seat→colour stays the default).*
+- **Rule-variant layer.** The cabin ruleset already ships as a `Ruleset` and the
+  engine is variant-agnostic, so this is mostly *proving* a second variant (e.g.
+  canonical Parcheesi) drops in with **no UI change** — likely a ruleset picker
+  beside the player-count pills in New Game. *Colour follow-ons in the same
+  direction:* colours beyond 4 extend the engine `PlayerColor` union + the palette;
+  letting players *choose* builds on the per-seat `players[].color` field that
+  already exists (a picker that sets it with uniqueness; seat→colour stays default).
+- **Finish the knob-set audit.** Squares + notices were audited (decisions.md
+  2026-06-14); the **die, New Game button, and start arrows** remain — refine their
+  `theme.ts` knobs as needed (the `knob-design-user-intent` memory holds the
+  principle). Not blocking.
+- **Fuller docs drift/redundancy sweep.** A systematic pass over the docs not
+  recently touched ([architecture.md](architecture.md),
+  [rules-and-lineage.md](rules-and-lineage.md)) for pre-existing staleness and
+  cross-doc redundancy — a content-excavation task best started fresh, not bolted
+  onto a session tail.
 
 ## Open rule details
 - **None open.** All cabin rules are confirmed and shipped as of 2026-06-13 — the
