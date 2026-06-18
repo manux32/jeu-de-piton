@@ -233,9 +233,9 @@ export const ARROW_WIDTH = 0.3          // [share] half the base width
 export const ARROW_STROKE_W = 0.04      // thin outline around the triangle
 
 // ── Nests (each player's corner: the enclosing circle, the 4 holes, the whose-turn glow) ──
-export const NEST_BOX_PAD = 0.8        // how far the enclosing circle extends past the outer holes
+export const NEST_BOX_PAD = 0.9        // how far the enclosing circle extends past the outer holes
 export const NEST_BOX_STROKE_W = 0.08  // circle border thickness
-export const NEST_HOLE_SPACING = 2     // gap between adjacent holes, in render units (lower = pitons closer; the circle resizes to follow)
+export const NEST_HOLE_SPACING = 1.7     // gap between adjacent holes, in render units (lower = pitons closer; the circle resizes to follow)
 export const NEST_HOLE_R = 0.36        // radius of each empty hole
 export const NEST_HOLE_STROKE_W = 0.05 // hole border thickness
 export const NEST_WASH_RX = 0.6        // corner rounding of the whose-turn glow
