@@ -179,15 +179,20 @@ export function GameBoard({
     return { x, y }
   }
 
-  // The last completed roll, shown as a small die in the roller's nest — but only
-  // once the turn has moved on (while the roller was acting, the centre die
-  // carried their number). The value is the held `rolled` (not `face`, which
-  // carries the spin). It's left-aligned to the roller's whose-turn highlight
-  // quadrant (same left edge as Board's wash) and sits on the notice's vertical
-  // line — far enough left that it clears the centred notice text without
-  // crowding it (so the notice keeps its full width and never clips).
+  // The last completed roll, shown as a small die in the roller's nest. Shown
+  // whenever the centre die isn't already showing that value as pips: once the
+  // turn has moved on, OR when the roller kept the turn and is back to rolling
+  // (a 6 — `awaiting-roll`, centre now showing the "Roll" prompt) where it backs
+  // up the "Roll again" notice. While the roller is mid-move (`awaiting-move`,
+  // centre showing the pips) it stays hidden, so the value never appears twice.
+  // The value is the held `rolled` (not `face`, which carries the spin). It's
+  // left-aligned to the roller's whose-turn highlight quadrant (same left edge as
+  // Board's wash) and sits on the notice's vertical line — far enough left that it
+  // clears the centred notice text without crowding it.
   const lastRollMark =
-    rolled != null && rolledBy != null && rolledBy !== state.turn
+    rolled != null &&
+    rolledBy != null &&
+    (rolledBy !== state.turn || state.phase === 'awaiting-roll')
       ? (() => {
           const { y } = nestNotice(rolledBy)
           // The notice text bottom-aligns in its band (CSS .nest-notice
