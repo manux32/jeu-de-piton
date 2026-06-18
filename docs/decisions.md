@@ -10,6 +10,27 @@
 > [rules-and-lineage.md](rules-and-lineage.md), [board-model.md](board-model.md)).
 > Don't duplicate git history — capture reasoning a commit message wouldn't.
 
+- **2026-06-18** — **Ship to iPad as an installable PWA on GitHub Pages — not a
+  native app.** Goal: play hot-seat at the cabin (no internet) on iPads we own, with
+  no App Store and no $99/yr Apple dev fee. The fee is about *distribution* through
+  Apple's channel; we distribute nothing, so it's not in the path. Safari's "Add to
+  Home Screen" gives a fullscreen, icon'd, app-like launch for free; a manifest +
+  service worker (via `vite-plugin-pwa`, `registerType: 'autoUpdate'`, default
+  precache) make it run fully offline once loaded. **No bridging tech (Capacitor/
+  Cordova)** — that only buys App Store distribution or native device APIs we don't
+  need; pure overhead here. Android would work too (and is more forgiving on cache
+  eviction), but isn't needed. Hosting reuses the existing repo via a Pages Action
+  (`.github/workflows/deploy.yml`); `base: '/jeu-de-piton/'` matches the project-site
+  sub-path and scopes the SW. **Known caveat:** iOS evicts a PWA's storage after
+  ~7 days unused, so the cache isn't guaranteed weeks later — mitigation is "open it
+  once before leaving" rather than engineering around Apple's eviction. **Escape
+  hatch:** a stuck turn once needed the dev bar to recover, but the dev rig is
+  dead-code-eliminated from prod (`import.meta.env.DEV`) and its save-scenario flow
+  is a dev-only Vite middleware — it can't ship. So instead of shipping the whole
+  rig, a minimal `forceNextTurn` (engine, wrapping the private `passTurn`) is exposed
+  as a **"Skip turn"** button tucked *inside* the New Game disclosure, right of the
+  2/3/4 pills — behind another button + styled apart so it's never a play-time
+  mis-tap. It's a *recovery* tool, not a fix; the real bug is unrepro'd (STATUS backlog).
 - **2026-06-17** — **QOL polish pass: the nest reads as a nest (not a die), the
   roll prompt lives on the die, and a win is unmissable.** A batch of user-driven
   legibility fixes; the *why* per item (blow-by-blow is in the commits):

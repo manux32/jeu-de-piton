@@ -1,0 +1,49 @@
+# Build the Vite app and publish it to GitHub Pages on every push to main.
+# One-time repo setup: Settings → Pages → Build and deployment → Source = "GitHub
+# Actions". The site then serves at https://manux32.github.io/jeu-de-piton/ (the
+# `base` in vite.config.ts must match that sub-path).
+#
+# Runs on GitHub-hosted runners (clean network), so no --use-system-ca here —
+# that's only needed behind the cabin/corporate TLS interception locally.
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Allow the deploy job to publish to Pages.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One in-flight deploy at a time; don't cancel a running one mid-publish.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

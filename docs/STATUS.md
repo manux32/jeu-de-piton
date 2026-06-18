@@ -38,6 +38,12 @@ All look-and-feel is knob-driven from [theme.ts](../src/ui/theme.ts) (COLOURS /
 MOTION / GEOMETRY) and all UI copy from [strings.ts](../src/ui/strings.ts) — the
 control surface is complete (bar the knob-set audit; see Backlog).
 
+**Now shippable to mobile:** an installable, offline-first PWA (`vite-plugin-pwa`)
+deployed to GitHub Pages via [`.github/workflows/deploy.yml`](../.github/workflows/deploy.yml)
+— built to play hot-seat on an iPad at the cabin with no internet (why + the iOS
+cache caveat → [decisions.md](decisions.md) 2026-06-18). One-time setup: repo
+**Settings → Pages → Source = GitHub Actions**.
+
 The session-by-session *why* for all of the above is in [decisions.md](decisions.md)
 (newest first); the shipped rule + geometry facts are in
 [rules-and-lineage.md](rules-and-lineage.md) and [board-model.md](board-model.md).
@@ -60,6 +66,13 @@ the candidate list below, in no particular order:
   2026-06-14); the **die, New Game button, and start arrows** remain — refine their
   `theme.ts` knobs as needed (the `knob-design-user-intent` memory holds the
   principle). Not blocking.
+- **Stuck-turn bug (repro unknown).** A real game once wedged on a player's turn —
+  it could not be advanced by normal play and had to be unstuck manually. Not yet
+  reproducible, so the cause is unknown (likely candidate: a state where the turn
+  fails to auto-pass — e.g. no legal move not forfeiting). A **"Skip turn" escape
+  hatch** now ships in the New Game picker (`forceNextTurn`) as a *recovery* for it,
+  but the underlying defect is unfixed — chase a repro + root cause in a fresh
+  session (start in the engine's `passTurn` / `applyRoll` / `applyMove` flow).
 - **Fuller docs drift/redundancy sweep.** A systematic pass over the docs not
   recently touched ([architecture.md](architecture.md),
   [rules-and-lineage.md](rules-and-lineage.md)) for pre-existing staleness and

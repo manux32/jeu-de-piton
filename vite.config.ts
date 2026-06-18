@@ -1,5 +1,6 @@
 import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
+import { VitePWA } from 'vite-plugin-pwa'
 import { existsSync, writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 
@@ -49,5 +50,39 @@ function saveScenarioPlugin(): Plugin {
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), saveScenarioPlugin()],
+  // Served from a GitHub Pages project site (manux32.github.io/jeu-de-piton/), so
+  // assets must resolve under that sub-path. This also scopes the service worker.
+  base: '/jeu-de-piton/',
+  plugins: [
+    react(),
+    saveScenarioPlugin(),
+    // Installable, offline-first build for playing on an iPad at the cabin (no
+    // internet): "Add to Home Screen" → the service worker precaches the whole
+    // app so it runs from cache. Inert in dev (no SW unless devOptions.enabled),
+    // so it never interferes with the dev server or the save-scenario middleware.
+    VitePWA({
+      registerType: 'autoUpdate',
+      includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
+      manifest: {
+        name: 'Jeu de piton',
+        short_name: 'Piton',
+        description: 'A cross-and-circle race game for the cabin.',
+        lang: 'en',
+        theme_color: '#1c1330',
+        background_color: '#1c1330',
+        display: 'standalone',
+        orientation: 'any',
+        icons: [
+          { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' },
+          { src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png' },
+          {
+            src: 'pwa-maskable-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable',
+          },
+        ],
+      },
+    }),
+  ],
 })
