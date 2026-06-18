@@ -9,7 +9,14 @@
  *  - `DIE`     — the centre die's "your turn to roll" prompt.
  *  - `PROMPT`  — the quiet per-turn nudge in the current player's nest.
  *  - `NOTICE`  — the "what just happened" lines in the acting player's nest.
+ *
+ * Notices are richer than plain text: a notice is a list of `NoticeSegment`s, so
+ * a run of it can be tinted in a player's colour (e.g. the captured colour's
+ * name). The renderer resolves a segment's `color` (a player colour name) to a
+ * hex via PLAYER_HEX — strings stay free of theme values.
  */
+import type { PlayerColor } from '../engine'
+
 export const TITLE = 'Jeu de piton'
 
 export const DIE = {
@@ -24,19 +31,49 @@ export const PROMPT = {
   awaitingMove: 'Pick a piton',
 } as const
 
+export const WIN = {
+  /** The big board announcement. `color` is the engine's lowercase colour name
+   *  (e.g. 'green'); it's capitalized for display → "Green wins! 🎉". */
+  banner: (color: string) => `${color.charAt(0).toUpperCase()}${color.slice(1)} wins! 🎉`,
+  /** Quiet hint under the headline — the popup dismisses on click. */
+  hint: 'tap to dismiss',
+} as const
+
+/** A run of notice text, optionally tinted in a player's colour. */
+export interface NoticeSegment {
+  text: string
+  /** If set, render this run in this player's colour (resolved via PLAYER_HEX). */
+  color?: PlayerColor
+}
+/** A notice is a sequence of (optionally coloured) text runs. */
+export type Notice = NoticeSegment[]
+
+/** A one-segment, uncoloured notice. */
+const plain = (text: string): Notice => [{ text }]
+
 export const NOTICE = {
   /** Rolled a 6 (bonus roll) but it left no legal move — roll again anyway. */
-  noMoveRollAgain: 'No move — roll again',
+  noMoveRollAgain: plain('No move — roll again'),
   /** Third 6 in a row — the streak penalty sends a piton home. */
-  threeSixes: 'Three 6s — sent home',
+  threeSixes: plain('Three 6s — sent home'),
   /** Roll left no legal move and wasn't a bonus — the turn passes. */
-  noMovePass: 'No move — pass',
-  /** A move landed on and captured an enemy piton. */
-  capture: 'Capture!',
+  noMovePass: plain('No move — pass'),
+  /** A move landed on and captured an enemy piton; `color` is whose. The colour
+   *  name is tinted in that player's colour → "Capture! (red)". */
+  capture: (color: PlayerColor): Notice => [
+    { text: 'Capture! (' },
+    { text: color, color },
+    { text: ')' },
+  ],
   /** A move that earned another go (rolled a 6). */
-  rollAgain: 'Roll again',
+  rollAgain: plain('Roll again'),
   /** The acting player just finished their last piton and won. */
-  win: 'Wins! 🎉',
-  /** Joiner between two event fragments (e.g. "Capture! · Roll again"). */
-  separator: ' · ',
-} as const
+  win: plain('Wins! 🎉'),
+}
+
+/** Joiner between event fragments (e.g. "Capture! (red) · Roll again"). */
+const NOTICE_SEPARATOR: NoticeSegment = { text: ' · ' }
+/** Concatenate notice fragments, inserting the separator between them. */
+export function joinNotice(fragments: Notice[]): Notice {
+  return fragments.flatMap((frag, i) => (i === 0 ? frag : [NOTICE_SEPARATOR, ...frag]))
+}

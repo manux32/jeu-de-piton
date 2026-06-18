@@ -249,6 +249,56 @@ code {
   color: var(--notice-win, #08060d);
 }
 
+/* Win popup — a content-sized panel over the board centre announcing the winner,
+   tap to dismiss. The wrapper fills the board only to centre the panel and is
+   click-through (pointer-events:none), so the New Game button behind it stays
+   live; only the panel itself takes clicks. Font-size is set inline in board
+   units; padding/rounding are in em, so the whole panel scales from that one
+   size. */
+.win-overlay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.win-panel {
+  pointer-events: auto;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2em;
+  padding: 0.55em 1.1em;
+  border: 0.06em solid var(--win-color, #fff);
+  border-radius: 0.32em;
+  background: var(--win-bg, rgba(18, 16, 26, 0.84));
+  color: var(--win-color, #fff);
+  font-family: var(--heading);
+  font-weight: 800;
+  line-height: 1.1;
+  white-space: nowrap;
+  animation: win-pop 0.32s cubic-bezier(0.2, 1.2, 0.3, 1) both;
+}
+/* The quiet "tap to dismiss" hint under the headline — half size, dimmed. */
+.win-hint {
+  font-size: 0.32em;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  opacity: 0.7;
+}
+@keyframes win-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 /* Game title rendered inside the board SVG (top-left). Drawn on the always-light
    board background, so a fixed dark fill reads in either page theme. Sized in
    viewBox units by <text font-size>, so it scales with the board. */

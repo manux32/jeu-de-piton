@@ -17,7 +17,7 @@ import { buildLayout, destinationCell, cellMid, cellStart } from './layout'
 import { Board } from './Board'
 import { Pitons } from './Pitons'
 import { DieFace } from './DieFace'
-import { TITLE, PROMPT, DIE } from './strings'
+import { TITLE, PROMPT, DIE, WIN, type Notice } from './strings'
 import {
   PLAYER_HEX,
   boardThemeVars,
@@ -31,6 +31,8 @@ import {
   NEST_LAST_ROLL_DIE_OFFSET_X,
   NEST_LAST_ROLL_DIE_OFFSET_Y,
   NEST_WASH_INSET,
+  WIN_PANEL_BG,
+  WIN_TEXT_SIZE,
   NOTICE_TEXT_SIZE,
   NOTICE_OFFSET_X,
   NOTICE_OFFSET_Y,
@@ -52,7 +54,7 @@ interface Props {
   face: number
   /** True while a roll is animating; the die is non-interactive then. */
   rolling: boolean
-  notice: string | null
+  notice: Notice | null
   /** Player the notice is about (defaults to the current player if omitted). */
   noticeOwner?: number | null
   /** The held die value (last roll), shown as a small die in the roller's nest
@@ -139,6 +141,13 @@ export function GameBoard({
       ? 'board-die'
       : 'board-die board-die-idle'
   const over = state.phase === 'game-over'
+
+  // Win popup: shown over the board centre at game-over, dismissed on click. We
+  // remember the exact game-over state we dismissed (reference equality) so the
+  // popup stays gone for this game but re-arms on the next win — a new game is a
+  // fresh state object, and a finished game never mutates again.
+  const [dismissedWin, setDismissedWin] = useState<GameState | null>(null)
+  const showWin = over && state.winner != null && dismissedWin !== state
 
   // Per-nest notices: each message sits in the corner of the player it concerns.
   // The *event* line (what just happened) belongs to the player who acted —
@@ -274,8 +283,10 @@ export function GameBoard({
           text via foreignObject; click-through so it never swallows board clicks. */}
       {state.players.map((_, p) => {
         const isEvent = p === eventOwner
-        const text = isEvent ? notice : p === state.turn ? prompt : null
-        if (!text) return null
+        // The event line is a coloured-segment Notice; the turn prompt is plain
+        // text. Both render in the same band — pick whichever this nest owns.
+        const content = isEvent ? notice : p === state.turn ? prompt : null
+        if (!content) return null
         const { x, y } = nestNotice(p)
         const cls = isEvent
           ? over
@@ -289,7 +300,16 @@ export function GameBoard({
           >
             <foreignObject x={0} y={0} width={NEST_NOTICE_W} height={NEST_NOTICE_H}>
               <div className={cls} role="status" aria-live="polite">
-                {text}
+                {typeof content === 'string'
+                  ? content
+                  : content.map((seg, i) => (
+                      <span
+                        key={i}
+                        style={seg.color ? { color: PLAYER_HEX[seg.color] } : undefined}
+                      >
+                        {seg.text}
+                      </span>
+                    ))}
               </div>
             </foreignObject>
           </g>
@@ -372,6 +392,32 @@ export function GameBoard({
           )
         })}
       </g>
+
+      {/* Win popup — painted last so it sits on top of everything. A content-
+          sized panel centred over the board (the full-board foreignObject is just
+          a centring frame; it's click-through, so the New Game button behind it
+          stays live). Tap the panel to dismiss and inspect the final board. */}
+      {showWin && state.winner != null && (
+        <foreignObject x={0} y={0} width={layout.extent} height={layout.extent}>
+          <div className="win-overlay">
+            <button
+              type="button"
+              className="win-panel"
+              onClick={() => setDismissedWin(state)}
+              style={
+                {
+                  '--win-color': PLAYER_HEX[state.winner],
+                  '--win-bg': WIN_PANEL_BG,
+                  fontSize: WIN_TEXT_SIZE,
+                } as CSSProperties
+              }
+            >
+              <span>{WIN.banner(state.winner)}</span>
+              <span className="win-hint">{WIN.hint}</span>
+            </button>
+          </div>
+        </foreignObject>
+      )}
     </svg>
   )
 }

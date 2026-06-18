@@ -96,6 +96,10 @@ export const NOTICE_EVENT = '#2b2733'
 export const NOTICE_PROMPT = '#4a4456'
 /** The win announcement — the boldest/darkest of the three. */
 export const NOTICE_WIN = '#08060d'
+/** Backdrop of the win popup that covers the board centre — a semi-opaque dark
+ *  panel the winner's colour text sits on (the winner's hue comes from
+ *  PLAYER_HEX). Lower the alpha to let more board show through. */
+export const WIN_PANEL_BG = 'rgba(18, 16, 26, 0.84)'
 
 // ── How strongly a player's colour shows through ────────────────────────────
 // These are see-through amounts (0 = invisible, 1 = solid), not sizes.
@@ -280,6 +284,12 @@ export const TITLE_TOP = 0.5         // distance down from the top edge
 export const NOTICE_TEXT_SIZE = 0.342 // text height, in squares (bigger = bigger text)
 export const NOTICE_OFFSET_X = 0      // nudge sideways from centred (+ = right)
 export const NOTICE_OFFSET_Y = 0.55   // how far up from the bottom of the corner
+
+// ── Win popup (the "Green wins!" panel over the board centre, tap to dismiss) ─
+// Colour it with WIN_PANEL_BG up in COLOURS; the text takes the winner's hue.
+// The panel auto-fits its text; padding/rounding scale with the text (em), so
+// this one size is the only knob it needs.
+export const WIN_TEXT_SIZE = 1.5      // text height of the win announcement, in squares
 
 // ── New Game button (built as HTML at [px] sizes, then shrunk onto the board) ─
 // CTRL_SCALE is the shrink factor (pixels → squares). The button widens from
