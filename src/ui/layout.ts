@@ -48,7 +48,7 @@
  */
 
 import type { BoardGeometry, PitonPosition } from '../engine'
-import { SQUARE_WIDTH } from './theme'
+import { SQUARE_WIDTH, NEST_HOLE_SPACING } from './theme'
 
 /** A cell on the board grid, in cell units (not pixels). */
 export interface Cell {
@@ -226,13 +226,15 @@ export function buildLayout(
   }
   const nestCentres = [0, 1, 2, 3].map((r) => rotNest(eastNest, r))
   // The 2×2 of holes around a nest centre. A square is rotation-invariant, so
-  // the same offsets serve every arm; ±1 render unit ⇒ holes 2 units apart, the
-  // spacing the (unit-width) corner cells give.
+  // the same offsets serve every arm. Each hole sits half the NEST_HOLE_SPACING
+  // knob from the centre on each axis (default 2 ⇒ ±1, the spacing the
+  // unit-width corner cells give); lower the knob to draw the pitons together.
+  const half = NEST_HOLE_SPACING / 2
   const SLOT_OFFSETS = [
-    { dx: -1, dy: -1 },
-    { dx: 1, dy: -1 },
-    { dx: -1, dy: 1 },
-    { dx: 1, dy: 1 },
+    { dx: -half, dy: -half },
+    { dx: half, dy: -half },
+    { dx: -half, dy: half },
+    { dx: half, dy: half },
   ]
 
   // --- per-player lanes and nests, on each player's own arm -------------------

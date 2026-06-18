@@ -33,7 +33,6 @@ import {
   ARROW_WIDTH,
   ARROW_STROKE_W,
   NEST_BOX_PAD,
-  NEST_BOX_RX,
   NEST_BOX_STROKE_W,
   NEST_HOLE_R,
   NEST_HOLE_STROKE_W,
@@ -146,11 +145,13 @@ export function Board({ state, layout }: Props) {
         const maxCx = Math.max(...slots.map((s) => s.cx))
         const minCy = Math.min(...slots.map((s) => s.cy))
         const maxCy = Math.max(...slots.map((s) => s.cy))
-        const pad = NEST_BOX_PAD // box margin beyond the outer hole centres
-        const x = minCx - pad
-        const y = minCy - pad
-        const w = maxCx - minCx + pad * 2
-        const h = maxCy - minCy + pad * 2
+        // A circle (not a square) encloses the four holes, so the cluster reads
+        // as a nest rather than a die's 4-face. Centred on the hole cluster, with
+        // radius reaching from that centre out to the corner holes plus the pad.
+        const nestCx = (minCx + maxCx) / 2
+        const nestCy = (minCy + maxCy) / 2
+        const nestR =
+          Math.hypot((maxCx - minCx) / 2, (maxCy - minCy) / 2) + NEST_BOX_PAD
 
         // Which corner quadrant this nest sits in (between the two arms), bounded
         // by the board edge and the near edge of each adjacent arm. The arms span
@@ -178,12 +179,10 @@ export function Board({ state, layout }: Props) {
                 fill={hex}
               />
             )}
-            <rect
-              x={x}
-              y={y}
-              width={w}
-              height={h}
-              rx={NEST_BOX_RX}
+            <circle
+              cx={nestCx}
+              cy={nestCy}
+              r={nestR}
               fill={hex}
               fillOpacity={NEST_BOX_FILL_OPACITY}
               stroke={hex}
