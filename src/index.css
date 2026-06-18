@@ -135,8 +135,14 @@ code {
 /* --- board --------------------------------------------------------------- */
 .board-shell {
   /* The board is the game — let it fill. No width cap here; the only limit is
-     the .game-board height-aware sizing below (and the shell padding). */
-  max-width: none;
+     the .game-board height-aware sizing below (and the shell padding). Trim the
+     shell padding right down (was 24px) so the board reclaims that real estate —
+     it matters most on a tablet, where every edge pixel is board. A small inset
+     remains so the board clears rounded screen corners / the home indicator;
+     env(safe-area-inset-*) adds the device's own inset on top when installed
+     fullscreen. Keep this in step with .game-board's height reserve below. */
+  padding: max(6px, env(safe-area-inset-top)) max(6px, env(safe-area-inset-right))
+    max(6px, env(safe-area-inset-bottom)) max(6px, env(safe-area-inset-left));
 }
 
 .pill {
@@ -165,9 +171,11 @@ code {
      much as it can. `width: 100%` bounds it by the available width; this
      max-width bounds it by viewport height so a square board never overflows
      vertically. All chrome (title, controls, dice, notice) lives inside the
-     board, so the only off-board reserve is the shell padding (24px top +
-     bottom) plus a little safety. */
-  max-width: calc(100svh - 56px);
+     board, so the only off-board reserve is the shell padding (now 6px top +
+     bottom, plus the device's top/bottom safe-area insets) plus a little safety. */
+  max-width: calc(
+    100svh - 12px - env(safe-area-inset-top) - env(safe-area-inset-bottom)
+  );
   height: auto;
   margin: 0 auto;
   aspect-ratio: 1 / 1;
