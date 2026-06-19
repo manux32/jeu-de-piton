@@ -4,6 +4,16 @@ A 2D, browser-based cross-and-circle race game (Pachisi/Parcheesi family). This
 file is the durable routing for the project; it loads on top of the home-tree
 root glue at [`../../CLAUDE.md`](../../CLAUDE.md).
 
+## The user's role here — and how to pitch answers
+On this project the user acts purely as **game designer**, not implementer: Claude
+has written **all** the code from scratch; the user shapes the game design, rules,
+and look, and tweaks exposed knobs. So **don't assume code familiarity** — he knows
+the design and the visuals, not the implementation corners. Default to **concise,
+plain-English answers**: lead with the direct answer in a sentence or two. Deeper
+technical detail is welcome as *optional* backing afterward, but always close with a
+straight, to-the-point answer to what was actually asked. (He may choose to dive
+into the code later; revisit this then.)
+
 ## Orientation — docs are tiered; load lazily
 **At session start, read only [docs/STATUS.md](docs/STATUS.md)** (current state +
 backlog + open questions). Everything else is **reference — open it only when a
