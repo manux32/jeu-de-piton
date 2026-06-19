@@ -250,20 +250,27 @@ code {
      single source is theme.ts (NOTICE_FONT_PX via boardThemeVars). */
   font-size: var(--notice-font-px, 18px);
   font-weight: 600;
-  line-height: 1.25;
-  /* Notice colours — knobs in theme.ts via boardThemeVars (literal fallbacks). */
-  color: var(--notice-event, #2b2733);
+  /* Single source: theme.ts NOTICE_LINE_HEIGHT, which also derives the box height
+     (NOTICE_MAX_LINES whole lines). Keep them in sync via the var, not a literal. */
+  line-height: var(--notice-line-height, 1.25);
+  /* The box is a whole number of lines tall; clip so an over-long message cuts off
+     exactly at the top line edge rather than peeking a sliver of the next line. */
+  overflow: hidden;
   pointer-events: none;
 }
-/* The current-player turn prompt is the quieter of the two — it's the baseline
-   "you're up" cue, reinforcing the breathing wash, not announcing an event. */
-.nest-notice-prompt {
-  font-style: italic;
-  font-weight: 500;
-  color: var(--notice-prompt, #4a4456);
+/* A notice is coloured by WHOSE nest it sits in, not by what it says:
+   `current` = the player whose turn it is now, `previous` = the player who acted
+   last turn. The colours are the only thing that differs for now (so the text box
+   reads identically between them while tuning) — but each role has its own class
+   so weight / italic / size knobs can be added per role later without touching the
+   render code. `win` is the one-off end-state, kept separate on purpose. */
+.nest-notice-current {
+  color: var(--notice-current, #2b2733);
+}
+.nest-notice-previous {
+  color: var(--notice-previous, #4a4456);
 }
 .nest-notice-win {
-  font-weight: 600;
   color: var(--notice-win, #08060d);
 }
 

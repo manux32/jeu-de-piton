@@ -26,7 +26,7 @@ export const DIE = {
 
 export const PROMPT = {
   /** Current player still has to roll. */
-  awaitingRoll: 'Your turn',
+  awaitingRoll: 'Your turn!',
   /** Roll is in; current player must now move a piton. */
   awaitingMove: 'Pick a piton',
 } as const

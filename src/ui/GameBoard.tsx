@@ -36,7 +36,11 @@ import {
   NOTICE_TEXT_SIZE,
   NOTICE_OFFSET_X,
   NOTICE_OFFSET_Y,
+  NOTICE_WIDTH,
+  NOTICE_MAX_LINES,
+  NOTICE_DEBUG_OUTLINE,
   NOTICE_FONT_PX,
+  NOTICE_LINE_HEIGHT,
   TITLE_FONT_SIZE,
   TITLE_TOP,
   MOVE_TARGET_R,
@@ -87,11 +91,15 @@ interface Props {
 // scales so tuning one never touches the other. The button uses CTRL_SCALE; a
 // notice uses `noticeScale`, derived so its text lands at NOTICE_TEXT_SIZE board
 // units (the px font it's built at, NOTICE_FONT_PX, cancels out — it only affects
-// crispness). NEST_NOTICE_W/H are just the invisible box the text sits in — not a
-// tuning knob, so they stay local here; widen only if a longer message clips.
-const NEST_NOTICE_W = 168
-const NEST_NOTICE_H = 48
+// crispness).
 const noticeScale = NOTICE_TEXT_SIZE / NOTICE_FONT_PX
+// The invisible box the text sits in, in the px space it's built at (the <g> below
+// scales it to board units). Both dimensions are DERIVED from the theme knobs, so
+// tuning is math-free: width is NOTICE_WIDTH squares converted back to px; height
+// is exactly NOTICE_MAX_LINES whole lines tall, so overflow always clips on a line
+// boundary (never a half-line sliver).
+const NEST_NOTICE_W = NOTICE_WIDTH / noticeScale
+const NEST_NOTICE_H = NOTICE_MAX_LINES * NOTICE_FONT_PX * NOTICE_LINE_HEIGHT
 
 export function GameBoard({
   state,
@@ -314,11 +322,16 @@ export function GameBoard({
         const content = isEvent ? notice : p === state.turn ? prompt : null
         if (!content) return null
         const { x, y } = nestNotice(p)
-        const cls = isEvent
-          ? over
+        // Colour by WHOSE nest this is, not by the kind of message: the current
+        // player (state.turn) gets the visible colour, the player who acted last
+        // turn gets the quiet one. A player on a 6-streak stays `state.turn`, so
+        // their line stays "current". The won game is the one exception.
+        const cls =
+          isEvent && over
             ? 'nest-notice nest-notice-win'
-            : 'nest-notice'
-          : 'nest-notice nest-notice-prompt'
+            : p === state.turn
+              ? 'nest-notice nest-notice-current'
+              : 'nest-notice nest-notice-previous'
         return (
           <g
             key={`notice-${p}`}
@@ -326,18 +339,38 @@ export function GameBoard({
           >
             <foreignObject x={0} y={0} width={NEST_NOTICE_W} height={NEST_NOTICE_H}>
               <div className={cls} role="status" aria-live="polite">
-                {typeof content === 'string'
-                  ? content
-                  : content.map((seg, i) => (
-                      <span
-                        key={i}
-                        style={seg.color ? { color: PLAYER_HEX[seg.color] } : undefined}
-                      >
-                        {seg.text}
-                      </span>
-                    ))}
+                {/* One inner span so the flex container centres a SINGLE item: the
+                    tinted runs then flow as inline text (spaces + wrapping intact)
+                    instead of each segment becoming its own flex item. */}
+                <span>
+                  {typeof content === 'string'
+                    ? content
+                    : content.map((seg, i) => (
+                        <span
+                          key={i}
+                          style={seg.color ? { color: PLAYER_HEX[seg.color] } : undefined}
+                        >
+                          {seg.text}
+                        </span>
+                      ))}
+                </span>
               </div>
             </foreignObject>
+            {/* Dev knob: trace the box the text sits in so its extents are
+                visible while tuning the notice knobs. Same units as the
+                foreignObject, so it scales with it. */}
+            {NOTICE_DEBUG_OUTLINE && (
+              <rect
+                x={0}
+                y={0}
+                width={NEST_NOTICE_W}
+                height={NEST_NOTICE_H}
+                fill="rgba(255, 0, 255, 0.08)"
+                stroke="#ff00ff"
+                strokeWidth={1}
+                pointerEvents="none"
+              />
+            )}
           </g>
         )
       })}

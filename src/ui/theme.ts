@@ -87,14 +87,18 @@ export const START_ARROW_STROKE = '#fdfcf8'
 export const TITLE_FILL = '#9b96a3'
 
 // ── Corner-notice text colours ──────────────────────────────────────────────
-// The short lines in each player's corner. (Their size/position are notice knobs
-// in GEOMETRY below — search "corner notices".) Fixed dark colours, not theme-
-// reactive, because the board is always light so they stay readable either way.
-/** The "what just happened" line, in the corner of whoever acted. */
-export const NOTICE_EVENT = '#2b2733'
-/** The quieter prompt ("Your turn" / "Pick a piece"). */
-export const NOTICE_PROMPT = '#4a4456'
-/** The win announcement — the boldest/darkest of the three. */
+// The short lines in each player's corner. A notice is coloured by WHOSE nest it
+// is in — the current player's, or the one who played last turn — not by what it
+// says. (Their size/position are notice knobs in GEOMETRY below — search "corner
+// notices".) Fixed dark colours, not theme-reactive, because the board is always
+// light so they stay readable either way.
+/** The notice in the nest of the player whose turn it is now — the more visible
+ *  of the two. (A player who keeps rolling on a 6 stays "current", so their line
+ *  keeps this colour across the streak.) */
+export const NOTICE_CURRENT = '#383838'
+/** The notice in the nest of the player who played last turn — the quieter one. */
+export const NOTICE_PREVIOUS = '#727272'
+/** The win announcement — the boldest/darkest, a one-off end-state. */
 export const NOTICE_WIN = '#08060d'
 /** Backdrop of the win popup that covers the board centre — a semi-opaque dark
  *  panel the winner's colour text sits on (the winner's hue comes from
@@ -161,16 +165,25 @@ export const PULSE_MAX = 0.9
  */
 export const NOTICE_FONT_PX = 18
 
+/**
+ * Internal: line spacing for notice text (a multiple of the font size). Single
+ * source — fed to CSS as `line-height` AND used to derive the notice box height
+ * from NOTICE_MAX_LINES, so the box is always a whole number of lines (never a
+ * clipped sliver). Not a play knob; leave it.
+ */
+export const NOTICE_LINE_HEIGHT = 1.25
+
 /** Constant values CSS needs (don't change in play) — board colour, title, the
  *  die's resting face colour, the notice colours, and the notice text resolution. */
 const STATIC_BOARD_VARS: Record<string, string> = {
   '--board-bg': BOARD_BG,
   '--title-fill': TITLE_FILL,
   '--die-face': DIE_FACE_FILL,
-  '--notice-event': NOTICE_EVENT,
-  '--notice-prompt': NOTICE_PROMPT,
+  '--notice-current': NOTICE_CURRENT,
+  '--notice-previous': NOTICE_PREVIOUS,
   '--notice-win': NOTICE_WIN,
   '--notice-font-px': `${NOTICE_FONT_PX}px`,
+  '--notice-line-height': `${NOTICE_LINE_HEIGHT}`,
 }
 
 /**
@@ -245,7 +258,7 @@ export const NEST_HOLE_STROKE_W = 0.05 // hole border thickness
 export const NEST_WASH_RX = 0.6        // corner rounding of the whose-turn glow
 export const NEST_WASH_INSET = 0.15    // how far the glow sits in from the corner edges
 export const NEST_LAST_ROLL_DIE = 0.8           // side length of the small "last roll" die shown at the left of a player's nest notice
-export const NEST_LAST_ROLL_DIE_OFFSET_X = 0.2  // gap from the left edge of the whose-turn highlight area to the die (bigger = further right)
+export const NEST_LAST_ROLL_DIE_OFFSET_X = 0.3  // gap from the left edge of the whose-turn highlight area to the die (bigger = further right)
 export const NEST_LAST_ROLL_DIE_OFFSET_Y = 0    // fine vertical nudge from centred-on-the-notice-text (+ = down)
 
 // ── Playing pieces (the disc, its "you can move me" halo, finished pieces) ──
@@ -280,10 +293,13 @@ export const TITLE_FONT_SIZE = 0.6   // text height
 export const TITLE_TOP = 0.5         // distance down from the top edge
 
 // ── Corner notices (the "Your turn" / capture / win lines) ──────────────────
-// Colour them with NOTICE_EVENT / NOTICE_PROMPT / NOTICE_WIN up in COLOURS.
-export const NOTICE_TEXT_SIZE = 0.342 // text height, in squares (bigger = bigger text)
+// Colour them with NOTICE_CURRENT / NOTICE_PREVIOUS / NOTICE_WIN up in COLOURS.
+export const NOTICE_TEXT_SIZE = 0.38   // text height, in squares (bigger = bigger text)
 export const NOTICE_OFFSET_X = 0      // nudge sideways from centred (+ = right)
-export const NOTICE_OFFSET_Y = 0.55   // how far up from the bottom of the corner
+export const NOTICE_OFFSET_Y = 0.6   // how far up from the bottom of the corner
+export const NOTICE_WIDTH = 5.0       // box width, in squares (text wraps at this width)
+export const NOTICE_MAX_LINES = 2     // lines of room before text clips (whole lines only)
+export const NOTICE_DEBUG_OUTLINE = false // dev: outline the box so you can see its extents while tuning
 
 // ── Win popup (the "Green wins!" panel over the board centre, tap to dismiss) ─
 // Colour it with WIN_PANEL_BG up in COLOURS; the text takes the winner's hue.
