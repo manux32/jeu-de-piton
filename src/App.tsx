@@ -1,8 +1,10 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { legalMoves, type Move } from './engine'
 import { GameBoard } from './ui/GameBoard'
 import { useGame } from './ui/useGame'
 import { useDieRoll } from './ui/useDieRoll'
+import { useAiTurn } from './ui/useAiTurn'
+import { greedyStrategy } from './ai/strategy'
 
 // Dev tools are lazy-loaded ONLY in dev builds. In production `import.meta.env.DEV`
 // is statically false, so the ternary collapses to `null` and the dynamic import
@@ -15,10 +17,24 @@ function App() {
   const [view, dispatch] = useGame(4)
   const { game, rolled, notice, noticeOwner, rolledBy } = view
 
+  // Which seats a human controls; every other seat is driven by the AI. This is
+  // controller config (not game/render state), so it lives here, not in the
+  // engine or the game view. Default: you are seat 0, the rest are AI. `[]` makes
+  // every seat AI (watch a game play itself). A future New Game UI will set it;
+  // for now it's fixed. (Seat→corner map for a 4-player game: 0 bottom-right,
+  // 1 top-right, 2 top-left, 3 bottom-left.)
+  const [humanSeats] = useState<number[]>([0])
+
   // The roll sequencer owns the die's spin/settle/handover timing (view-only);
   // it generates the value, peeks the engine for the post-settle branch, and
   // dispatches the roll itself. See useDieRoll.
   const { face, rolling, roll } = useDieRoll(game, rolled, dispatch)
+
+  // Drive AI seats: when it's a non-human seat's turn, this auto-rolls then picks
+  // a move (via the greedy strategy) on a watchable beat, reusing the same roll
+  // trigger and 'pick' dispatch a human uses. Dormant on a human's turn. See
+  // useAiTurn.
+  useAiTurn(game, humanSeats, rolling, roll, dispatch, greedyStrategy)
 
   // The board lights up the current player's legal moves only while a roll is
   // awaiting a move; everything that decides them lives in the engine.
