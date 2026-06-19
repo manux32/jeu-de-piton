@@ -150,6 +150,27 @@ export const FLASH_CADENCE_S = 1.2
 export const PULSE_MIN = 0.35
 export const PULSE_MAX = 0.9
 
+/**
+ * Timing — the die roll and the AI's pacing (all in milliseconds). These set the
+ * *rhythm* of a turn, not its look, so they aren't board-unit values like the
+ * GEOMETRY knobs below — they're plain durations the timers read.
+ *
+ * Die roll (useDieRoll): the face SPINS for `SPIN_MS`, refreshing every
+ * `SPIN_TICK_MS`, then settles; when the roll leaves the player no move to make,
+ * it HOLDS the result for `HOLD_MS` so they can see what happened before the turn
+ * hands over.
+ *
+ * AI pacing (useAiTurn): an AI seat waits `AI_ROLL_DELAY_MS` before grabbing the
+ * die, and `AI_MOVE_DELAY_MS` after the roll settles before moving a piton —
+ * "thinking" beats so a human can follow what the AI is doing. Raise them to slow
+ * an AI-vs-AI game down to a watchable pace.
+ */
+export const SPIN_MS = 1000
+export const SPIN_TICK_MS = 50
+export const HOLD_MS = 1000
+export const AI_ROLL_DELAY_MS = 600
+export const AI_MOVE_DELAY_MS = 600
+
 // ════════════════════════════════════════════════════════════════════════════
 // Handing a few values to the stylesheet (CSS)
 // ════════════════════════════════════════════════════════════════════════════

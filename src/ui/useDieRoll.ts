@@ -15,11 +15,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { applyRoll, rollDie, type GameState } from '../engine'
 import type { GameAction } from './useGame'
-
-// Spin ~0.5s, then (no-move case only) hold ~0.7s before the turn hands over.
-const SPIN_MS = 1000
-const SPIN_TICK_MS = 50
-const HOLD_MS = 1000
+// Roll timing lives with the other motion knobs in theme.ts (SPIN_MS: spin
+// duration, SPIN_TICK_MS: spin refresh, HOLD_MS: the no-move result hold).
+import { SPIN_MS, SPIN_TICK_MS, HOLD_MS } from './theme'
 
 const randomFace = () => Math.floor(Math.random() * 6) + 1
 
