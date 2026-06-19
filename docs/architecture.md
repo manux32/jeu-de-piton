@@ -25,9 +25,12 @@ rule sets matter.
   Canonical Parcheesi (two dice, combine/split) stays a possible future variant;
   the engine is built variant-agnostic so adding it costs no UI change.
 
-**Non-goals (for now):** 3D, AI opponents, online/networked play, animation beyond
-simple transitions. None are precluded by the architecture — just out of scope
-until the core is fun.
+- **Basic AI opponents** (shipped 2026-06-19): seats not controlled by a human play
+  themselves via a swappable strategy. Kept as a *third pure layer* — see below.
+
+**Non-goals (for now):** 3D, online/networked play, animation beyond simple
+transitions. None are precluded by the architecture — just out of scope until the
+core is fun. (AI opponents *were* a non-goal; a first draft now ships.)
 
 ## Tech
 - **Vite + React + TypeScript** — matches the home stack, zero-install sharing.
@@ -59,6 +62,18 @@ pitons each, which rolls enter, capture rules, safe squares, extra-turn-on-N, �
 The cabin rules are variant #1; canonical Parcheesi could be variant #2 — **no UI
 changes needed to add a variant.** That's the payoff. Rule variants are config
 objects, **not code branches**.
+
+### The AI: a third pure layer
+AI opponents sit in **`src/ai/`** — a third pure layer beside engine and UI, no
+React/DOM. Because the only decision in this game is *which legal move to play*
+(rolling is chance; entry/capture/finish are already items in the engine's
+`legalMoves` list), an AI is just a **`Strategy`**: `(state, moves) => Move`,
+choosing among moves the rules already allowed. Like a `Ruleset` for rules, a
+`Strategy` makes the *opponent* swappable config, not a code branch — a smarter AI
+is a drop-in new function. Which seats are AI is **controller state in the UI**
+(`humanSeats`), not engine state; a small driver hook (`useAiTurn`) walks an AI
+seat through the same roll→move path a human taps. Rationale + the v1 `greedyStrategy`
+choice → [decisions.md](decisions.md) (2026-06-19).
 
 ### Design consequence: path-based move validation
 The cabin variant has *passing* rules — you can't move past your own piton, and a

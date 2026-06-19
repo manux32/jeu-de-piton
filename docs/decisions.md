@@ -10,6 +10,31 @@
 > [rules-and-lineage.md](rules-and-lineage.md), [board-model.md](board-model.md)).
 > Don't duplicate git history — capture reasoning a commit message wouldn't.
 
+- **2026-06-19** — **AI opponents as a third pure layer — a swappable `Strategy`,
+  not engine code.** First-draft AI. Key realisation that makes it small: the whole
+  decision surface of this game is one question — *which legal move do I play?* —
+  because rolling is pure chance and entry/capture/finish all arrive pre-baked as
+  items in the engine's `legalMoves` list. So an AI is just `(state, moves) => Move`
+  (`src/ai/strategy.ts`), a *third* layer beside engine/UI: pure, no DOM, no rules,
+  picking among moves the rules already allowed. This mirrors the `Ruleset` pattern —
+  a `Strategy` makes the *opponent* swappable config, not a code branch; a smarter AI
+  later is a new function of the same shape, nothing else touched. Shipped
+  `greedyStrategy` (a fixed priority ladder: finish → capture → leave-nest →
+  advance-leader, ties broken by most-advanced piton) **over** pure random as v1:
+  random is nearly free but visibly makes dumb choices (skips captures/finishes); the
+  ladder is ~free and feels non-broken. `randomStrategy` kept as the floor + proof of
+  the seam. **`humanSeats` lives as App-level state, deliberately *not* in `GameView`**
+  (a change from the original plan): it's controller config nothing renders, and the
+  reducer rebuilds the view in ~7 branches plus the dev loader, so threading a required
+  field through all of them was needless churn/risk. Default `[0]` (you vs all-AI);
+  `[]` makes every seat AI — a self-running game (handy as an engine smoke test). The
+  driver (`useAiTurn`) auto-rolls then auto-picks on theme-knob beats, reusing the same
+  roll trigger + `pick` dispatch a human uses, so AI turns spin like a human's; it needs
+  no re-entrancy flag of its own (one effect, keyed on the game, cleans up its timer).
+  Roll-timing constants moved into `theme.ts` MOTION alongside new AI delay knobs so all
+  pacing has one home. Verified by a **headless full-game test** (the synchronous twin of
+  the driver loop) proving greedy terminates 2/3/4-player games to a clean winner across
+  seeds — the hook itself, being glue, is verified live (no React-test harness exists yet).
 - **2026-06-18** — **Corner notices: colour by *whose nest*, not by message kind;
   box geometry from math-free knobs.** Triggered by a bug — the combined
   `Capture! (blue) · Roll again` line rendered as a garbled multi-line jumble. Root

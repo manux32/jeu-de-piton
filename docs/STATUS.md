@@ -38,6 +38,15 @@ sit in (`NOTICE_CURRENT` vs `NOTICE_PREVIOUS`) rather than message kind. QOL
 fine-tuning is ongoing (docs get a fuller cleanup once it settles). Per-item *why* →
 [decisions.md](decisions.md).
 
+**Basic AI opponents shipped (2026-06-19).** Seats you don't control play
+themselves. The AI is a swappable **`Strategy`** — a pure third layer in
+[`src/ai/`](../src/ai/), no UI/engine change to add one — and the shipped
+`greedyStrategy` prioritises finish → capture → leave-nest → advance-leader. By
+default you're seat 0 and the rest are AI (`humanSeats` in [App.tsx](../src/App.tsx));
+setting it to `[]` makes every seat AI — a game that plays itself. Roll/move pacing
+is theme-knob-tunable. The layer → [architecture.md](architecture.md); the *why* →
+[decisions.md](decisions.md) (2026-06-19).
+
 All look-and-feel is knob-driven from [theme.ts](../src/ui/theme.ts) (COLOURS /
 MOTION / GEOMETRY) and all UI copy from [strings.ts](../src/ui/strings.ts) — the
 control surface is complete (bar the knob-set audit; see Backlog).
