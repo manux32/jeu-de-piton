@@ -86,6 +86,27 @@ the candidate list below, in no particular order:
   [rules-and-lineage.md](rules-and-lineage.md)) for pre-existing staleness and
   cross-doc redundancy — a content-excavation task best started fresh, not bolted
   onto a session tail.
+- **New Game UI v2 — per-seat setup.** Replace the count-only picker with a richer
+  New Game panel that lets you set, per seat, whether it's **human or AI** and its
+  **colour**. Builds on what already exists: `humanSeats` (App state, today fixed to
+  `[0]`) and the per-seat `players[].color` field — so this is mostly UI. Folds in
+  the colour-choice and (eventual) ruleset-picker follow-ons already noted under
+  *Rule-variant layer* above; do them as one New Game redesign.
+- **Persistent per-player notices + last-roll dice.** Today a player's notice and
+  small "last roll" die clear when the next player acts. Instead keep each one
+  **pinned in that player's nest until it's their turn again**, so before you roll
+  you can see what every other player/AI did since your last turn. Touches the
+  notice/last-roll lifecycle in [useGame.ts](../src/ui/useGame.ts) /
+  [GameBoard.tsx](../src/ui/GameBoard.tsx).
+- **Richer notice copy — describe the last action.** Add notice strings that say
+  *what* a previous player actually did on their turn (e.g. moved a piton, entered,
+  finished one), not just captures/passes. Pairs with the persistent-notices item
+  above (the notices have to linger to be worth reading). New copy in
+  [strings.ts](../src/ui/strings.ts).
+- **Smarter AI strategy.** A stronger `Strategy` beyond the current `greedyStrategy`
+  priority ladder — e.g. weighing safety, blocking, racing the leader, or shallow
+  lookahead. The swappable-policy seam (`src/ai/strategy.ts`) means this is a new
+  strategy function dropped in, no engine/UI change.
 
 ## Open rule details
 - **None open.** All cabin rules are confirmed and shipped as of 2026-06-13 — the
