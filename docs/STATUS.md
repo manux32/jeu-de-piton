@@ -31,8 +31,12 @@ die-like squares); the centre die shows a **"Roll" prompt** on your turn with th
 last roll **relocated into the roller's nest** (and shown again on a roll-again 6);
 a win raises a **tap-to-dismiss popup** over the board; capture notices **name the
 captured colour** in its own colour; and all UI copy now lives in
-[`strings.ts`](../src/ui/strings.ts). QOL fine-tuning is ongoing (docs get a fuller
-cleanup once it settles). Per-item *why* → [decisions.md](decisions.md).
+[`strings.ts`](../src/ui/strings.ts). A **2026-06-18** follow-up fixed the garbled
+`Capture · Roll again` notice, moved the notice box onto math-free knobs
+(`NOTICE_WIDTH`, `NOTICE_MAX_LINES`), and recoloured notices by **whose nest** they
+sit in (`NOTICE_CURRENT` vs `NOTICE_PREVIOUS`) rather than message kind. QOL
+fine-tuning is ongoing (docs get a fuller cleanup once it settles). Per-item *why* →
+[decisions.md](decisions.md).
 
 All look-and-feel is knob-driven from [theme.ts](../src/ui/theme.ts) (COLOURS /
 MOTION / GEOMETRY) and all UI copy from [strings.ts](../src/ui/strings.ts) — the
@@ -64,10 +68,12 @@ the candidate list below, in no particular order:
   direction:* colours beyond 4 extend the engine `PlayerColor` union + the palette;
   letting players *choose* builds on the per-seat `players[].color` field that
   already exists (a picker that sets it with uniqueness; seat→colour stays default).
-- **Finish the knob-set audit.** Squares + notices were audited (decisions.md
-  2026-06-14); the **die, New Game button, and start arrows** remain — refine their
-  `theme.ts` knobs as needed (the `knob-design-user-intent` memory holds the
-  principle). Not blocking.
+- **Finish the knob-set audit.** Squares + notices were audited (notices reworked
+  again 2026-06-18); the **die, New Game button, and start arrows** remain — refine
+  their `theme.ts` knobs as needed (the `knob-design-user-intent` memory holds the
+  principle). Not blocking. *Notice follow-on the user flagged:* per-role
+  differentiation knobs (italic / size / weight for `current` vs `previous`) — the
+  CSS classes already exist, so it's adding knobs + forwarding, no render change.
 - **Stuck-turn bug (repro unknown).** A real game once wedged on a player's turn —
   it could not be advanced by normal play and had to be unstuck manually. Not yet
   reproducible, so the cause is unknown (likely candidate: a state where the turn

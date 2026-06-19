@@ -10,6 +10,31 @@
 > [rules-and-lineage.md](rules-and-lineage.md), [board-model.md](board-model.md)).
 > Don't duplicate git history — capture reasoning a commit message wouldn't.
 
+- **2026-06-18** — **Corner notices: colour by *whose nest*, not by message kind;
+  box geometry from math-free knobs.** Triggered by a bug — the combined
+  `Capture! (blue) · Roll again` line rendered as a garbled multi-line jumble. Root
+  cause: `.nest-notice` is `display:flex`, so each notice *segment* (the joined
+  fragments + tinted colour run) became its own flex item — edge whitespace
+  collapsed (the ` · ` separator lost its spaces) and each item wrapped
+  independently. Fix: wrap the segments in **one inner span** so flex centres a
+  single inline run; the text reflows normally. **Geometry reworked to the user's
+  intent** (he tunes these, wants no arithmetic): the fixed px `NEST_NOTICE_W/H`
+  became **derived** from `NOTICE_WIDTH` (squares) + `NOTICE_MAX_LINES` (whole
+  lines) — height = `MAX_LINES × line-height`, so an over-long message clips *on a
+  line boundary* instead of leaving a sub-pixel sliver of the next line (the sliver
+  was a rounding artifact of scaling the clipped foreignObject, and only ever showed
+  on overflow, which never happens with real ≤2-line notices). `NOTICE_LINE_HEIGHT`
+  is now the single source for line spacing (CSS `line-height` *and* the height
+  math); added a dev-only `NOTICE_DEBUG_OUTLINE` to see box extents while tuning.
+  **The colour model changed on purpose:** the old `event`-vs-`prompt` split was
+  legacy from when all notices shared one HUD box at the top. Notices are now
+  coloured by **whose corner they sit in** — `NOTICE_CURRENT` (player to act now,
+  more visible) vs `NOTICE_PREVIOUS` (player who acted last turn, quieter) — keyed
+  on `state.turn`, so a player on a 6-streak *stays* "current" and keeps the visible
+  colour with no special case. `NOTICE_WIN` kept as the one-off end-state. Each role
+  has its own CSS class (`.nest-notice-current/-previous/-win`), differing by colour
+  only for now but ready for per-role italic/size/weight knobs without touching
+  render code. Supersedes the notice-knob names in the 2026-06-14 audit entry below.
 - **2026-06-18** — **Ship to iPad as an installable PWA on GitHub Pages — not a
   native app.** Goal: play hot-seat at the cabin (no internet) on iPads we own, with
   no App Store and no $99/yr Apple dev fee. The fee is about *distribution* through
@@ -102,7 +127,9 @@
   text also resized the button — split into an independent `noticeScale`. Exposed
   the three things actually wanted — `NOTICE_TEXT_SIZE` (board units, per the user's
   pick over raw px), `NOTICE_OFFSET_X/Y`, and the existing colours
-  (`NOTICE_EVENT/PROMPT/WIN`, cross-referenced). The plumbing `NEST_NOTICE_W/H`
+  (`NOTICE_EVENT/PROMPT/WIN`, cross-referenced — *renamed/reworked 2026-06-18 above
+  to `NOTICE_CURRENT/PREVIOUS/WIN`; `NEST_NOTICE_W/H` later became knob-derived*).
+  The plumbing `NEST_NOTICE_W/H`
   demoted to GameBoard locals, `NEST_NOTICE_GAP` removed; `.nest-notice` font-size
   now reads `--notice-font-px` so `theme.ts` is the single source. All
   value-preserving (board renders identically). The die / New Game button / start
