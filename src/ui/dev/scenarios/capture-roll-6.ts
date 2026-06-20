@@ -13,7 +13,6 @@ const captureRoll6: DevScenario = {
     })
     return {
       game: { ...game, turn: 0, lastRoll: 6, phase: 'awaiting-move' },
-      rolled: 6,
     }
   },
 }

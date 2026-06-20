@@ -42,20 +42,19 @@ export function StateEditor({ view, onChange }: Props) {
   const { game } = view
   const { trackLength, laneLength } = game.geometry
 
-  // All edits clear every nest's notice — once the state is hand-tweaked, the
-  // loaded scenario's messages no longer describe it.
-  const blankNotices = () => game.players.map(() => null)
+  // All edits clear every nest's turn log — once the state is hand-tweaked, the
+  // loaded scenario's history no longer describes it.
+  const blankLog = () => game.players.map(() => [])
   const setGame = (next: GameState) =>
-    onChange({ ...view, game: next, notices: next.players.map(() => null) })
+    onChange({ ...view, game: next, log: next.players.map(() => []) })
 
-  // Set the *current* player's roll slot (leaving other seats' pinned rolls),
-  // matching how a real roll lands it under the roller. "none" clears it.
+  // Set the current player's pending roll on the engine state — the centre die
+  // reads it off `lastRoll`. "none" clears it back to awaiting-roll.
   const setRoll = (roll: number | null) => {
-    const rolls = view.rolls.map((r, i) => (i === game.turn ? roll : r))
     onChange(
       roll === null
-        ? { ...view, game: { ...game, phase: 'awaiting-roll', lastRoll: null }, rolls, notices: blankNotices() }
-        : { ...view, game: { ...game, phase: 'awaiting-move', lastRoll: roll }, rolls, notices: blankNotices() },
+        ? { ...view, game: { ...game, phase: 'awaiting-roll', lastRoll: null }, log: blankLog() }
+        : { ...view, game: { ...game, phase: 'awaiting-move', lastRoll: roll }, log: blankLog() },
     )
   }
 

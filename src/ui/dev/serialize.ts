@@ -6,10 +6,10 @@
  *
  * Shape rules (docs/STATUS.md S3 note): a `place({…})` position map that skips
  * nest-default pitons; turn/lastRoll/phase set on the spread; `extraTurnStreak`
- * emitted only when non-zero (it defaults to 0). Only the *current* player's roll
- * is captured (as the scalar `rolled`); per-seat history isn't reproduced — a
- * scenario tests one board state. The `description` line is the picker tooltip
- * only (loaded scenarios carry no notices — see scenario.ts).
+ * emitted only when non-zero (it defaults to 0). Per-seat turn-log history isn't
+ * reproduced — a scenario tests one board state, and the centre die reads its
+ * pending roll straight off `lastRoll`. The `description` line is the picker
+ * tooltip only (loaded scenarios start with an empty log — see scenario.ts).
  */
 import type { PitonPosition } from '../../engine'
 import type { GameView } from '../useGame'
@@ -83,7 +83,6 @@ const ${varName}: DevScenario = {
     const game = place(createGame(JEU_DE_PITON, ${game.players.length}), ${placeBlock})
     return {
       game: ${gameSpread},
-      rolled: ${view.rolls[game.turn] ?? 'null'},
     }
   },
 }

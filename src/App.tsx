@@ -15,7 +15,7 @@ const DevTools = import.meta.env.DEV
 
 function App() {
   const [view, dispatch] = useGame(4)
-  const { game, rolls, notices } = view
+  const { game, log } = view
 
   // Which seats a human controls; every other seat is driven by the AI. This is
   // controller config (not game/render state), so it lives here, not in the
@@ -28,9 +28,10 @@ function App() {
   // The roll sequencer owns the die's spin/settle/handover timing (view-only);
   // it generates the value, peeks the engine for the post-settle branch, and
   // dispatches the roll itself. The centre die rests on the *current* player's
-  // roll (`rolls[turn]`) — during awaiting-move that's the value they just rolled
-  // and are reading; during awaiting-roll a "Roll" label covers it. See useDieRoll.
-  const { face, rolling, roll } = useDieRoll(game, rolls[game.turn] ?? null, dispatch)
+  // pending roll (`game.lastRoll`) — set during awaiting-move (the value they
+  // just rolled and are reading) and null during awaiting-roll, where a "Roll"
+  // label covers it. See useDieRoll.
+  const { face, rolling, roll } = useDieRoll(game, game.lastRoll, dispatch)
 
   // Drive AI seats: when it's a non-human seat's turn, this auto-rolls then picks
   // a move (via the greedy strategy) on a watchable beat, reusing the same roll
@@ -52,8 +53,7 @@ function App() {
         moves={moves}
         face={face}
         rolling={rolling}
-        notices={notices}
-        rolls={rolls}
+        log={log}
         onPick={(move) => dispatch({ type: 'pick', move })}
         onNewGame={(playerCount) => dispatch({ type: 'newGame', playerCount })}
         onForceNextTurn={() => dispatch({ type: 'forceNextTurn' })}

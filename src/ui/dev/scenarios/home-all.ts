@@ -27,7 +27,6 @@ const homeAll: DevScenario = {
     })
     return {
       game: { ...game, turn: 0, lastRoll: null, phase: 'awaiting-roll' },
-      rolled: null,
     }
   },
 }

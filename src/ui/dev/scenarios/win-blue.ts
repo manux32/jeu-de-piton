@@ -18,7 +18,6 @@ const winBlue: DevScenario = {
     })
     return {
       game: { ...game, turn: 1, lastRoll: 2, phase: 'awaiting-move' },
-      rolled: 2,
     }
   },
 }

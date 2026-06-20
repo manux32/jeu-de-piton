@@ -69,6 +69,23 @@ export const NOTICE = {
   rollAgain: plain('Roll again'),
   /** The acting player just finished their last piton and won. */
   win: plain('Wins! 🎉'),
+
+  // --- move descriptions (the "richer notice" turn log) --------------------
+  // What a move actually did, derived from its from→to in useGame. One of these
+  // describes every move; `moved` is the bland fallback shown only when nothing
+  // more specific (a milestone or a capture) already covers it.
+  /** A piton left the nest onto its (safe) start square. */
+  leftNest: plain('Left the nest'),
+  /** A piton turned off the shared track into its private home lane. */
+  reachedHomeLane: plain('Reached Home Lane'),
+  /** A piton reached HOME (the centre) — one more finished. */
+  gotHome: plain('Got one Home!'),
+  /** A plain advance along the track/lane, nothing else notable. */
+  moved: plain('Moved'),
+  /** A move that ended on a capture-safe square. */
+  reachedSafe: plain('Reached safe square'),
+  /** A piton vacated its own start square. */
+  leftStart: plain('Left start square'),
 }
 
 /** Joiner between event fragments (e.g. "Capture! (red) · Roll again"). */

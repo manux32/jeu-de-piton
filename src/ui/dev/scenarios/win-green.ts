@@ -18,7 +18,6 @@ const winGreen: DevScenario = {
     })
     return {
       game: { ...game, turn: 3, lastRoll: 3, phase: 'awaiting-move' },
-      rolled: 3,
     }
   },
 }

@@ -29,34 +29,23 @@ export interface DevScenario {
    * One line describing what the scenario sets up / what to look at. Shown only
    * as the picker tooltip in the dev panel — deliberately NOT stamped into any
    * board notice, so a loaded scenario shows the same notices a real game would
-   * (letting notice changes be tested in place). `build` returns board state plus
-   * the convenience scalar roll below; notices start empty (none warranted yet).
+   * (letting notice changes be tested in place). The turn log starts empty (no
+   * sub-turns completed yet); the centre die shows the pending roll straight off
+   * `game.lastRoll` once you set `phase: 'awaiting-move'`.
    */
   description: string
-  /**
-   * Board state plus a single shown roll, authored as a scalar for convenience —
-   * `loadScenario` fans it out into the per-seat `rolls` array. `rolled` is the
-   * die value to show (default none); `rolledBy` is who rolled it (default the
-   * current player, as an awaiting-move state's roll belongs to whoever's up).
-   */
-  build: () => { game: GameView['game']; rolled?: number | null; rolledBy?: number | null }
+  /** The doctored board state to drop into. */
+  build: () => { game: GameView['game'] }
 }
 
 /**
- * Turn a scenario into a loadable view: its board state with empty notices, so
- * the board reads exactly as a real game in that state would (the real gameplay
- * notices then appear as you act from it). The single authored roll is placed in
- * its roller's per-seat slot, so the last-roll nest die behaves as in a real game
- * once the turn passes.
+ * Turn a scenario into a loadable view: its board state with an empty turn log,
+ * so the board reads exactly as a real game in that state would (the real
+ * gameplay rows then appear as you act from it).
  */
 export function loadScenario(s: DevScenario): GameView {
-  const { game, rolled = null, rolledBy } = s.build()
-  const roller = rolledBy ?? game.turn
-  return {
-    game,
-    notices: game.players.map(() => null),
-    rolls: game.players.map((_, i) => (rolled != null && i === roller ? rolled : null)),
-  }
+  const { game } = s.build()
+  return { game, log: game.players.map(() => []) }
 }
 
 /** Immutably override a few pitons' positions on a freshly-built game. */

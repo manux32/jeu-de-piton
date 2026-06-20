@@ -13,12 +13,11 @@ describe('slugify', () => {
 })
 
 describe('serializeScenario', () => {
-  // Place the single shown roll in the current player's per-seat slot, the way a
-  // real game does — serialize reads `rolls[turn]` back out as the scalar `rolled`.
-  const view = (game: GameView['game'], rolled: number | null): GameView => ({
+  // A scenario captures one board state with an empty turn log; the pending roll
+  // lives on game.lastRoll (no separate scalar is emitted).
+  const view = (game: GameView['game']): GameView => ({
     game,
-    rolls: game.players.map((_, i) => (i === game.turn ? rolled : null)),
-    notices: game.players.map(() => null),
+    log: game.players.map(() => []),
   })
 
   it('emits a place map, skips nest-default pitons, and sets turn/roll/phase', () => {
@@ -27,7 +26,7 @@ describe('serializeScenario', () => {
       'blue-0': { kind: 'track', square: 4 },
     })
     const src = serializeScenario(
-      view({ ...game, turn: 0, lastRoll: 3, phase: 'awaiting-move' }, 3),
+      view({ ...game, turn: 0, lastRoll: 3, phase: 'awaiting-move' }),
       { name: 'Capture test', description: 'click the blue disc' },
     )
 
@@ -37,7 +36,6 @@ describe('serializeScenario', () => {
     expect(src).toContain("'red-0': { kind: 'track', square: 1 }")
     expect(src).toContain("'blue-0': { kind: 'track', square: 4 }")
     expect(src).toContain('turn: 0, lastRoll: 3, phase: \'awaiting-move\'')
-    expect(src).toContain('rolled: 3')
     // nest-default pitons (red-1.., the other colours' lot) are omitted
     expect(src).not.toContain("kind: 'nest'")
     expect(src).not.toContain("'red-1'")
@@ -47,11 +45,11 @@ describe('serializeScenario', () => {
 
   it('emits extraTurnStreak only when non-zero', () => {
     const game = createGame(JEU_DE_PITON, 4)
-    const zero = serializeScenario(view({ ...game, extraTurnStreak: 0 }, null), {
+    const zero = serializeScenario(view({ ...game, extraTurnStreak: 0 }), {
       name: 'a',
       description: 'd',
     })
-    const two = serializeScenario(view({ ...game, extraTurnStreak: 2 }, null), {
+    const two = serializeScenario(view({ ...game, extraTurnStreak: 2 }), {
       name: 'a',
       description: 'd',
     })
@@ -62,18 +60,17 @@ describe('serializeScenario', () => {
   it('represents an awaiting-roll snapshot with null roll', () => {
     const game = createGame(JEU_DE_PITON, 4)
     const src = serializeScenario(
-      view({ ...game, turn: 1, lastRoll: null, phase: 'awaiting-roll' }, null),
+      view({ ...game, turn: 1, lastRoll: null, phase: 'awaiting-roll' }),
       { name: 'idle', description: 'nothing rolled' },
     )
     expect(src).toContain("lastRoll: null, phase: 'awaiting-roll'")
-    expect(src).toContain('rolled: null')
     // empty place map when every piton sits in its nest
     expect(src).toContain('place(createGame(JEU_DE_PITON, 4), {})')
   })
 
   it('escapes single quotes in the description', () => {
     const game = createGame(JEU_DE_PITON, 4)
-    const src = serializeScenario(view(game, null), {
+    const src = serializeScenario(view(game), {
       name: 'x',
       description: "it's safe",
     })

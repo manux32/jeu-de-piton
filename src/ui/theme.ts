@@ -278,9 +278,6 @@ export const NEST_HOLE_R = 0.36        // radius of each empty hole
 export const NEST_HOLE_STROKE_W = 0.05 // hole border thickness
 export const NEST_WASH_RX = 0.6        // corner rounding of the whose-turn glow
 export const NEST_WASH_INSET = 0.15    // how far the glow sits in from the corner edges
-export const NEST_LAST_ROLL_DIE = 0.8           // side length of the small "last roll" die shown at the left of a player's nest notice
-export const NEST_LAST_ROLL_DIE_OFFSET_X = 0.3  // gap from the left edge of the whose-turn highlight area to the die (bigger = further right)
-export const NEST_LAST_ROLL_DIE_OFFSET_Y = 0    // fine vertical nudge from centred-on-the-notice-text (+ = down)
 
 // ── Playing pieces (the disc, its "you can move me" halo, finished pieces) ──
 export const PITON_R = 0.3              // radius of a piece
@@ -313,13 +310,16 @@ export const HOME_TARGET_STROKE_W = 0.12
 export const TITLE_FONT_SIZE = 0.6   // text height
 export const TITLE_TOP = 0.5         // distance down from the top edge
 
-// ── Corner notices (the "Your turn" / capture / win lines) ──────────────────
-// Colour them with NOTICE_CURRENT / NOTICE_PREVIOUS / NOTICE_WIN up in COLOURS.
+// ── Corner notices (the stacked "Your turn" / move / capture / win rows) ─────
+// Each of a player's turn now shows a stack of rows in their nest — one per
+// sub-turn (a small die + what it did), the current player's ending in the turn
+// prompt. Colour them with NOTICE_CURRENT / NOTICE_PREVIOUS / NOTICE_WIN above.
 export const NOTICE_TEXT_SIZE = 0.38   // text height, in squares (bigger = bigger text)
 export const NOTICE_OFFSET_X = 0      // nudge sideways from centred (+ = right)
-export const NOTICE_OFFSET_Y = 0.6   // how far up from the bottom of the corner
-export const NOTICE_WIDTH = 5.0       // box width, in squares (text wraps at this width)
-export const NOTICE_MAX_LINES = 2     // lines of room before text clips (whole lines only)
+export const NOTICE_OFFSET_Y = 0.6   // how far up from the bottom of the corner the stack sits
+export const NOTICE_WIDTH = 5.0       // box width, in squares (a row's text wraps at this width)
+export const NOTICE_MAX_LINES = 4     // lines of room for the stack before the oldest rows clip off the top
+export const NOTICE_DIE_SIZE = 1.1    // each row's little die, as a multiple of the row's text height
 export const NOTICE_DEBUG_OUTLINE = false // dev: outline the box so you can see its extents while tuning
 
 // ── Win popup (the "Green wins!" panel over the board centre, tap to dismiss) ─

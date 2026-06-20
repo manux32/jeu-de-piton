@@ -12,7 +12,6 @@ const homeMove: DevScenario = {
     })
     return {
       game: { ...game, turn: 0, lastRoll: 3, phase: 'awaiting-move' },
-      rolled: 3,
     }
   },
 }

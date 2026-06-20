@@ -5,20 +5,27 @@
  * value is rolled by the caller (the engine takes its RNG injected) and passed
  * in, so the reducer itself stays a pure function of `(view, action)`.
  *
- * Alongside the engine state it keeps two bits of *view* state the board doesn't
- * carry, each as a **per-seat array** indexed by player: `rolls[p]` (the last die
- * value player p rolled) and `notices[p]` (a one-line message surfacing what the
- * engine decided on p's last action — a capture, an extra roll, a forfeit, the
- * streak penalty, or a win). Both are derived by *observing* the before/after
- * states, not by re-deriving the rules.
+ * Alongside the engine state it keeps one bit of *view* state the board doesn't
+ * carry: a **per-seat turn log** (`log[p]`), a list of `TurnEntry`s — one per
+ * *sub-turn* that seat completed (each carries the die it rolled + a one-line
+ * notice describing the outcome: a move description, a capture, an extra roll, a
+ * forfeit, the streak penalty, or a win). Because a 6 grants another roll, a
+ * single turn can complete several sub-turns, so the entries stack — the nest
+ * shows the whole "here's everything I did this turn" history. All of it is
+ * derived by *observing* the before/after engine states, never by re-deriving a
+ * rule.
  *
- * Lifecycle — "pinned until it's their turn again": a seat's roll + notice are
- * set when that seat acts and **persist in their nest** while play moves around
- * the table, so before you roll you can see what every other player/AI did since
- * your last turn. They're wiped the moment the turn lands back on that seat (see
- * `handover` below) — their nest then shows the "Roll" prompt + centre die, not a
- * stale line. A turn that *stays* (a bonus 6) is not a handover, so a roller's
- * own "Roll again" line + die remain.
+ * Lifecycle — "pinned until it's their turn again": entries are appended as a
+ * seat acts and the whole log **persists in their nest** while play moves around
+ * the table, so before you roll you can read everything every other player/AI did
+ * since your last turn. The log is wiped the moment the turn lands back on that
+ * seat (see `handover` below) — their nest then shows the "Roll" prompt + centre
+ * die, not stale history. A turn that *stays* (a bonus 6) is not a handover, so
+ * the roller's accumulating entries remain and the next sub-turn appends to them.
+ *
+ * (The centre die is driven separately, off `game.lastRoll`, in App — the log
+ * only records *completed* sub-turns, so a roll still awaiting its move isn't in
+ * it yet.)
  */
 import { useReducer } from 'react'
 import {
@@ -32,18 +39,21 @@ import {
 } from '../engine'
 import { NOTICE, joinNotice, type Notice } from './strings'
 
+/** One completed sub-turn in a seat's turn log: the die that was rolled and the
+ *  notice describing what came of it. */
+export interface TurnEntry {
+  die: number
+  /** The one-line outcome. A list of text runs so part of it (e.g. a captured
+   *  colour's name) can be tinted — see Notice. */
+  notice: Notice
+}
+
 export interface GameView {
   game: GameState
-  /** Per-seat last die roll, indexed by player. Each value shows as a small die
-   *  in *that* player's nest until their turn comes round again; null = they
-   *  haven't rolled since the last new game. The board reads `rolls[turn]` to
-   *  rest the centre die on the current player's roll. */
-  rolls: (number | null)[]
-  /** Per-seat last-event notice, indexed by player — the one-line message the
-   *  engine warranted on that seat's last action (capture, extra roll, forfeit,
-   *  streak penalty, win), or null. Each is a list of text runs so part of it
-   *  (e.g. a captured colour's name) can be tinted — see Notice. */
-  notices: (Notice | null)[]
+  /** Per-seat turn log, indexed by player: the sub-turns that seat completed,
+   *  oldest first. Pinned in their nest (shown as stacked die+notice rows) until
+   *  their turn comes round again, then wiped. Empty = nothing to show. */
+  log: TurnEntry[][]
 }
 
 export type GameAction =
@@ -66,9 +76,49 @@ function init(playerCount: number): GameView {
   const game = createGame(JEU_DE_PITON, playerCount)
   return {
     game,
-    rolls: game.players.map(() => null),
-    notices: game.players.map(() => null),
+    log: game.players.map(() => []),
   }
+}
+
+/**
+ * Describe what a move did, as notice parts (most specific milestone first), for
+ * the turn log. A bare advance is "Moved" — but only as a fallback when nothing
+ * more specific (a milestone, or a capture) already says it. Pure observation of
+ * the move's from→to against the engine's geometry/ruleset; no rule re-derived.
+ */
+function describeMove(move: Move, before: GameState, mover: number): Notice[] {
+  const { from, to } = move
+  const parts: Notice[] = []
+
+  if (to.kind === 'finished') {
+    parts.push(NOTICE.gotHome)
+  } else if (from.kind === 'nest') {
+    // Leaving the nest lands on the (safe) start square — that's the headline,
+    // so don't also announce "reached safe square".
+    parts.push(NOTICE.leftNest)
+  } else {
+    if (from.kind === 'track' && from.square === before.geometry.entryIndices[mover]) {
+      parts.push(NOTICE.leftStart)
+    }
+    if (to.kind === 'lane' && from.kind !== 'lane') {
+      parts.push(NOTICE.reachedHomeLane)
+    } else if (to.kind === 'track' && before.ruleset.safeSquares.includes(to.square)) {
+      parts.push(NOTICE.reachedSafe)
+    }
+  }
+
+  // A capture already implies a move, so it rides alongside any milestone and
+  // suppresses the bland "Moved" fallback. Read the captured colour off the
+  // pre-move state (not by parsing the id) so it survives an id-scheme change.
+  if (move.captures) {
+    const captured = before.players
+      .flatMap((pl) => pl.pitons)
+      .find((pt) => pt.id === move.captures)
+    if (captured) parts.push(NOTICE.capture(captured.owner))
+  }
+
+  if (parts.length === 0) parts.push(NOTICE.moved)
+  return parts
 }
 
 function reducer(view: GameView, action: GameAction): GameView {
@@ -85,7 +135,7 @@ function reducer(view: GameView, action: GameAction): GameView {
       if (view.game.phase === 'game-over') return view
       const next = forceNextTurn(view.game)
       // Treat it as a handover: wipe the seat now on the clock (the skipped seat
-      // keeps its last message — that's legit history).
+      // keeps its log — that's legit history).
       return handover(view, next, view.game.turn)
     }
 
@@ -94,93 +144,70 @@ function reducer(view: GameView, action: GameAction): GameView {
       if (prev.phase !== 'awaiting-roll') return view
       const roller = prev.turn
       const next = applyRoll(prev, action.value)
-      const rolls = setAt(view.rolls, roller, action.value)
 
-      // A roll with a legal move drops us into awaiting-move — no message; the
-      // board lights up the movable pitons instead. Clear the roller's own slot:
-      // their turn is underway, and a real notice lands when they move.
-      if (next.phase === 'awaiting-move') {
-        return { game: next, rolls, notices: setAt(view.notices, roller, null) }
-      }
+      // A roll with a legal move drops us into awaiting-move — this sub-turn isn't
+      // complete yet (the move is what logs it), so no entry now; the board lights
+      // up the movable pitons instead.
+      if (next.phase === 'awaiting-move') return { ...view, game: next }
 
-      // No legal move, yet the turn stayed put ⇒ an unplayable bonus 6: nothing
-      // to play, but the player still rolls again. The message lands in the
-      // roller's own (colour-coded) nest, so it omits the player's name. No
-      // handover (the turn kept the roller).
-      if (next.turn === roller) {
-        return { game: next, rolls, notices: setAt(view.notices, roller, NOTICE.noMoveRollAgain) }
-      }
+      // No legal move. Log this sub-turn against the roller, carrying its die.
+      // (Appends to whatever they've already done this turn.)
+      const append = (notice: Notice): GameView => ({
+        ...view,
+        game: next,
+        log: setAt(view.log, roller, [...view.log[roller], { die: action.value, notice }]),
+      })
 
-      // Otherwise the engine has passed the turn. Two cases, told apart by
-      // observing whether the roller lost a piton to its nest (the 3rd-6 streak
-      // penalty) versus an ordinary no-legal-move forfeit. The message stays
-      // pinned in the roller's nest; the handover wipes the incoming seat.
+      // The turn stayed put ⇒ an unplayable bonus 6: nothing to play, but the
+      // player rolls again. No handover (the turn kept the roller).
+      if (next.turn === roller) return append(NOTICE.noMoveRollAgain)
+
+      // Otherwise the engine passed the turn. Two cases, told apart by observing
+      // whether the roller lost a piton to its nest (the 3rd-6 streak penalty)
+      // versus an ordinary no-legal-move forfeit. The handover wipes the incoming
+      // seat's log.
       const penalized = nestCount(next, roller) > nestCount(prev, roller)
-      const message = penalized ? NOTICE.threeSixes : NOTICE.noMovePass
-      return handover(
-        { game: next, rolls, notices: setAt(view.notices, roller, message) },
-        next,
-        roller,
-      )
+      return handover(append(penalized ? NOTICE.threeSixes : NOTICE.noMovePass), next, roller)
     }
 
     case 'pick': {
       const prev = view.game
-      if (prev.phase !== 'awaiting-move') return view
+      // awaiting-move guarantees a pending roll; bail defensively if not.
+      if (prev.phase !== 'awaiting-move' || prev.lastRoll === null) return view
       const mover = prev.turn
+      const die = prev.lastRoll
       const next = applyMove(prev, action.move)
 
-      if (next.phase === 'game-over') {
-        // Game over: the win line stays in the winner's nest (no handover — play
-        // has stopped). Other seats keep their last messages behind the popup.
-        return { ...view, game: next, notices: setAt(view.notices, mover, NOTICE.win) }
+      // Describe the move, then tack on the outcome modifier: a win, or a 6's
+      // extra go (turn unchanged after a move). The whole thing is one logged
+      // sub-turn carrying the roll that drove it.
+      const parts = describeMove(action.move, prev, mover)
+      if (next.phase === 'game-over') parts.push(NOTICE.win)
+      else if (next.turn === mover) parts.push(NOTICE.rollAgain)
+
+      const logged: GameView = {
+        ...view,
+        game: next,
+        log: setAt(view.log, mover, [...view.log[mover], { die, notice: joinNotice(parts) }]),
       }
-      const parts: Notice[] = []
-      if (action.move.captures) {
-        // Name the captured colour in the notice (e.g. "Capture! (red)"), tinted
-        // in that player's colour. Read the colour off the captured piton's owner
-        // in the pre-move state, not by parsing the id, so it stays correct if the
-        // id scheme ever changes.
-        const captured = prev.players
-          .flatMap((pl) => pl.pitons)
-          .find((pt) => pt.id === action.move.captures)
-        if (captured) parts.push(NOTICE.capture(captured.owner))
-      }
-      // Turn unchanged after a move ⇒ the roll earned another go (a 6).
-      if (next.turn === mover) parts.push(NOTICE.rollAgain)
-      // SEAM — "Richer notice copy" backlog item: an ordinary move with no
-      // capture and no bonus produces no notice today, so the mover's nest then
-      // shows only their last-roll die. To describe the move itself ("advanced",
-      // "left the nest", "finished one"), push a part here derived from
-      // `action.move` — it persists in the mover's nest like any other notice.
-      const message = parts.length ? joinNotice(parts) : null
-      // The mover's rolls[] slot was set at roll time and stays (their roll
-      // persists in their nest). Pin the new message there, then hand over if the
-      // turn moved on (a non-bonus move) to wipe the incoming seat's stale slot.
-      return handover(
-        { ...view, game: next, notices: setAt(view.notices, mover, message) },
-        next,
-        mover,
-      )
+      // Game over: play has stopped, so no handover — the win line stays put and
+      // every seat keeps its log behind the popup. Otherwise hand over if the
+      // turn moved on (a non-bonus move), wiping the incoming seat's stale log.
+      return next.phase === 'game-over' ? logged : handover(logged, next, mover)
     }
   }
 }
 
 /**
  * Apply the "pinned until it's their turn again" rule at a turn boundary: if the
- * turn has left `actor`, wipe the seat now on the clock (`next.turn`) — its
- * roll + notice are last-round history the player no longer needs to see, and its
+ * turn has left `actor`, wipe the log of the seat now on the clock (`next.turn`)
+ * — its entries are last-round history the player no longer needs to see, and its
  * nest shows the "Roll" prompt + centre die instead. A turn that *stays* with the
  * actor (a bonus 6 / game-over) is not a handover, so nothing is wiped.
  */
 function handover(view: GameView, next: GameState, actor: number): GameView {
   if (next.turn === actor) return { ...view, game: next }
-  return {
-    ...view,
-    game: next,
-    rolls: setAt(view.rolls, next.turn, null),
-    notices: setAt(view.notices, next.turn, null),
-  }
+  return { ...view, game: next, log: setAt(view.log, next.turn, []) }
 }
 
 export function useGame(initialPlayers: number) {

@@ -19,6 +19,7 @@ import { Board } from './Board'
 import { Pitons } from './Pitons'
 import { DieFace } from './DieFace'
 import { TITLE, PROMPT, DIE, WIN, type Notice } from './strings'
+import type { TurnEntry } from './useGame'
 import {
   PLAYER_HEX,
   boardThemeVars,
@@ -28,10 +29,6 @@ import {
   CTRL_H,
   CTRL_INSET,
   DIE_SIZE,
-  NEST_LAST_ROLL_DIE,
-  NEST_LAST_ROLL_DIE_OFFSET_X,
-  NEST_LAST_ROLL_DIE_OFFSET_Y,
-  NEST_WASH_INSET,
   WIN_PANEL_BG,
   WIN_TEXT_SIZE,
   NOTICE_TEXT_SIZE,
@@ -39,6 +36,7 @@ import {
   NOTICE_OFFSET_Y,
   NOTICE_WIDTH,
   NOTICE_MAX_LINES,
+  NOTICE_DIE_SIZE,
   NOTICE_DEBUG_OUTLINE,
   NOTICE_FONT_PX,
   NOTICE_LINE_HEIGHT,
@@ -59,13 +57,10 @@ interface Props {
   face: number
   /** True while a roll is animating; the die is non-interactive then. */
   rolling: boolean
-  /** Per-seat last-event notice (indexed by player); each lingers in that
-   *  player's nest until their turn comes round again. See useGame.GameView. */
-  notices: (Notice | null)[]
-  /** Per-seat last die roll (indexed by player), shown as a small die in that
-   *  player's nest until their turn. Differs from `face`, which carries the spin
-   *  for the centre die. */
-  rolls: (number | null)[]
+  /** Per-seat turn log (indexed by player): the sub-turns each seat completed,
+   *  shown as stacked die+notice rows in that player's nest until their turn comes
+   *  round again. See useGame.GameView. */
+  log: TurnEntry[][]
   onPick: (move: Move) => void
   onNewGame: (playerCount: number) => void
   /** Escape hatch: force the turn to the next player to unstick a wedged game.
@@ -106,8 +101,7 @@ export function GameBoard({
   moves,
   face,
   rolling,
-  notices,
-  rolls,
+  log,
   onPick,
   onNewGame,
   onForceNextTurn,
@@ -159,13 +153,11 @@ export function GameBoard({
   const [dismissedWin, setDismissedWin] = useState<GameState | null>(null)
   const showWin = over && state.winner != null && dismissedWin !== state
 
-  // Per-nest notices: each nest shows ITS player's last-action notice (`notices[p]`,
-  // pinned there until their turn comes round again). The current player's nest is
-  // the exception — it shows the live turn *prompt* instead, unless their turn is
-  // still underway and produced a notice (a bonus-6 "Roll again"), which the
-  // reducer keeps in their slot until the turn actually leaves. A stale notice
-  // from their previous turn was already wiped when the turn returned to them, so
-  // there's no ambiguity. Each nest still shows at most one line.
+  // Per-nest turn log: each nest shows ITS player's stacked sub-turn rows
+  // (`log[p]`, pinned until their turn comes round again), each row a small die +
+  // its outcome notice. The current player's nest also shows the live turn
+  // *prompt* as a trailing row (its own log was wiped when the turn returned to
+  // them, so older rows here are only this turn's bonus sub-turns).
   const prompt =
     state.phase === 'awaiting-roll'
       ? PROMPT.awaitingRoll
@@ -196,39 +188,19 @@ export function GameBoard({
     return { x, y }
   }
 
-  // Each seat's last completed roll, shown as a small die in *their* nest (the
-  // per-seat `rolls[p]`, pinned until their turn comes round again). Shown
-  // whenever the centre die isn't already showing that same value as pips: for
-  // any non-current player, OR for the current player only when they kept the
-  // turn and are back to rolling (a 6 — `awaiting-roll`, centre showing the "Roll"
-  // prompt) where it backs up the "Roll again" notice. While the current player is
-  // mid-move (`awaiting-move`, centre showing the pips) their own die stays hidden,
-  // so the value never appears twice. The value is the held `rolls[p]` (not
-  // `face`, which carries the spin). It's left-aligned to that seat's whose-turn
-  // highlight quadrant (same left edge as Board's wash) and sits on the notice's
-  // vertical line — far enough left that it clears the centred notice text.
-  const lastRollMark = (p: number) => {
-    const value = rolls[p]
-    if (value == null) return null
-    if (p === state.turn && state.phase !== 'awaiting-roll') return null
-    const { y } = nestNotice(p)
-    // The notice text bottom-aligns in its band (CSS .nest-notice
-    // align-items: flex-end), so its line sits at the band's bottom edge.
-    // Centre the die on that line (one text line tall, line-height 1.25),
-    // then apply the fine vertical nudge knob.
-    const bandBottom = y + NEST_NOTICE_H * noticeScale
-    const textCentreY = bandBottom - (NOTICE_TEXT_SIZE * 1.25) / 2
-    const slots = layout.nestSlots[p]
-    const clusterCx = slots.reduce((a, s) => a + s.cx, 0) / slots.length
-    const onLeft = clusterCx < cellMid(layout.homeCell.col, layout)
-    const washLeft =
-      (onLeft ? 0 : cellStart(layout.homeCell.col + 2, layout)) + NEST_WASH_INSET
-    return {
-      value,
-      cx: washLeft + NEST_LAST_ROLL_DIE_OFFSET_X + NEST_LAST_ROLL_DIE / 2,
-      cy: textCentreY + NEST_LAST_ROLL_DIE_OFFSET_Y,
-      color: PLAYER_HEX[state.players[p].color],
-    }
+  // The rows to draw in seat p's nest, oldest first: one per logged sub-turn
+  // (die + outcome notice), plus a trailing die-less prompt row for the current
+  // player. `null` content marks the prompt (plain text, no die). Empty ⇒ nothing
+  // to draw. The CSS column packs them to the bottom (newest nearest the nest) and
+  // clips the oldest off the top if they overflow the box.
+  const nestRows = (
+    p: number,
+  ): { die: number | null; content: Notice | string }[] => {
+    const rows: { die: number | null; content: Notice | string }[] = log[p].map(
+      (e) => ({ die: e.die, content: e.notice }),
+    )
+    if (!over && p === state.turn && prompt) rows.push({ die: null, content: prompt })
+    return rows
   }
 
   return (
@@ -315,23 +287,19 @@ export function GameBoard({
         </foreignObject>
       </g>
 
-      {/* Per-nest notices: each player's corner shows ITS player's pinned last-
-          action line (`notices[p]`). The current player's nest instead shows the
-          turn prompt — unless their turn is still underway and left a notice (a
-          bonus-6 "Roll again"). Terse text via foreignObject; click-through so it
+      {/* Per-nest turn log: each player's corner shows its own stacked sub-turn
+          rows (a small die + its outcome notice), the current player's nest
+          ending in the live turn prompt. One foreignObject per nest holds a flex
+          column of rows; the inline die scales with the text. Click-through so it
           never swallows board clicks. */}
       {state.players.map((_, p) => {
-        // A coloured-segment Notice for the pinned line, plain text for the prompt;
-        // both render in the same band. The current player shows their own live
-        // notice if any (bonus 6), else the prompt; everyone else shows their
-        // pinned line. Stale own-notices were wiped at handover (see useGame).
-        const content = p === state.turn ? notices[p] ?? prompt : notices[p]
-        if (!content) return null
+        const rows = nestRows(p)
+        if (rows.length === 0) return null
         const { x, y } = nestNotice(p)
-        // Colour by WHOSE nest this is, not by the kind of message: the current
-        // player (state.turn) gets the visible colour, anyone showing a lingering
-        // past-turn line gets the quiet one. A player on a 6-streak stays
-        // `state.turn`, so their line stays "current". The winner is the one
+        // Colour by WHOSE nest this is, not by what the rows say: the current
+        // player (state.turn) gets the visible colour, anyone showing lingering
+        // past-turn rows gets the quiet one. A player on a 6-streak stays
+        // `state.turn`, so their rows stay "current". The winner is the one
         // exception — only their nest gets the win look at game-over.
         const cls =
           p === winnerSeat
@@ -339,6 +307,7 @@ export function GameBoard({
             : p === state.turn
               ? 'nest-notice nest-notice-current'
               : 'nest-notice nest-notice-previous'
+        const dieColor = PLAYER_HEX[state.players[p].color]
         return (
           <g
             key={`notice-${p}`}
@@ -346,26 +315,40 @@ export function GameBoard({
           >
             <foreignObject x={0} y={0} width={NEST_NOTICE_W} height={NEST_NOTICE_H}>
               <div className={cls} role="status" aria-live="polite">
-                {/* One inner span so the flex container centres a SINGLE item: the
-                    tinted runs then flow as inline text (spaces + wrapping intact)
-                    instead of each segment becoming its own flex item. */}
-                <span>
-                  {typeof content === 'string'
-                    ? content
-                    : content.map((seg, i) => (
-                        <span
-                          key={i}
-                          style={seg.color ? { color: PLAYER_HEX[seg.color] } : undefined}
-                        >
-                          {seg.text}
-                        </span>
-                      ))}
-                </span>
+                {rows.map((row, ri) => (
+                  <div key={ri} className="nest-notice-row">
+                    {row.die != null && (
+                      <svg
+                        className="nest-row-die"
+                        viewBox="-1.25 -1.25 2.5 2.5"
+                        style={{ width: `${NOTICE_DIE_SIZE}em`, height: `${NOTICE_DIE_SIZE}em` }}
+                        aria-hidden
+                      >
+                        <DieFace value={row.die} cx={0} cy={0} size={2} color={dieColor} />
+                      </svg>
+                    )}
+                    {/* One inner span so the tinted runs flow as inline text
+                        (spaces + wrapping intact) instead of each becoming its
+                        own flex item. */}
+                    <span>
+                      {typeof row.content === 'string'
+                        ? row.content
+                        : row.content.map((seg, i) => (
+                            <span
+                              key={i}
+                              style={seg.color ? { color: PLAYER_HEX[seg.color] } : undefined}
+                            >
+                              {seg.text}
+                            </span>
+                          ))}
+                    </span>
+                  </div>
+                ))}
               </div>
             </foreignObject>
-            {/* Dev knob: trace the box the text sits in so its extents are
-                visible while tuning the notice knobs. Same units as the
-                foreignObject, so it scales with it. */}
+            {/* Dev knob: trace the box the rows sit in so its extents are visible
+                while tuning the notice knobs. Same units as the foreignObject, so
+                it scales with it. */}
             {NOTICE_DEBUG_OUTLINE && (
               <rect
                 x={0}
@@ -379,25 +362,6 @@ export function GameBoard({
               />
             )}
           </g>
-        )
-      })}
-
-      {/* Each seat's last completed roll, as a small die in their nest (left of
-          their notice) — pinned until their turn comes round again, so before you
-          roll you can read what every other player did. The current player's own
-          die is hidden while they're reading the centre die, so it never duplicates. */}
-      {state.players.map((_, p) => {
-        const mark = lastRollMark(p)
-        if (!mark) return null
-        return (
-          <DieFace
-            key={`lastroll-${p}`}
-            value={mark.value}
-            cx={mark.cx}
-            cy={mark.cy}
-            size={NEST_LAST_ROLL_DIE}
-            color={mark.color}
-          />
         )
       })}
 
