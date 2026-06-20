@@ -24,12 +24,15 @@
 ## Where we are
 A **playable, polished** cross-and-circle race game — hot-seat **plus AI
 opponents** — with **all chrome rendered on the board SVG**, no HUD: the title, the
-New Game disclosure, the centre die over HOME, per-nest notices, and a whose-turn
+New Game button, the centre die over HOME, per-nest notices, and a whose-turn
 corner wash. The cabin ruleset is shipped end-to-end, including the start-square
-exception (engine `legalMoves` *and* the visual ownership arrows). Seats you don't
-control play themselves via a swappable **`Strategy`** — a pure third layer in
-[`src/ai/`](../src/ai/) (default: you're seat 0, the rest AI; `[]` makes every seat
-AI). Each seat keeps a **turn log** pinned in its nest until its turn comes round
+exception (engine `legalMoves` *and* the visual ownership arrows). **New Game opens
+a setup window over the board** (`NewGameModal`) to pick player count, each seat's
+**human/AI**, and each seat's **colour** (kept distinct — picking one a seat holds
+swaps them); nothing applies until "Start game". Seats you don't control play
+themselves via a swappable **`Strategy`** — a pure third layer in
+[`src/ai/`](../src/ai/) (default: you're seat 0, the rest AI; all-AI is allowed —
+watch it play). Each seat keeps a **turn log** pinned in its nest until its turn comes round
 again: a stack of rows, one per sub-turn, each showing the die rolled and what it
 did — moves are described in words (left the nest, reached the home lane, got one
 home, reached a safe square, left the start square, a plain move, plus captures /
@@ -73,21 +76,24 @@ the candidate list below, in no particular order:
 - **Stuck-turn bug (repro unknown).** A real game once wedged on a player's turn —
   it could not be advanced by normal play and had to be unstuck manually. Not yet
   reproducible, so the cause is unknown (likely candidate: a state where the turn
-  fails to auto-pass — e.g. no legal move not forfeiting). A **"Skip turn" escape
-  hatch** now ships in the New Game picker (`forceNextTurn`) as a *recovery* for it,
-  but the underlying defect is unfixed — chase a repro + root cause in a fresh
-  session (start in the engine's `passTurn` / `applyRoll` / `applyMove` flow).
+  fails to auto-pass — e.g. no legal move not forfeiting). The `forceNextTurn`
+  recovery action still exists (reducer + engine, still dispatched from App), but
+  its **"Skip turn" button was retired** with the New Game redesign — it'll return
+  in the planned gear menu. The underlying defect is unfixed — chase a repro + root
+  cause in a fresh session (start in the engine's `passTurn` / `applyRoll` /
+  `applyMove` flow).
 - **Fuller docs drift/redundancy sweep.** A systematic pass over the docs not
   recently touched ([architecture.md](architecture.md),
   [rules-and-lineage.md](rules-and-lineage.md)) for pre-existing staleness and
   cross-doc redundancy — a content-excavation task best started fresh, not bolted
   onto a session tail.
-- **New Game UI v2 — per-seat setup.** Replace the count-only picker with a richer
-  New Game panel that lets you set, per seat, whether it's **human or AI** and its
-  **colour**. Builds on what already exists: `humanSeats` (App state, today fixed to
-  `[0]`) and the per-seat `players[].color` field — so this is mostly UI. Folds in
-  the colour-choice and (eventual) ruleset-picker follow-ons already noted under
-  *Rule-variant layer* above; do them as one New Game redesign.
+- **New Game UI — tweaks + extensions.** The per-seat setup window **shipped** this
+  session (count, human/AI, colour, Cancel/Start). Remaining, all optional: tune the
+  look via `SETUP_SCALE`/`SETUP_W`/`SETUP_H` and the `setup-*` styles; maybe label
+  each seat with its **board corner** (deferred — corners shift with player count);
+  and the **gear menu** (its now-retired Skip-turn button is the first tenant — see
+  the stuck-turn item; `forceNextTurn` is still wired from App). The **ruleset
+  picker** (per *Rule-variant layer* above) is the natural next control to add here.
 - **Smarter AI strategy.** The chosen near-term path is to **grow `greedyStrategy`
   itself in baby steps** — tweak the priority ladder and let each tier weigh more
   factors — playtesting between changes, rather than jumping straight to a wholesale
@@ -96,10 +102,13 @@ the candidate list below, in no particular order:
   racing the leader more deliberately; a fundamentally different brain (e.g. shallow
   lookahead) is still a clean drop-in later via the swappable-policy seam
   (`src/ai/strategy.ts`), no engine/UI change.
-- **Mobile (iPad) winner-popup bug.** On iPad the win popup renders very small and
-  pinned to the top-left corner instead of centred/sized over the board. Likely a
-  viewport/SVG-sizing issue specific to the mobile PWA layout — chase the win-popup
-  render in [GameBoard.tsx](../src/ui/GameBoard.tsx).
+- **Mobile (iPad) winner-popup bug — likely fixed, awaiting on-device check.** The
+  win popup rendered tiny in the top-left on iPad: WebKit doesn't resolve `%`
+  against a `foreignObject`, so its centring frame collapsed. Fixed by giving the
+  overlay explicit board-unit dimensions (committed). **Not yet verified on iPad** —
+  the user will validate before the next session; opening the **New Game setup
+  window** on iPad confirms it in one tap (same over-board pattern). If still wrong,
+  re-chase the win-popup render in [GameBoard.tsx](../src/ui/GameBoard.tsx).
 
 ## Open rule details
 - **None open.** All cabin rules are confirmed and shipped as of 2026-06-13 — the

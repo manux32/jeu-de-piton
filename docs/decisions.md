@@ -10,6 +10,31 @@
 > [rules-and-lineage.md](rules-and-lineage.md), [board-model.md](board-model.md)).
 > Don't duplicate git history — capture reasoning a commit message wouldn't.
 
+- **2026-06-20** — **New Game became a setup *window*; over-board HTML chrome is
+  authored in px + scaled, not in board units.** Replaced the inline 2/3/4
+  disclosure with a modal (`NewGameModal`) over the board: player count, a
+  human/AI toggle per seat, a colour picker per seat, Cancel / Start game — nothing
+  applies to the live game until Start (draft state; Cancel discards). *Design
+  choices:* a **single button → modal** now, **gear menu deferred** (it only pays
+  off once several options exist; its first tenant is the retired Skip-turn button);
+  **Skip turn dropped from the UI** but `forceNextTurn` kept wired (reducer + engine
+  + App) for trivial restore; **colours kept distinct by swapping** (pick a colour a
+  seat holds → the two seats swap) since colour is engine identity (piton ids /
+  capture / win) — `createGame` now takes an optional per-seat `colors` array,
+  validated distinct; **all-AI allowed** (no min-human guard). *The load-bearing
+  gotcha:* the win popup renders HTML in **board units** (1 CSS px = 1 board unit),
+  which works for plain text but **not for anything with a border** — a sub-px
+  border clamps up to the 1px minimum = **one whole board square** (~40 screen px),
+  so the first attempt rendered gigantic. Fix: author the window in **natural px and
+  shrink it with a `scale(SETUP_SCALE)` transform** (the same px-then-scale trick
+  the New Game *button* already uses), where 1px is tiny and ordinary CSS just
+  works. A full-board `<rect>` scrim dims + blocks play behind it. *Also this
+  session:* the **iPad win-popup bug** got a fix — WebKit doesn't resolve `%`
+  against a `foreignObject`, collapsing its centring frame, so the overlay now gets
+  explicit board-unit dimensions (unverified on device; see STATUS). And added
+  [`scripts/screenshot.mjs`](../scripts/screenshot.mjs) — a playwright-core helper
+  that shoots the live app (modals, selected states) the static render can't reach;
+  it's what caught the px-vs-board-unit sizes empirically.
 - **2026-06-20** — **greedyStrategy ladder reordered around the start-square
   capture exception.** Two new tiers added and FINISH split in two. New ladder:
   (1) rush a *track* piton off the exposed ring into its home lane or straight

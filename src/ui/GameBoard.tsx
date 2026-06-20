@@ -89,9 +89,10 @@ interface Props {
 // viewBox units. (The die is the exception: native SVG drawn directly in board
 // units — see DieFace.) The corner chrome (title, New Game) is centred
 // horizontally on its corner's nest cluster (see nestX in the body) and
-// vertically inset from the board edge by CTRL_INSET. New Game is a disclosure:
-// the box widens (CTRL_W_CLOSED→CTRL_W_OPEN) so the 2/3/4 picker fits, growing
-// symmetrically about the nest centre.
+// vertically inset from the board edge by CTRL_INSET. New Game is a single
+// button (width CTRL_W_CLOSED) that opens the setup window — the over-board
+// panel (count, per-seat human/AI + colour) in NewGameModal, scaled on by
+// SETUP_SCALE (its own px-then-scale chrome; see that file + the modal block).
 //
 // Every size knob this file draws with — title, chrome, die, the move rings, and
 // the notices — lives in theme.ts (GEOMETRY).
