@@ -29,8 +29,12 @@ corner wash. The cabin ruleset is shipped end-to-end, including the start-square
 exception (engine `legalMoves` *and* the visual ownership arrows). Seats you don't
 control play themselves via a swappable **`Strategy`** — a pure third layer in
 [`src/ai/`](../src/ai/) (default: you're seat 0, the rest AI; `[]` makes every seat
-AI). Each player's **notice + last-roll die persist in their nest** until their turn
-comes round again, so before you roll you can read what everyone did since. All
+AI). Each seat keeps a **turn log** pinned in its nest until its turn comes round
+again: a stack of rows, one per sub-turn, each showing the die rolled and what it
+did — moves are described in words (left the nest, reached the home lane, got one
+home, reached a safe square, left the start square, a plain move, plus captures /
+extra rolls / forfeits / the streak penalty / the win). So a 6-streak shows
+several rows and, before you roll, you can read everything everyone did since. All
 look-and-feel is knob-driven from [theme.ts](../src/ui/theme.ts) and all UI copy
 from [strings.ts](../src/ui/strings.ts). Tests + build + lint are green (`npm test`
 for the count) and `src/ui/` stays rules-free.
@@ -57,12 +61,14 @@ the candidate list below, in no particular order:
   direction:* colours beyond 4 extend the engine `PlayerColor` union + the palette;
   letting players *choose* builds on the per-seat `players[].color` field that
   already exists (a picker that sets it with uniqueness; seat→colour stays default).
-- **Finish the knob-set audit.** Squares + notices were audited (notices reworked
-  again 2026-06-18); the **die, New Game button, and start arrows** remain — refine
-  their `theme.ts` knobs as needed (the `knob-design-user-intent` memory holds the
-  principle). Not blocking. *Notice follow-on the user flagged:* per-role
+- **Finish the knob-set audit.** Squares + notices were audited; the **die, New
+  Game button, and start arrows** remain — refine their `theme.ts` knobs as needed
+  (the `knob-design-user-intent` memory holds the principle). Not blocking.
+  *Notice follow-ons the user is still polishing:* the turn-log stack's layout
+  (it's left-aligned in a box centred on the nest, so `NOTICE_OFFSET_X` / `_WIDTH`
+  may need nudging, and long compound rows can clip horizontally), plus per-role
   differentiation knobs (italic / size / weight for `current` vs `previous`) — the
-  CSS classes already exist, so it's adding knobs + forwarding, no render change.
+  CSS classes already exist, so that's adding knobs + forwarding, no render change.
 - **Stuck-turn bug (repro unknown).** A real game once wedged on a player's turn —
   it could not be advanced by normal play and had to be unstuck manually. Not yet
   reproducible, so the cause is unknown (likely candidate: a state where the turn
@@ -81,13 +87,6 @@ the candidate list below, in no particular order:
   `[0]`) and the per-seat `players[].color` field — so this is mostly UI. Folds in
   the colour-choice and (eventual) ruleset-picker follow-ons already noted under
   *Rule-variant layer* above; do them as one New Game redesign.
-- **Richer notice copy — describe the last action.** Add notice strings that say
-  *what* a previous player actually did on their turn (e.g. moved a piton, entered,
-  finished one), not just captures/passes. The persistence it depends on is now
-  **shipped** (see "Where we are"), so a plain move currently shows only a lingering
-  die and no text — this fills that gap. New copy in [strings.ts](../src/ui/strings.ts);
-  the plug-in point is a marked **SEAM** in [useGame.ts](../src/ui/useGame.ts)'s
-  `pick` case (derive a description part from `action.move`).
 - **Smarter AI strategy.** A stronger `Strategy` beyond the current `greedyStrategy`
   priority ladder — e.g. weighing safety, blocking, racing the leader, or shallow
   lookahead. The swappable-policy seam (`src/ai/strategy.ts`) means this is a new

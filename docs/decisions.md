@@ -10,6 +10,32 @@
 > [rules-and-lineage.md](rules-and-lineage.md), [board-model.md](board-model.md)).
 > Don't duplicate git history — capture reasoning a commit message wouldn't.
 
+- **2026-06-20** — **Notices became a per-seat *turn log* — every sub-turn stacked,
+  not just the last action.** Supersedes the single roll+notice slot from the
+  2026-06-19 entry below. The user (as designer) expanded the "richer notice copy"
+  backlog item mid-design: he wanted a seat's nest to record **everything** it did
+  on its turn, so a 6-streak (which grants extra rolls) shows as several rows, each
+  with the die it rolled. So `GameView` dropped the parallel `rolls[p]` + `notices[p]`
+  arrays for a single **`log[p]: TurnEntry[]`** (each entry = `{ die, notice }`). One
+  entry is appended per *completed* sub-turn; the whole list is wiped at handover to
+  that seat (same `handover()` helper, now clearing a list). **Why a log beats two
+  parallel arrays:** it unifies die + outcome into one record, so a row is naturally
+  "this roll → this result," and the old fiddly `lastRollMark` die-alignment math is
+  gone (dice are now inline in each row). **Centre die decoupled:** it now reads
+  `game.lastRoll` directly (was `rolls[turn]`) — the log only holds completed
+  sub-turns, so an in-progress roll isn't in it. That made the dev scenarios' `rolled`
+  scalar redundant (the centre die reads `lastRoll`, which scenarios already set), so
+  it was **removed** — one less piece of plumbing. **Move descriptions** (the original
+  ask) are derived in `describeMove()` from the move's `from→to` vs geometry/ruleset:
+  Left the nest / Reached Home Lane / Got one Home! / Moved (+ Reached safe square /
+  Left start square). "Moved" is a *fallback*, suppressed whenever a milestone **or a
+  capture** already describes the move (a capture implies a move, so "Moved · Capture"
+  was rejected as redundant). **Rendering:** one `foreignObject` per nest holds a
+  bottom-anchored flex **column** of rows, each an inline SVG die + tinted text; the
+  prompt row also carries a die (a "Roll"-labelled face before rolling, the rolled
+  pips while picking) so its text lines up with logged rows. `NOTICE_MAX_LINES` is
+  capped at **3** — a turn can complete at most three sub-turns, so a 4th row could
+  never fill.
 - **2026-06-19** — **Per-player notices + last-roll dice, pinned until that seat's
   turn comes round again.** Was: one global `notice`/`rolled` (+ owner) that jumped
   to whoever just acted and erased the previous. Now `GameView` carries **per-seat
