@@ -55,19 +55,30 @@ function mostAdvanced(state: GameState, moves: Move[]): Move {
  *   1. FINISH a piton (land on HOME) — the goal of the game.
  *   2. CAPTURE a lone enemy — sets an opponent right back.
  *   3. LEAVE THE NEST — get another piton into play.
- *   4. otherwise ADVANCE THE LEADER — move the furthest-along piton.
+ *   4. VACATE THE START SQUARE — move our piton off our own entry square so a
+ *      nested piton can come out next turn; only while the nest isn't empty.
+ *   5. REACH A SAFE SQUARE — land on a marked square, immune from capture.
+ *   6. otherwise ADVANCE THE LEADER — move the furthest-along piton.
  *
  * It walks the tiers top-down and plays the first that has any candidate; within
  * a tier it picks the most-advanced piton, so even ties are deterministic (and
- * tier 4 is just that tie-break applied to every remaining move). Good enough to
- * feel non-broken; deliberately not clever — a smarter Strategy replaces it
- * wholesale later, this file untouched.
+ * the final tier is just that tie-break applied to every remaining move). Good
+ * enough to feel non-broken; deliberately not clever — a smarter Strategy
+ * replaces it wholesale later, this file untouched.
  */
 export const greedyStrategy: Strategy = (state, moves) => {
+  const entryIndex = state.geometry.entryIndices[state.turn]
+  const { safeSquares } = state.ruleset
+  const hasNestPiton = state.players[state.turn].pitons.some(
+    (p) => p.position.kind === 'nest',
+  )
   const tiers: Array<(m: Move) => boolean> = [
     (m) => m.to.kind === 'finished',
     (m) => m.captures != null,
     (m) => m.from.kind === 'nest',
+    (m) =>
+      hasNestPiton && m.from.kind === 'track' && m.from.square === entryIndex,
+    (m) => m.to.kind === 'track' && safeSquares.includes(m.to.square),
     () => true,
   ]
   for (const tier of tiers) {
