@@ -39,3 +39,21 @@ a full `GameView`. Three pieces:
 Throwaway Vitest that builds the layout (or `renderToStaticMarkup`s `<GameBoard>`
 with a doctored state) to an SVG in `references/`, then `node
 scripts/render-board.mjs <in.svg> <out.png>`. Delete the artifacts after.
+
+## Screenshotting the live app (UI in view-state)
+For UI the static render can't reach — modals, hover/selected states,
+mid-interaction — screenshot the **running** app with
+[`scripts/screenshot.mjs`](../scripts/screenshot.mjs). It drives the system
+Edge/Chrome via `playwright-core` (a dev dep; no browser download), so the dev
+server must be up first (`npm run dev`). It can click through to a state by
+accessible name before shooting:
+
+```
+NODE_OPTIONS=--use-system-ca node scripts/screenshot.mjs \
+  --out references/new-game.png --click "New game"
+```
+
+`--click` is repeatable (runs in order); `--out` defaults to scratch
+`references/shot.png`; `--size WxH` / `--path <route>` / `--wait <ms>` round it
+out. Output is scratch — delete it after, like the SVG renders above. Handy for
+self-checking a board-unit-vs-px sizing change without a manual eyeball.
