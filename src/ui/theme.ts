@@ -318,7 +318,7 @@ export const NOTICE_TEXT_SIZE = 0.38   // text height, in squares (bigger = bigg
 export const NOTICE_OFFSET_X = 0      // nudge sideways from centred (+ = right)
 export const NOTICE_OFFSET_Y = 0.1   // how far up from the bottom of the corner the stack sits
 export const NOTICE_WIDTH = 7.8       // box width, in squares (a row's text wraps at this width)
-export const NOTICE_MAX_LINES = 3     // lines of room for the stack before the oldest rows clip off the top (a turn caps at 3 sub-turns)
+export const NOTICE_MAX_LINES = 4     // lines of room for the stack before the oldest rows clip off the top (a turn caps at 3 sub-turns)
 export const NOTICE_DIE_SIZE = 1.6    // each row's little die, as a multiple of the row's text height
 export const NOTICE_DEBUG_OUTLINE = false // dev: outline the box so you can see its extents while tuning
 
