@@ -10,6 +10,19 @@
 > [rules-and-lineage.md](rules-and-lineage.md), [board-model.md](board-model.md)).
 > Don't duplicate git history — capture reasoning a commit message wouldn't.
 
+- **2026-06-20** — **`greedyStrategy` ladder gained two mid-tiers: vacate-start,
+  then reach-safe.** Extends the v1 ladder from the 2026-06-19 AI entry below
+  (`finish → capture → leave-nest → advance-leader`) by inserting two tiers just
+  above the advance-leader fallback, so the ladder is now finish → capture →
+  leave-nest → **vacate-start** → **reach-safe** → advance-leader. *Vacate-start* =
+  move our piton off our **own entry square** so a nested piton can come out next
+  turn — gated on the nest still holding a piton (if the nest is empty, freeing the
+  start buys nothing, so the tier is skipped and the leader advances). *Reach-safe* =
+  land on a marked safe square for capture immunity. Ordering **vacate above
+  reach-safe is the designer's call "for now"** and may flip later. Kept deliberately
+  cheap — still a fixed ladder, no lookahead; the real upgrade (safety/blocking
+  weighting or shallow search) stays the **"Smarter AI strategy"** backlog item, a
+  whole new `Strategy` function, not more tiers bolted on here.
 - **2026-06-20** — **Notices became a per-seat *turn log* — every sub-turn stacked,
   not just the last action.** Supersedes the single roll+notice slot from the
   2026-06-19 entry below. The user (as designer) expanded the "richer notice copy"
