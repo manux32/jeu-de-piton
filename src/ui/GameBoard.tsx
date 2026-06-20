@@ -461,7 +461,15 @@ export function GameBoard({
           stays live). Tap the panel to dismiss and inspect the final board. */}
       {showWin && state.winner != null && (
         <foreignObject x={0} y={0} width={layout.extent} height={layout.extent}>
-          <div className="win-overlay">
+          {/* Explicit board-unit size, not width/height:100% — iOS Safari fails
+              to resolve percentages against a foreignObject, collapsing the
+              centring frame to ~0 so the panel renders tiny in the top-left
+              corner (the iPad win-popup bug). Inside a foreignObject 1 CSS px ==
+              1 board unit, so layout.extent px exactly fills the frame. */}
+          <div
+            className="win-overlay"
+            style={{ width: layout.extent, height: layout.extent }}
+          >
             <button
               type="button"
               className="win-panel"
