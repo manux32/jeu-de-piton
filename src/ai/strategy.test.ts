@@ -105,6 +105,60 @@ describe('greedyStrategy — priority ladder', () => {
     expect(greedyStrategy(s, moves).pitonId).toBe('red-1')
   })
 
+  it('RUSHES a track piton off the ring into its home lane, over capturing', () => {
+    // red-0 at track 63 (one short of the lane mouth at progress 64) enters its
+    // home lane on a 1; red-1 + 1 could instead capture lone blue-0 at 6. Getting
+    // off the exposed ring (tier 1) now outranks the capture (tier 3).
+    let s = place(createGame(JEU_DE_PITON), 'red-0', { kind: 'track', square: 63 })
+    s = place(s, 'red-1', { kind: 'track', square: 5 })
+    s = place(s, 'blue-0', { kind: 'track', square: 6 })
+    const moves = legalMoves(s, 1)
+    expect(moves.some((m) => m.captures === 'blue-0')).toBe(true) // guard the setup
+    const chosen = greedyStrategy(s, moves)
+    expect(chosen.pitonId).toBe('red-0')
+    expect(chosen.to).toEqual({ kind: 'lane', step: 0 })
+  })
+
+  it('LEAVES a dangerous opponent start square, over capturing', () => {
+    // red-0 sits on yellow's start (square 34); yellow still has nested pitons, so
+    // yellow could exit the nest onto 34 next turn and capture red-0. Vacating it
+    // (tier 2) beats red-1's available capture of blue-0 (tier 3).
+    let s = place(createGame(JEU_DE_PITON), 'red-0', { kind: 'track', square: 34 })
+    s = place(s, 'red-1', { kind: 'track', square: 5 })
+    s = place(s, 'blue-0', { kind: 'track', square: 6 })
+    const moves = legalMoves(s, 1)
+    expect(moves.some((m) => m.captures === 'blue-0')).toBe(true) // guard the setup
+    const chosen = greedyStrategy(s, moves)
+    expect(chosen.pitonId).toBe('red-0')
+    expect(chosen.from).toEqual({ kind: 'track', square: 34 })
+  })
+
+  it('avoids LANDING on a dangerous start when another safe square is reachable', () => {
+    // Both candidates reach a marked safe square on a 1: red-1 (leader, 33→34) and
+    // red-0 (6→7). But square 34 is yellow's start and yellow is nested — a trap.
+    // The within-tier avoidance drops it, so the less-advanced red-0→7 is chosen.
+    let s = place(createGame(JEU_DE_PITON), 'red-0', { kind: 'track', square: 6 })
+    s = place(s, 'red-1', { kind: 'track', square: 33 })
+    const moves = legalMoves(s, 1)
+    expect(moves.some((m) => m.to.kind === 'track' && m.to.square === 34)).toBe(true)
+    const chosen = greedyStrategy(s, moves)
+    expect(chosen.pitonId).toBe('red-0')
+    expect(chosen.to).toEqual({ kind: 'track', square: 7 })
+  })
+
+  it('deprioritises FINISHING FROM THE LANE below rushing a track piton to safety', () => {
+    // red-0 in the home lane (step 6) finishes on a 1; red-1 at track 63 instead
+    // enters the lane. The lane piton is already safe, so getting red-1 off the
+    // exposed ring (tier 1) outranks the finish (tier 7) — the FINISH split.
+    let s = place(createGame(JEU_DE_PITON), 'red-0', { kind: 'lane', step: 6 })
+    s = place(s, 'red-1', { kind: 'track', square: 63 })
+    const moves = legalMoves(s, 1)
+    expect(moves.some((m) => m.to.kind === 'finished')).toBe(true) // guard the setup
+    const chosen = greedyStrategy(s, moves)
+    expect(chosen.pitonId).toBe('red-1')
+    expect(chosen.to).toEqual({ kind: 'lane', step: 0 })
+  })
+
   it('always returns one of the supplied legal moves', () => {
     const s = createGame(JEU_DE_PITON)
     const moves = legalMoves(s, 5)

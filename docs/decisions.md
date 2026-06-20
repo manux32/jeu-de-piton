@@ -10,6 +10,24 @@
 > [rules-and-lineage.md](rules-and-lineage.md), [board-model.md](board-model.md)).
 > Don't duplicate git history — capture reasoning a commit message wouldn't.
 
+- **2026-06-20** — **greedyStrategy ladder reordered around the start-square
+  capture exception.** Two new tiers added and FINISH split in two. New ladder:
+  (1) rush a *track* piton off the exposed ring into its home lane or straight
+  HOME; (2) leave a *dangerous opponent start* — an opponent's start square whose
+  owner still holds a nested piton; (3) capture; (4) leave nest; (5) vacate own
+  start; (6) reach a safe square; (7) finish *from the lane*; (8) advance leader.
+  *Why the split + the new tiers:* a start square shields its occupant from capture
+  by movement, but **not** from the owner exiting the nest straight onto it
+  ([moves.ts](../src/engine/moves.ts) entry block) — so sitting on an opponent's
+  start is only safe once that owner's nest is empty. That single rule drives both
+  new tiers and demotes finishing-from-lane: a piton already in its lane can't be
+  captured, so getting an *exposed* track piton to safety outranks finishing a safe
+  one. Cutting across every tier is one avoidance — never *land* on a dangerous
+  start when a non-dangerous move exists **in the same tier** (the mirror of tier 2
+  on the landing side); it does real work mainly in the reach-safe tier, since
+  opponent starts are themselves marked safe squares and would otherwise lure a
+  piton onto the trap. Deliberately kept as a flat priority ladder, no lookahead;
+  each tier may later weigh more factors (agreed with the user as a "for now").
 - **2026-06-20** — **Sub-turn notices kept to one line; "Roll again" moved off
   finished rows onto the live prompt; the live row set apart.** Polishing the turn
   log from the entries below. Three linked changes, all to keep each *finished*
