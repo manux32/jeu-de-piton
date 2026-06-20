@@ -153,17 +153,6 @@ export function GameBoard({
   const [dismissedWin, setDismissedWin] = useState<GameState | null>(null)
   const showWin = over && state.winner != null && dismissedWin !== state
 
-  // Per-nest turn log: each nest shows ITS player's stacked sub-turn rows
-  // (`log[p]`, pinned until their turn comes round again), each row a small die +
-  // its outcome notice. The current player's nest also shows the live turn
-  // *prompt* as a trailing row (its own log was wiped when the turn returned to
-  // them, so older rows here are only this turn's bonus sub-turns).
-  const prompt =
-    state.phase === 'awaiting-roll'
-      ? PROMPT.awaitingRoll
-      : state.phase === 'awaiting-move'
-        ? PROMPT.awaitingMove
-        : null
   // The winning seat, for the special win styling (state.winner is a colour, not
   // an index; -1 when no win). Only this nest gets the win look at game-over —
   // other seats may still show a lingering past-turn line in the quiet style.
@@ -188,18 +177,22 @@ export function GameBoard({
     return { x, y }
   }
 
-  // The rows to draw in seat p's nest, oldest first: one per logged sub-turn
-  // (die + outcome notice), plus a trailing die-less prompt row for the current
-  // player. `null` content marks the prompt (plain text, no die). Empty ⇒ nothing
-  // to draw. The CSS column packs them to the bottom (newest nearest the nest) and
-  // clips the oldest off the top if they overflow the box.
-  const nestRows = (
-    p: number,
-  ): { die: number | null; content: Notice | string }[] => {
-    const rows: { die: number | null; content: Notice | string }[] = log[p].map(
-      (e) => ({ die: e.die, content: e.notice }),
-    )
-    if (!over && p === state.turn && prompt) rows.push({ die: null, content: prompt })
+  // The rows to draw in seat p's nest, oldest first: one per logged sub-turn (its
+  // die + outcome notice), plus a trailing prompt row for the current player. The
+  // prompt row carries a die too — a "Roll" label before they roll, the rolled
+  // pips while they pick — so every row has a die and their text lines up. Empty ⇒
+  // nothing to draw. The CSS column packs rows to the bottom (newest nearest the
+  // nest) and clips the oldest off the top if they overflow the box.
+  type NestRow = { die: number | null; label: string | null; content: Notice | string }
+  const nestRows = (p: number): NestRow[] => {
+    const rows: NestRow[] = log[p].map((e) => ({ die: e.die, label: null, content: e.notice }))
+    if (!over && p === state.turn) {
+      if (state.phase === 'awaiting-roll') {
+        rows.push({ die: null, label: DIE.rollPrompt, content: PROMPT.awaitingRoll })
+      } else if (state.phase === 'awaiting-move') {
+        rows.push({ die: state.lastRoll, label: null, content: PROMPT.awaitingMove })
+      }
+    }
     return rows
   }
 
@@ -317,14 +310,21 @@ export function GameBoard({
               <div className={cls} role="status" aria-live="polite">
                 {rows.map((row, ri) => (
                   <div key={ri} className="nest-notice-row">
-                    {row.die != null && (
+                    {(row.die != null || row.label != null) && (
                       <svg
                         className="nest-row-die"
                         viewBox="-1.25 -1.25 2.5 2.5"
                         style={{ width: `${NOTICE_DIE_SIZE}em`, height: `${NOTICE_DIE_SIZE}em` }}
                         aria-hidden
                       >
-                        <DieFace value={row.die} cx={0} cy={0} size={2} color={dieColor} />
+                        <DieFace
+                          value={row.die ?? 1}
+                          cx={0}
+                          cy={0}
+                          size={2}
+                          color={dieColor}
+                          label={row.label ?? undefined}
+                        />
                       </svg>
                     )}
                     {/* One inner span so the tinted runs flow as inline text

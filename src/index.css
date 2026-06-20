@@ -246,10 +246,10 @@ code {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  align-items: center;
+  align-items: flex-start;
   width: 100%;
   height: 100%;
-  text-align: center;
+  text-align: left;
   /* Base px the text is built at before GameBoard shrinks it to NOTICE_TEXT_SIZE;
      single source is theme.ts (NOTICE_FONT_PX via boardThemeVars). */
   font-size: var(--notice-font-px, 18px);
@@ -265,7 +265,7 @@ code {
 .nest-notice-row {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 0.35em;
   max-width: 100%;
 }
