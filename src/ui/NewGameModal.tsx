@@ -15,7 +15,7 @@
  */
 import { useState, type CSSProperties } from 'react'
 import { PLAYER_COLORS, type PlayerColor } from '../engine'
-import { PLAYER_HEX, SETUP_TEXT_SIZE, SETUP_PANEL_BG } from './theme'
+import { PLAYER_HEX, SETUP_PANEL_BG } from './theme'
 import { SETUP } from './strings'
 
 /** The next game's settings, as the setup window hands them back on Start. */
@@ -31,8 +31,10 @@ interface Props {
   colors: PlayerColor[]
   /** The seats a human currently controls, to pre-fill the type toggles. */
   humanSeats: number[]
-  /** The full board extent (board units) — the centring frame's size. */
-  extent: number
+  /** The px frame the panel is centred in (the foreignObject GameBoard scales
+   *  onto the board). Set explicitly, not 100%, so iOS Safari sizes it. */
+  frameW: number
+  frameH: number
   onCancel: () => void
   onStart: (setup: GameSetup) => void
 }
@@ -43,7 +45,7 @@ function resize<T>(arr: T[], n: number, fill: (i: number) => T): T[] {
   return [...arr, ...Array.from({ length: n - arr.length }, (_, k) => fill(arr.length + k))]
 }
 
-export function NewGameModal({ colors: initialColors, humanSeats, extent, onCancel, onStart }: Props) {
+export function NewGameModal({ colors: initialColors, humanSeats, frameW, frameH, onCancel, onStart }: Props) {
   // Draft state, pre-filled from the live game. `colors.length` is the player
   // count; `humans[i]` is whether seat i is human (else AI).
   const [colors, setColors] = useState<PlayerColor[]>(initialColors)
@@ -87,10 +89,10 @@ export function NewGameModal({ colors: initialColors, humanSeats, extent, onCanc
   const count = colors.length
 
   return (
-    <div className="setup-overlay" style={{ width: extent, height: extent }}>
+    <div className="setup-frame" style={{ width: frameW, height: frameH }}>
       <div
         className="setup-panel"
-        style={{ fontSize: SETUP_TEXT_SIZE, '--setup-bg': SETUP_PANEL_BG } as CSSProperties}
+        style={{ '--setup-bg': SETUP_PANEL_BG } as CSSProperties}
       >
         <div className="setup-title">{SETUP.title}</div>
 

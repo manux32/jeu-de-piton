@@ -29,6 +29,9 @@ import {
   CTRL_H,
   CTRL_INSET,
   DIE_SIZE,
+  SETUP_SCALE,
+  SETUP_W,
+  SETUP_H,
   WIN_PANEL_BG,
   WIN_TEXT_SIZE,
   NOTICE_TEXT_SIZE,
@@ -462,23 +465,40 @@ export function GameBoard({
       )}
 
       {/* New Game setup window — painted last (above the win popup too, so you can
-          start a fresh game from the win screen). Same over-board foreignObject
-          pattern as the win popup, including the explicit board-unit sizing that
-          keeps it centred on iOS Safari. Cancel/Start both close it; only Start
-          applies the draft (via onNewGame). */}
+          start a fresh game from the win screen). A full-board scrim rect blocks
+          play behind it, then the panel: built as HTML at natural px and scaled
+          onto the board by SETUP_SCALE (not authored in board units — a 1px
+          border there would clamp to a whole square), centred by offsetting the
+          scaled frame. Cancel/Start both close it; only Start applies the draft. */}
       {setupOpen && (
-        <foreignObject x={0} y={0} width={layout.extent} height={layout.extent}>
-          <NewGameModal
-            colors={state.players.map((p) => p.color)}
-            humanSeats={humanSeats}
-            extent={layout.extent}
-            onCancel={() => setSetupOpen(false)}
-            onStart={(setup) => {
-              onNewGame(setup)
-              setSetupOpen(false)
-            }}
+        <>
+          <rect
+            className="setup-scrim"
+            x={0}
+            y={0}
+            width={layout.extent}
+            height={layout.extent}
           />
-        </foreignObject>
+          <g
+            transform={`translate(${(layout.extent - SETUP_W * SETUP_SCALE) / 2}, ${
+              (layout.extent - SETUP_H * SETUP_SCALE) / 2
+            }) scale(${SETUP_SCALE})`}
+          >
+            <foreignObject x={0} y={0} width={SETUP_W} height={SETUP_H}>
+              <NewGameModal
+                colors={state.players.map((p) => p.color)}
+                humanSeats={humanSeats}
+                frameW={SETUP_W}
+                frameH={SETUP_H}
+                onCancel={() => setSetupOpen(false)}
+                onStart={(setup) => {
+                  onNewGame(setup)
+                  setSetupOpen(false)
+                }}
+              />
+            </foreignObject>
+          </g>
+        </>
       )}
     </svg>
   )

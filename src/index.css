@@ -343,36 +343,50 @@ code {
   }
 }
 
-/* New Game setup window — the panel GameBoard centres over the board (same
-   over-board foreignObject pattern as the win popup). Sized entirely in em off
-   the panel's font-size (SETUP_TEXT_SIZE board units), so one knob scales the
-   whole thing. The board is always light, so colours are pinned here rather than
-   inheriting the page theme. */
-.setup-overlay {
+/* New Game setup window. Authored in NATURAL PIXELS (font 15px, 1px borders…)
+   and shrunk onto the board by SETUP_SCALE via the foreignObject's parent <g>
+   in GameBoard — NOT in board units, where a sub-px border would clamp up to a
+   whole-square ring. So ordinary px CSS just works. The board is always light,
+   so colours are pinned here rather than inheriting the page theme. */
+
+/* Full-board scrim behind the panel (a native SVG rect): dims the board and
+   eats clicks so play can't continue behind the modal. Only the Cancel / Start
+   buttons dismiss it (a scrim tap does nothing, per design). */
+.setup-scrim {
+  fill: rgba(8, 6, 13, 0.32);
+}
+/* The px frame the panel is centred in (explicit size from props, so iOS Safari
+   sizes it). The leftover frame area is transparent; the scrim does the dimming. */
+.setup-frame {
   display: flex;
   align-items: center;
   justify-content: center;
-  /* A faint scrim signals the setup is modal and blocks play behind it; only the
-     Cancel / Start buttons dismiss it (per design — a scrim tap does nothing). */
-  background: rgba(8, 6, 13, 0.3);
 }
 .setup-panel {
   display: flex;
   flex-direction: column;
-  gap: 0.7em;
-  min-width: 14em;
-  max-width: 22em;
-  padding: 1em 1.1em 0.9em;
-  border-radius: 0.5em;
+  gap: 11px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 16px 18px 14px;
+  border-radius: 12px;
   background: var(--setup-bg, rgba(20, 18, 28, 0.94));
   color: #f3f1f6;
   font-family: var(--heading);
+  font-size: 15px;
   line-height: 1.15;
-  box-shadow: 0 0.3em 1.4em rgba(0, 0, 0, 0.5);
+  box-shadow: 0 6px 28px rgba(0, 0, 0, 0.5);
   animation: win-pop 0.28s cubic-bezier(0.2, 1.2, 0.3, 1) both;
 }
+.setup-panel button {
+  font: inherit;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  margin: 0;
+}
 .setup-title {
-  font-size: 1.3em;
+  font-size: 19px;
   font-weight: 800;
   text-align: center;
 }
@@ -380,7 +394,7 @@ code {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.6em;
+  gap: 10px;
 }
 .setup-rowlabel {
   font-weight: 600;
@@ -388,27 +402,25 @@ code {
 }
 .setup-group {
   display: flex;
-  gap: 0.4em;
+  gap: 7px;
 }
 /* The per-seat rows, fenced off from the count picker and action bar above/below. */
 .setup-seats {
   display: flex;
   flex-direction: column;
-  gap: 0.5em;
-  padding: 0.7em 0;
+  gap: 8px;
+  padding: 10px 0;
   border-top: 1px solid rgba(255, 255, 255, 0.12);
   border-bottom: 1px solid rgba(255, 255, 255, 0.12);
 }
 /* Count pills, the Human/AI toggle, and the Cancel/Start buttons share one look. */
 .setup-pill {
-  font: inherit;
   font-weight: 600;
-  padding: 0.32em 0.75em;
+  padding: 6px 14px;
   border: 1px solid rgba(255, 255, 255, 0.28);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.06);
   color: #f3f1f6;
-  cursor: pointer;
 }
 .setup-pill:hover {
   border-color: #aa3bff;
@@ -419,27 +431,27 @@ code {
 }
 /* Fixed width so toggling Human↔AI doesn't reflow the row. */
 .setup-type {
-  min-width: 4.2em;
+  min-width: 62px;
 }
 .setup-swatch {
-  width: 1.5em;
-  height: 1.5em;
+  width: 26px;
+  height: 26px;
   padding: 0;
-  border: 0.18em solid transparent;
+  border: none;
   border-radius: 50%;
   background: var(--swatch);
-  cursor: pointer;
   /* A thin dark ring keeps a light swatch (yellow) legible on the dark panel. */
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35);
 }
+/* Selected: a white ring AROUND the swatch (via box-shadow, not a border) so the
+   colour fill stays fully visible, plus a soft glow. */
 .setup-swatch-on {
-  border-color: #fff;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 0 0.4em rgba(255, 255, 255, 0.55);
+  box-shadow: 0 0 0 2.5px #fff, 0 0 7px rgba(255, 255, 255, 0.6);
 }
 .setup-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 0.6em;
+  gap: 10px;
 }
 .setup-pill-go {
   background: rgba(170, 59, 255, 0.3);
