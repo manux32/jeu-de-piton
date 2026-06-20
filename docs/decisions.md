@@ -10,6 +10,32 @@
 > [rules-and-lineage.md](rules-and-lineage.md), [board-model.md](board-model.md)).
 > Don't duplicate git history — capture reasoning a commit message wouldn't.
 
+- **2026-06-20** — **Sub-turn notices kept to one line; "Roll again" moved off
+  finished rows onto the live prompt; the live row set apart.** Polishing the turn
+  log from the entries below. Three linked changes, all to keep each *finished*
+  sub-turn row on a single line and distinguish the live (current) sub-turn from the
+  finished rows above it:
+  (1) **"Roll again" is no longer baked into a finished row.** It used to be appended
+  to a 6-move's notice ("Left start square · Got to safe square · Roll again" — three
+  fragments, which wrapped to two lines). Now it's carried by the **live prompt**
+  (`PROMPT.rollAgain`, "Roll again!"), shown in place of "Your turn!" whenever the
+  seat already has logged sub-turns this turn — a non-empty `log[seat]` ⇒ mid-6-streak,
+  since the log is wiped at handover. The unplayable-bonus-6 row is likewise just
+  "No move" now (was "No move — roll again"). *Why:* "roll again" on a finished row is
+  redundant (a 6-streak is self-evident), and that extra fragment was what pushed rows
+  to two lines — and a 2-line row gets its **top clipped** in the stack. "No move —
+  pass" keeps its suffix because a passed turn has no live prompt to carry the meaning.
+  (2) **The live row's tiny die shows a big "!" glyph** (`DIE.rollGlyph`) instead of
+  the word "Roll", which is illegible at notice size. `NOTICE_DIE_GLYPH_TEXT` sizes it
+  to fill the face; `NOTICE_DIE_GLYPH_OFFSET_X/Y` fine-centre it (a tall single glyph
+  reads low+left under SVG `text-anchor:middle` + `dominant-baseline:central`, which
+  centre by font metrics, not by ink). `DieFace` gained `labelSize` / `labelOffsetX` /
+  `labelOffsetY` so the notice die tunes independently of the centre die's "Roll".
+  (3) **The live row's *text* centres on the nest** while its die stays pinned left
+  (aligned with the finished rows' dice); finished rows stay fully left-aligned — the
+  first visible `current` vs `previous` differentiation. `NOTICE_MAX_LINES` now stays
+  at **4** (superseding the "capped at 3" reasoning in the entry below): kept as
+  headroom so a stray 2-line row can't clip the top of the stack.
 - **2026-06-20** — **`greedyStrategy` ladder gained two mid-tiers: vacate-start,
   then reach-safe.** Extends the v1 ladder from the 2026-06-19 AI entry below
   (`finish → capture → leave-nest → advance-leader`) by inserting two tiers just

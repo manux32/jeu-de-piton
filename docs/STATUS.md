@@ -64,11 +64,12 @@ the candidate list below, in no particular order:
 - **Finish the knob-set audit.** Squares + notices were audited; the **die, New
   Game button, and start arrows** remain — refine their `theme.ts` knobs as needed
   (the `knob-design-user-intent` memory holds the principle). Not blocking.
-  *Notice follow-ons the user is still polishing:* the turn-log stack's layout
-  (it's left-aligned in a box centred on the nest, so `NOTICE_OFFSET_X` / `_WIDTH`
-  may need nudging, and long compound rows can clip horizontally), plus per-role
-  differentiation knobs (italic / size / weight for `current` vs `previous`) — the
-  CSS classes already exist, so that's adding knobs + forwarding, no render change.
+  *Notice follow-ons — mostly addressed this round:* compound rows that clipped
+  horizontally are fixed — finished sub-turns are kept to one line ("Roll again"
+  now rides the live prompt, not the row), and the live row is set apart (its text
+  centres on the nest; its die shows a big "!" via the `NOTICE_DIE_GLYPH_*` knobs).
+  Still optional: the `current` vs `previous` per-role *text* knobs (italic / size /
+  weight) — the CSS classes exist, so it's adding knobs + forwarding, no render change.
 - **Stuck-turn bug (repro unknown).** A real game once wedged on a player's turn —
   it could not be advanced by normal play and had to be unstuck manually. Not yet
   reproducible, so the cause is unknown (likely candidate: a state where the turn
