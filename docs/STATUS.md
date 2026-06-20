@@ -9,67 +9,39 @@
 > - *why* a past choice was made → [decisions.md](decisions.md) (append new
 >   decisions there, not here)
 >
-> Maintain: when a milestone closes or a fact gets pinned, move the detail to the
-> right reference doc and leave only a one-line pointer here. Don't narrate
-> finished work — that's what [decisions.md](decisions.md) is for. And don't copy
-> volatile/derived facts into prose: reference the command (`npm test` for the
-> test count) or the code symbol (`CTRL_SCALE`, not its value), never a hand-kept
-> copy that goes stale.
+> Maintain: **"Where we are" is a date-free snapshot of the game's *current
+> capabilities*** — no dates, no shipped-feature narration. A date there (grep
+> `\d{4}-\d{2}-\d{2}`) means it's history that belongs in
+> [decisions.md](decisions.md): move it and leave the single pointer. The dated
+> *why* of how we got here is decisions.md's job, not this section's — that split
+> is the one source-of-truth rule this file most often breaks. Likewise across the
+> file: when a milestone closes or a fact gets pinned, move the detail to the right
+> reference doc and leave only a one-line pointer; don't narrate finished work. And
+> don't copy volatile/derived facts into prose: reference the command (`npm test`
+> for the test count) or the code symbol (`CTRL_SCALE`, not its value), never a
+> hand-kept copy that goes stale.
 
 ## Where we are
-**Playable hot-seat, polished — and all chrome lives *on the board*.** Milestones
-1–4 done (scaffold · engine core · SVG board · interaction loop) plus the M6
-look-and-feel pass: the HUD/header are gone (title, New Game disclosure, dice, and
-per-nest turn notices all render inside the board SVG), the board is uncapped and
-fills the viewport, the dice sit dead-centre over HOME, and whose-turn shows as a
-gently pulsing corner wash. The **start-square exception** is shipped end-to-end —
-visual ownership arrows *and* engine (`legalMoves`, entry-only). Tests + build +
-lint green (`npm test` for the count); `src/ui/` stays rules-free.
+A **playable, polished** cross-and-circle race game — hot-seat **plus AI
+opponents** — with **all chrome rendered on the board SVG**, no HUD: the title, the
+New Game disclosure, the centre die over HOME, per-nest notices, and a whose-turn
+corner wash. The cabin ruleset is shipped end-to-end, including the start-square
+exception (engine `legalMoves` *and* the visual ownership arrows). Seats you don't
+control play themselves via a swappable **`Strategy`** — a pure third layer in
+[`src/ai/`](../src/ai/) (default: you're seat 0, the rest AI; `[]` makes every seat
+AI). Each player's **notice + last-roll die persist in their nest** until their turn
+comes round again, so before you roll you can read what everyone did since. All
+look-and-feel is knob-driven from [theme.ts](../src/ui/theme.ts) and all UI copy
+from [strings.ts](../src/ui/strings.ts). Tests + build + lint are green (`npm test`
+for the count) and `src/ui/` stays rules-free.
 
-A **2026-06-17 QOL pass** refined the chrome further: nests are **circles** (not
-die-like squares); the centre die shows a **"Roll" prompt** on your turn with the
-last roll **relocated into the roller's nest** (and shown again on a roll-again 6);
-a win raises a **tap-to-dismiss popup** over the board; capture notices **name the
-captured colour** in its own colour; and all UI copy now lives in
-[`strings.ts`](../src/ui/strings.ts). A **2026-06-18** follow-up fixed the garbled
-`Capture · Roll again` notice, moved the notice box onto math-free knobs
-(`NOTICE_WIDTH`, `NOTICE_MAX_LINES`), and recoloured notices by **whose nest** they
-sit in (`NOTICE_CURRENT` vs `NOTICE_PREVIOUS`) rather than message kind. QOL
-fine-tuning is ongoing (docs get a fuller cleanup once it settles). Per-item *why* →
-[decisions.md](decisions.md).
+**Live on mobile** as an installable, offline-first PWA at
+**https://manux32.github.io/jeu-de-piton/** — auto-deploys from `main`.
 
-**Basic AI opponents shipped (2026-06-19).** Seats you don't control play
-themselves. The AI is a swappable **`Strategy`** — a pure third layer in
-[`src/ai/`](../src/ai/), no UI/engine change to add one — and the shipped
-`greedyStrategy` prioritises finish → capture → leave-nest → advance-leader. By
-default you're seat 0 and the rest are AI (`humanSeats` in [App.tsx](../src/App.tsx));
-setting it to `[]` makes every seat AI — a game that plays itself. Roll/move pacing
-is theme-knob-tunable. The layer → [architecture.md](architecture.md); the *why* →
-[decisions.md](decisions.md) (2026-06-19).
-
-**Notices + last-roll dice persist per player (2026-06-19).** A seat's notice and
-small "last roll" die now stay **pinned in that player's nest until their turn comes
-round again** (per-seat `rolls[]`/`notices[]` in [useGame.ts](../src/ui/useGame.ts);
-wiped at a `handover()` boundary, so a returning seat sees a clean prompt), so before
-you roll you can read what every other player/AI did. Caveat: an *ordinary* move
-still warrants no notice, so a plain turn shows only the die until the paired "Richer
-notice copy" task lands (Backlog). The *why* → [decisions.md](decisions.md) (2026-06-19).
-
-All look-and-feel is knob-driven from [theme.ts](../src/ui/theme.ts) (COLOURS /
-MOTION / GEOMETRY) and all UI copy from [strings.ts](../src/ui/strings.ts) — the
-control surface is complete (bar the knob-set audit; see Backlog).
-
-**Live on mobile:** an installable, offline-first PWA (`vite-plugin-pwa`) ships to
-GitHub Pages from `main` via [`.github/workflows/deploy.yml`](../.github/workflows/deploy.yml)
-— **https://manux32.github.io/jeu-de-piton/** (repo public; Pages source = GitHub
-Actions). Add-to-Home-Screen on an iPad gives a fullscreen, offline hot-seat game;
-the board is **full-bleed** and **portrait-locked** (iOS ignores the manifest lock,
-so it relies on the device rotation lock). The *why* + the iOS cache/orientation
-caveats are in [decisions.md](decisions.md) 2026-06-18.
-
-The session-by-session *why* for all of the above is in [decisions.md](decisions.md)
-(newest first); the shipped rule + geometry facts are in
-[rules-and-lineage.md](rules-and-lineage.md) and [board-model.md](board-model.md).
+The engine/UI/AI layers + vision → [architecture.md](architecture.md); the
+session-by-session *why* (newest first, incl. AI, persistent notices, and the
+mobile/PWA caveats) → [decisions.md](decisions.md); shipped rules + board geometry →
+[rules-and-lineage.md](rules-and-lineage.md) / [board-model.md](board-model.md).
 
 ## Backlog — unscheduled; pick the next task with the user
 Nothing is pre-committed for next session. The game is mature, so future work is
