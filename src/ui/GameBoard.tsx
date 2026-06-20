@@ -37,6 +37,9 @@ import {
   NOTICE_WIDTH,
   NOTICE_MAX_LINES,
   NOTICE_DIE_SIZE,
+  NOTICE_DIE_GLYPH_TEXT,
+  NOTICE_DIE_GLYPH_OFFSET_X,
+  NOTICE_DIE_GLYPH_OFFSET_Y,
   NOTICE_DEBUG_OUTLINE,
   NOTICE_FONT_PX,
   NOTICE_LINE_HEIGHT,
@@ -183,14 +186,28 @@ export function GameBoard({
   // pips while they pick — so every row has a die and their text lines up. Empty ⇒
   // nothing to draw. The CSS column packs rows to the bottom (newest nearest the
   // nest) and clips the oldest off the top if they overflow the box.
-  type NestRow = { die: number | null; label: string | null; content: Notice | string }
+  // `current` marks the live row — the one the prompt sits on this sub-turn — so
+  // the render can centre it on the nest while finished rows stay left-aligned.
+  type NestRow = { die: number | null; label: string | null; content: Notice | string; current?: boolean }
   const nestRows = (p: number): NestRow[] => {
     const rows: NestRow[] = log[p].map((e) => ({ die: e.die, label: null, content: e.notice }))
     if (!over && p === state.turn) {
       if (state.phase === 'awaiting-roll') {
-        rows.push({ die: null, label: DIE.rollPrompt, content: PROMPT.awaitingRoll })
+        // "Roll again" (vs "Your turn!") whenever this seat already has finished
+        // sub-turns this turn — i.e. it's a bonus roll off a 6, not the first
+        // roll. So "roll again" shows only on the live row, never on the rows
+        // above it. (The log is wiped at handover, so a non-empty log here always
+        // means the streak is still the same seat's.) The die shows a big glyph
+        // (DIE.rollGlyph) — the word "Roll" is illegible at notice size.
+        const bonus = log[p].length > 0
+        rows.push({
+          die: null,
+          label: DIE.rollGlyph,
+          content: bonus ? PROMPT.rollAgain : PROMPT.awaitingRoll,
+          current: true,
+        })
       } else if (state.phase === 'awaiting-move') {
-        rows.push({ die: state.lastRoll, label: null, content: PROMPT.awaitingMove })
+        rows.push({ die: state.lastRoll, label: null, content: PROMPT.awaitingMove, current: true })
       }
     }
     return rows
@@ -309,7 +326,10 @@ export function GameBoard({
             <foreignObject x={0} y={0} width={NEST_NOTICE_W} height={NEST_NOTICE_H}>
               <div className={cls} role="status" aria-live="polite">
                 {rows.map((row, ri) => (
-                  <div key={ri} className="nest-notice-row">
+                  <div
+                    key={ri}
+                    className={row.current ? 'nest-notice-row nest-notice-row-current' : 'nest-notice-row'}
+                  >
                     {(row.die != null || row.label != null) && (
                       <svg
                         className="nest-row-die"
@@ -324,6 +344,12 @@ export function GameBoard({
                           size={2}
                           color={dieColor}
                           label={row.label ?? undefined}
+                          // The glyph fills the face (its own big knob); its X/Y
+                          // nudge knobs fine-centre it (font metrics leave it a
+                          // touch low + left) — independent of the centre die's "Roll".
+                          labelSize={row.label != null ? NOTICE_DIE_GLYPH_TEXT : undefined}
+                          labelOffsetX={row.label != null ? NOTICE_DIE_GLYPH_OFFSET_X : undefined}
+                          labelOffsetY={row.label != null ? NOTICE_DIE_GLYPH_OFFSET_Y : undefined}
                         />
                       </svg>
                     )}

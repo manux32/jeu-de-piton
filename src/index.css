@@ -269,6 +269,25 @@ code {
   gap: 0.35em;
   max-width: 100%;
 }
+/* The live row (this sub-turn's prompt — "Your turn!" / "Roll again!" / "Pick a
+   piton"): its TEXT centres on the nest while its die stays pinned left, in line
+   with the dice of the finished rows above. The row stretches to the full box
+   width (which is already centred on the nest cluster); the die sits left in
+   normal flow, and the text span is taken out of flow and centred across the full
+   width — so the text lands on the nest centre, not merely the space right of the
+   die. Finished rows stay fully left-aligned. */
+.nest-notice-row-current {
+  align-self: stretch;
+  position: relative;
+}
+.nest-notice-row-current > span {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  text-align: center;
+}
 .nest-row-die {
   flex: none;
 }

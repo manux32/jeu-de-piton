@@ -39,9 +39,20 @@ interface Props {
   color: string
   /** When set, the face shows this text (e.g. a "Roll" prompt) instead of pips. */
   label?: string
+  /** Label font size as a [share] of die size. Defaults to DIE_PROMPT_TEXT (tuned
+   *  for the centre die's "Roll"); the tiny notice die overrides it larger for its
+   *  single-glyph prompt. */
+  labelSize?: number
+  /** Label horizontal nudge as a [share] of die size. Defaults to
+   *  DIE_PROMPT_OFFSET_X (a nudge that centres "Roll"). */
+  labelOffsetX?: number
+  /** Label vertical nudge as a [share] of die size (− = up). Defaults to 0; the
+   *  notice die overrides it to lift its tall single glyph off SVG's "central"
+   *  baseline so it reads centred. */
+  labelOffsetY?: number
 }
 
-export function DieFace({ value, cx, cy, size, color, label }: Props) {
+export function DieFace({ value, cx, cy, size, color, label, labelSize, labelOffsetX, labelOffsetY }: Props) {
   const half = size / 2
   const step = size * DIE_PIP_STEP // pip grid spacing from centre
   const pipR = size * DIE_PIP_R
@@ -62,9 +73,9 @@ export function DieFace({ value, cx, cy, size, color, label }: Props) {
       {label != null ? (
         <text
           className="die-label"
-          x={cx + size * DIE_PROMPT_OFFSET_X}
-          y={cy}
-          fontSize={size * DIE_PROMPT_TEXT}
+          x={cx + size * (labelOffsetX ?? DIE_PROMPT_OFFSET_X)}
+          y={cy + size * (labelOffsetY ?? 0)}
+          fontSize={size * (labelSize ?? DIE_PROMPT_TEXT)}
           fill={color}
           textAnchor="middle"
           dominantBaseline="central"

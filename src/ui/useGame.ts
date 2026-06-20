@@ -159,8 +159,9 @@ function reducer(view: GameView, action: GameAction): GameView {
       })
 
       // The turn stayed put ⇒ an unplayable bonus 6: nothing to play, but the
-      // player rolls again. No handover (the turn kept the roller).
-      if (next.turn === roller) return append(NOTICE.noMoveRollAgain)
+      // player rolls again. No handover (the turn kept the roller). The "roll
+      // again" is shown by the live prompt, not baked into this finished row.
+      if (next.turn === roller) return append(NOTICE.noMove)
 
       // Otherwise the engine passed the turn. Two cases, told apart by observing
       // whether the roller lost a piton to its nest (the 3rd-6 streak penalty)
@@ -178,12 +179,13 @@ function reducer(view: GameView, action: GameAction): GameView {
       const die = prev.lastRoll
       const next = applyMove(prev, action.move)
 
-      // Describe the move, then tack on the outcome modifier: a win, or a 6's
-      // extra go (turn unchanged after a move). The whole thing is one logged
-      // sub-turn carrying the roll that drove it.
+      // Describe the move, then tack on the win modifier if this finished the
+      // game. A 6's extra go is NOT added here: "roll again" belongs to the live
+      // prompt (PROMPT.rollAgain) on the next sub-turn, so finished rows stay
+      // short and never repeat it. The whole thing is one logged sub-turn
+      // carrying the roll that drove it.
       const parts = describeMove(action.move, prev, mover)
       if (next.phase === 'game-over') parts.push(NOTICE.win)
-      else if (next.turn === mover) parts.push(NOTICE.rollAgain)
 
       const logged: GameView = {
         ...view,

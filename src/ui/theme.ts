@@ -320,6 +320,9 @@ export const NOTICE_OFFSET_Y = 0.1   // how far up from the bottom of the corner
 export const NOTICE_WIDTH = 7.8       // box width, in squares (a row's text wraps at this width)
 export const NOTICE_MAX_LINES = 4     // lines of room for the stack before the oldest rows clip off the top (a turn caps at 3 sub-turns)
 export const NOTICE_DIE_SIZE = 1.6    // each row's little die, as a multiple of the row's text height
+export const NOTICE_DIE_GLYPH_TEXT = 1.0 // [share] size of the roll-prompt glyph (DIE.rollGlyph) on the current sub-turn's die, as a share of that die's size (big — one char filling the face, vs the centre die's small "Roll")
+export const NOTICE_DIE_GLYPH_OFFSET_X = 0.04 // [share] nudge the glyph sideways to look centred in the die (+ = right); the glyph's ink isn't dead-centre in its advance width
+export const NOTICE_DIE_GLYPH_OFFSET_Y = -0.06 // [share] nudge the glyph up/down to look centred (− = up); a tall single glyph sits a touch low under SVG's "central" baseline (which reserves descender room it doesn't use)
 export const NOTICE_DEBUG_OUTLINE = false // dev: outline the box so you can see its extents while tuning
 
 // ── Win popup (the "Green wins!" panel over the board centre, tap to dismiss) ─

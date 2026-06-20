@@ -22,11 +22,18 @@ export const TITLE = 'Jeu de piton'
 export const DIE = {
   /** Shown on the centre die when it's a player's turn to roll (in place of pips). */
   rollPrompt: 'Roll',
+  /** Shown on the tiny current-sub-turn notice die in a nest (in place of pips) —
+   *  a single glyph, because the word "Roll" is illegible at that size. */
+  rollGlyph: '!',
 } as const
 
 export const PROMPT = {
-  /** Current player still has to roll. */
+  /** Current player still has to roll (the first roll of their turn). */
   awaitingRoll: 'Your turn!',
+  /** Current player rolled a 6 and is rolling again — shown in place of
+   *  `awaitingRoll` on the bonus roll, so "Roll again" lives only on the live
+   *  (current) sub-turn, never on the finished rows above it. */
+  rollAgain: 'Roll again!',
   /** Roll is in; current player must now move a piton. */
   awaitingMove: 'Pick a piton',
 } as const
@@ -52,8 +59,10 @@ export type Notice = NoticeSegment[]
 const plain = (text: string): Notice => [{ text }]
 
 export const NOTICE = {
-  /** Rolled a 6 (bonus roll) but it left no legal move — roll again anyway. */
-  noMoveRollAgain: plain('No move — roll again'),
+  /** Rolled a 6 (bonus roll) but it left no legal move. The "roll again" half
+   *  isn't said here — it's carried by the live prompt below (PROMPT.rollAgain),
+   *  so this finished row stays short and never repeats "roll again". */
+  noMove: plain('No move'),
   /** Third 6 in a row — the streak penalty sends a piton home. */
   threeSixes: plain('Three 6s — sent home'),
   /** Roll left no legal move and wasn't a bonus — the turn passes. */
@@ -65,8 +74,6 @@ export const NOTICE = {
     { text: color, color },
     { text: ')' },
   ],
-  /** A move that earned another go (rolled a 6). */
-  rollAgain: plain('Roll again'),
   /** The acting player just finished their last piton and won. */
   win: plain('Wins! 🎉'),
 
@@ -83,7 +90,7 @@ export const NOTICE = {
   /** A plain advance along the track/lane, nothing else notable. */
   moved: plain('Moved'),
   /** A move that ended on a capture-safe square. */
-  reachedSafe: plain('Reached safe square'),
+  reachedSafe: plain('Got to safe square'),
   /** A piton vacated its own start square. */
   leftStart: plain('Left start square'),
 }
