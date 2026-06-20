@@ -48,6 +48,41 @@ describe('greedyStrategy — priority ladder', () => {
     expect(chosen.from).toEqual({ kind: 'nest' })
   })
 
+  it('VACATES THE START SQUARE over advancing the leader, while a piton waits in the nest', () => {
+    // No finish/capture, and a 3 is not an entry roll (entry is 5) so no nest
+    // move competes. red-0 sits on red's own start (square 0); red-1 is further
+    // along at 30. red-2/red-3 are still nested, so freeing the start outranks
+    // moving the leader — red-0 is chosen despite red-1 being more advanced.
+    let s = place(createGame(JEU_DE_PITON), 'red-0', { kind: 'track', square: 0 })
+    s = place(s, 'red-1', { kind: 'track', square: 30 })
+    const chosen = greedyStrategy(s, legalMoves(s, 3))
+    expect(chosen.pitonId).toBe('red-0')
+    expect(chosen.from).toEqual({ kind: 'track', square: 0 })
+  })
+
+  it('does NOT prioritise vacating the start square when the nest is empty', () => {
+    // Same start-square piton (red-0 at 0), but all four pitons are on the track
+    // now — nothing waits in the nest, so freeing the start buys nothing and the
+    // tier is skipped. The AI falls through to advancing the leader (red-3 at 40).
+    let s = place(createGame(JEU_DE_PITON), 'red-0', { kind: 'track', square: 0 })
+    s = place(s, 'red-1', { kind: 'track', square: 10 })
+    s = place(s, 'red-2', { kind: 'track', square: 30 })
+    s = place(s, 'red-3', { kind: 'track', square: 40 })
+    const chosen = greedyStrategy(s, legalMoves(s, 3))
+    expect(chosen.pitonId).toBe('red-3')
+  })
+
+  it('REACHES A SAFE SQUARE over advancing the leader', () => {
+    // No finish/capture/entry/start-vacate in play. red-0 at 4 + 3 lands on the
+    // marked safe square 7; red-1 is the leader at 30 (+3 → 33, not safe). The
+    // safe landing wins even though red-1 is further along.
+    let s = place(createGame(JEU_DE_PITON), 'red-0', { kind: 'track', square: 4 })
+    s = place(s, 'red-1', { kind: 'track', square: 30 })
+    const chosen = greedyStrategy(s, legalMoves(s, 3))
+    expect(chosen.pitonId).toBe('red-0')
+    expect(chosen.to).toEqual({ kind: 'track', square: 7 })
+  })
+
   it('falls back to ADVANCING THE LEADER (most-advanced piton)', () => {
     // Two pitons on the track, no finish/capture/entry available on a 3 — the AI
     // moves the one furthest along (red-1 at square 30 over red-0 at square 5).
