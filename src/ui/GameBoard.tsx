@@ -4,12 +4,13 @@
  * the static <Board>, the legal-move target markers, the <Pitons> overlay, and
  * all of the game's chrome — title, New Game controls, dice, and the per-nest
  * notices — overlaid in the four corners (see the 2026-06-13 decision: the board
- * is self-contained, no UI outside it). Each notice sits in the corner of the
- * player it concerns: the event line in the acting player's nest, the turn
- * prompt in the current player's. This is the interaction-loop seam (Milestone
- * 4): it takes the current player's `legalMoves` / die `face` + `rolling` /
- * `notice` / `noticeOwner` and the `onPick` / `onRoll` / `onNewGame` callbacks; it adds no
- * rules of its own (every decision is the engine's, made in App).
+ * is self-contained, no UI outside it). Each nest shows its own player's pinned
+ * last-action notice + last-roll die (`notices[p]` / `rolls[p]`, held until that
+ * seat's turn comes round again), while the current player's nest shows the live
+ * turn prompt. This is the interaction-loop seam (Milestone 4): it takes the
+ * current player's `legalMoves` / die `face` + `rolling` / the per-seat `notices`
+ * + `rolls` and the `onPick` / `onRoll` / `onNewGame` callbacks; it adds no rules
+ * of its own (every decision is the engine's, made in App).
  */
 import { useMemo, useState, type CSSProperties } from 'react'
 import type { GameState, Move } from '../engine'
@@ -58,14 +59,13 @@ interface Props {
   face: number
   /** True while a roll is animating; the die is non-interactive then. */
   rolling: boolean
-  notice: Notice | null
-  /** Player the notice is about (defaults to the current player if omitted). */
-  noticeOwner?: number | null
-  /** The held die value (last roll), shown as a small die in the roller's nest
-   *  once the turn has moved on. Differs from `face`, which carries the spin. */
-  rolled: number | null
-  /** Which player rolled `rolled` (see useGame.GameView.rolledBy). */
-  rolledBy?: number | null
+  /** Per-seat last-event notice (indexed by player); each lingers in that
+   *  player's nest until their turn comes round again. See useGame.GameView. */
+  notices: (Notice | null)[]
+  /** Per-seat last die roll (indexed by player), shown as a small die in that
+   *  player's nest until their turn. Differs from `face`, which carries the spin
+   *  for the centre die. */
+  rolls: (number | null)[]
   onPick: (move: Move) => void
   onNewGame: (playerCount: number) => void
   /** Escape hatch: force the turn to the next player to unstick a wedged game.
@@ -106,10 +106,8 @@ export function GameBoard({
   moves,
   face,
   rolling,
-  notice,
-  noticeOwner,
-  rolled,
-  rolledBy,
+  notices,
+  rolls,
   onPick,
   onNewGame,
   onForceNextTurn,
@@ -161,19 +159,26 @@ export function GameBoard({
   const [dismissedWin, setDismissedWin] = useState<GameState | null>(null)
   const showWin = over && state.winner != null && dismissedWin !== state
 
-  // Per-nest notices: each message sits in the corner of the player it concerns.
-  // The *event* line (what just happened) belongs to the player who acted —
-  // `noticeOwner`, falling back to the current player for dev-loaded notices; the
-  // *turn prompt* belongs to whoever is now to act. When the same player owns
-  // both (e.g. a bonus 6 keeps the turn), the event line wins — it's the more
-  // specific message. Each nest therefore shows at most one line.
-  const eventOwner = notice == null ? null : noticeOwner ?? state.turn
+  // Per-nest notices: each nest shows ITS player's last-action notice (`notices[p]`,
+  // pinned there until their turn comes round again). The current player's nest is
+  // the exception — it shows the live turn *prompt* instead, unless their turn is
+  // still underway and produced a notice (a bonus-6 "Roll again"), which the
+  // reducer keeps in their slot until the turn actually leaves. A stale notice
+  // from their previous turn was already wiped when the turn returned to them, so
+  // there's no ambiguity. Each nest still shows at most one line.
   const prompt =
     state.phase === 'awaiting-roll'
       ? PROMPT.awaitingRoll
       : state.phase === 'awaiting-move'
         ? PROMPT.awaitingMove
         : null
+  // The winning seat, for the special win styling (state.winner is a colour, not
+  // an index; -1 when no win). Only this nest gets the win look at game-over —
+  // other seats may still show a lingering past-turn line in the quiet style.
+  const winnerSeat =
+    over && state.winner != null
+      ? state.players.findIndex((pl) => pl.color === state.winner)
+      : -1
   // Anchor the notice at the BOTTOM of the player's corner quadrant — the washed
   // area the nest sits in (same bounds as Board's whose-turn wash) — so it always
   // clears the nest's holes/box. Centred horizontally on the nest cluster, then
@@ -191,41 +196,40 @@ export function GameBoard({
     return { x, y }
   }
 
-  // The last completed roll, shown as a small die in the roller's nest. Shown
-  // whenever the centre die isn't already showing that value as pips: once the
-  // turn has moved on, OR when the roller kept the turn and is back to rolling
-  // (a 6 — `awaiting-roll`, centre now showing the "Roll" prompt) where it backs
-  // up the "Roll again" notice. While the roller is mid-move (`awaiting-move`,
-  // centre showing the pips) it stays hidden, so the value never appears twice.
-  // The value is the held `rolled` (not `face`, which carries the spin). It's
-  // left-aligned to the roller's whose-turn highlight quadrant (same left edge as
-  // Board's wash) and sits on the notice's vertical line — far enough left that it
-  // clears the centred notice text without crowding it.
-  const lastRollMark =
-    rolled != null &&
-    rolledBy != null &&
-    (rolledBy !== state.turn || state.phase === 'awaiting-roll')
-      ? (() => {
-          const { y } = nestNotice(rolledBy)
-          // The notice text bottom-aligns in its band (CSS .nest-notice
-          // align-items: flex-end), so its line sits at the band's bottom edge.
-          // Centre the die on that line (one text line tall, line-height 1.25),
-          // then apply the fine vertical nudge knob.
-          const bandBottom = y + NEST_NOTICE_H * noticeScale
-          const textCentreY = bandBottom - (NOTICE_TEXT_SIZE * 1.25) / 2
-          const slots = layout.nestSlots[rolledBy]
-          const clusterCx = slots.reduce((a, s) => a + s.cx, 0) / slots.length
-          const onLeft = clusterCx < cellMid(layout.homeCell.col, layout)
-          const washLeft =
-            (onLeft ? 0 : cellStart(layout.homeCell.col + 2, layout)) + NEST_WASH_INSET
-          return {
-            value: rolled,
-            cx: washLeft + NEST_LAST_ROLL_DIE_OFFSET_X + NEST_LAST_ROLL_DIE / 2,
-            cy: textCentreY + NEST_LAST_ROLL_DIE_OFFSET_Y,
-            color: PLAYER_HEX[state.players[rolledBy].color],
-          }
-        })()
-      : null
+  // Each seat's last completed roll, shown as a small die in *their* nest (the
+  // per-seat `rolls[p]`, pinned until their turn comes round again). Shown
+  // whenever the centre die isn't already showing that same value as pips: for
+  // any non-current player, OR for the current player only when they kept the
+  // turn and are back to rolling (a 6 — `awaiting-roll`, centre showing the "Roll"
+  // prompt) where it backs up the "Roll again" notice. While the current player is
+  // mid-move (`awaiting-move`, centre showing the pips) their own die stays hidden,
+  // so the value never appears twice. The value is the held `rolls[p]` (not
+  // `face`, which carries the spin). It's left-aligned to that seat's whose-turn
+  // highlight quadrant (same left edge as Board's wash) and sits on the notice's
+  // vertical line — far enough left that it clears the centred notice text.
+  const lastRollMark = (p: number) => {
+    const value = rolls[p]
+    if (value == null) return null
+    if (p === state.turn && state.phase !== 'awaiting-roll') return null
+    const { y } = nestNotice(p)
+    // The notice text bottom-aligns in its band (CSS .nest-notice
+    // align-items: flex-end), so its line sits at the band's bottom edge.
+    // Centre the die on that line (one text line tall, line-height 1.25),
+    // then apply the fine vertical nudge knob.
+    const bandBottom = y + NEST_NOTICE_H * noticeScale
+    const textCentreY = bandBottom - (NOTICE_TEXT_SIZE * 1.25) / 2
+    const slots = layout.nestSlots[p]
+    const clusterCx = slots.reduce((a, s) => a + s.cx, 0) / slots.length
+    const onLeft = clusterCx < cellMid(layout.homeCell.col, layout)
+    const washLeft =
+      (onLeft ? 0 : cellStart(layout.homeCell.col + 2, layout)) + NEST_WASH_INSET
+    return {
+      value,
+      cx: washLeft + NEST_LAST_ROLL_DIE_OFFSET_X + NEST_LAST_ROLL_DIE / 2,
+      cy: textCentreY + NEST_LAST_ROLL_DIE_OFFSET_Y,
+      color: PLAYER_HEX[state.players[p].color],
+    }
+  }
 
   return (
     <svg
@@ -311,23 +315,26 @@ export function GameBoard({
         </foreignObject>
       </g>
 
-      {/* Per-nest notices: each player's corner shows the message that concerns
-          them — the event line in the acting player's nest, the turn prompt in
-          the current player's nest (event wins if one player owns both). Terse
-          text via foreignObject; click-through so it never swallows board clicks. */}
+      {/* Per-nest notices: each player's corner shows ITS player's pinned last-
+          action line (`notices[p]`). The current player's nest instead shows the
+          turn prompt — unless their turn is still underway and left a notice (a
+          bonus-6 "Roll again"). Terse text via foreignObject; click-through so it
+          never swallows board clicks. */}
       {state.players.map((_, p) => {
-        const isEvent = p === eventOwner
-        // The event line is a coloured-segment Notice; the turn prompt is plain
-        // text. Both render in the same band — pick whichever this nest owns.
-        const content = isEvent ? notice : p === state.turn ? prompt : null
+        // A coloured-segment Notice for the pinned line, plain text for the prompt;
+        // both render in the same band. The current player shows their own live
+        // notice if any (bonus 6), else the prompt; everyone else shows their
+        // pinned line. Stale own-notices were wiped at handover (see useGame).
+        const content = p === state.turn ? notices[p] ?? prompt : notices[p]
         if (!content) return null
         const { x, y } = nestNotice(p)
         // Colour by WHOSE nest this is, not by the kind of message: the current
-        // player (state.turn) gets the visible colour, the player who acted last
-        // turn gets the quiet one. A player on a 6-streak stays `state.turn`, so
-        // their line stays "current". The won game is the one exception.
+        // player (state.turn) gets the visible colour, anyone showing a lingering
+        // past-turn line gets the quiet one. A player on a 6-streak stays
+        // `state.turn`, so their line stays "current". The winner is the one
+        // exception — only their nest gets the win look at game-over.
         const cls =
-          isEvent && over
+          p === winnerSeat
             ? 'nest-notice nest-notice-win'
             : p === state.turn
               ? 'nest-notice nest-notice-current'
@@ -375,18 +382,24 @@ export function GameBoard({
         )
       })}
 
-      {/* The last completed roll, as a small die in the roller's nest (left of
-          their notice) — shown only once the turn has moved on, so it never
-          duplicates the centre die the roller was reading while they acted. */}
-      {lastRollMark && (
-        <DieFace
-          value={lastRollMark.value}
-          cx={lastRollMark.cx}
-          cy={lastRollMark.cy}
-          size={NEST_LAST_ROLL_DIE}
-          color={lastRollMark.color}
-        />
-      )}
+      {/* Each seat's last completed roll, as a small die in their nest (left of
+          their notice) — pinned until their turn comes round again, so before you
+          roll you can read what every other player did. The current player's own
+          die is hidden while they're reading the centre die, so it never duplicates. */}
+      {state.players.map((_, p) => {
+        const mark = lastRollMark(p)
+        if (!mark) return null
+        return (
+          <DieFace
+            key={`lastroll-${p}`}
+            value={mark.value}
+            cx={mark.cx}
+            cy={mark.cy}
+            size={NEST_LAST_ROLL_DIE}
+            color={mark.color}
+          />
+        )
+      })}
 
       <Pitons state={state} layout={layout} moves={moves} onPick={onPick} />
 

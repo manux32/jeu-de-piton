@@ -27,31 +27,35 @@ export interface DevScenario {
   label: string
   /**
    * One line describing what the scenario sets up / what to look at. Shown only
-   * as the picker tooltip in the dev panel — deliberately NOT stamped into the
-   * board `notice`, so a loaded scenario shows the same notices a real game
-   * would (letting notice changes be tested in place). `build` returns board
-   * state only; the notice is whatever the loaded state warrants (none).
+   * as the picker tooltip in the dev panel — deliberately NOT stamped into any
+   * board notice, so a loaded scenario shows the same notices a real game would
+   * (letting notice changes be tested in place). `build` returns board state plus
+   * the convenience scalar roll below; notices start empty (none warranted yet).
    */
   description: string
-  build: () => Omit<GameView, 'notice'>
+  /**
+   * Board state plus a single shown roll, authored as a scalar for convenience —
+   * `loadScenario` fans it out into the per-seat `rolls` array. `rolled` is the
+   * die value to show (default none); `rolledBy` is who rolled it (default the
+   * current player, as an awaiting-move state's roll belongs to whoever's up).
+   */
+  build: () => { game: GameView['game']; rolled?: number | null; rolledBy?: number | null }
 }
 
 /**
- * Turn a scenario into a loadable view: its board state with no notice, so the
- * board reads exactly as a real game in that state would (the real gameplay
- * notices then appear as you act from it).
+ * Turn a scenario into a loadable view: its board state with empty notices, so
+ * the board reads exactly as a real game in that state would (the real gameplay
+ * notices then appear as you act from it). The single authored roll is placed in
+ * its roller's per-seat slot, so the last-roll nest die behaves as in a real game
+ * once the turn passes.
  */
 export function loadScenario(s: DevScenario): GameView {
-  const view = s.build()
-  // No real `roll` action ran, so `rolledBy` (who rolled the shown value) was
-  // never recorded. In a real game an awaiting-move state's `rolled` belongs to
-  // the current player, so default it to that — then the last-roll nest die
-  // behaves as it would in a real game once the turn passes. A scenario can
-  // still set its own rolledBy to override.
+  const { game, rolled = null, rolledBy } = s.build()
+  const roller = rolledBy ?? game.turn
   return {
-    ...view,
-    notice: null,
-    rolledBy: view.rolledBy ?? (view.rolled != null ? view.game.turn : null),
+    game,
+    notices: game.players.map(() => null),
+    rolls: game.players.map((_, i) => (rolled != null && i === roller ? rolled : null)),
   }
 }
 

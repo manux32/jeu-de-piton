@@ -47,6 +47,14 @@ setting it to `[]` makes every seat AI — a game that plays itself. Roll/move p
 is theme-knob-tunable. The layer → [architecture.md](architecture.md); the *why* →
 [decisions.md](decisions.md) (2026-06-19).
 
+**Notices + last-roll dice persist per player (2026-06-19).** A seat's notice and
+small "last roll" die now stay **pinned in that player's nest until their turn comes
+round again** (per-seat `rolls[]`/`notices[]` in [useGame.ts](../src/ui/useGame.ts);
+wiped at a `handover()` boundary, so a returning seat sees a clean prompt), so before
+you roll you can read what every other player/AI did. Caveat: an *ordinary* move
+still warrants no notice, so a plain turn shows only the die until the paired "Richer
+notice copy" task lands (Backlog). The *why* → [decisions.md](decisions.md) (2026-06-19).
+
 All look-and-feel is knob-driven from [theme.ts](../src/ui/theme.ts) (COLOURS /
 MOTION / GEOMETRY) and all UI copy from [strings.ts](../src/ui/strings.ts) — the
 control surface is complete (bar the knob-set audit; see Backlog).
@@ -101,17 +109,13 @@ the candidate list below, in no particular order:
   `[0]`) and the per-seat `players[].color` field — so this is mostly UI. Folds in
   the colour-choice and (eventual) ruleset-picker follow-ons already noted under
   *Rule-variant layer* above; do them as one New Game redesign.
-- **Persistent per-player notices + last-roll dice.** Today a player's notice and
-  small "last roll" die clear when the next player acts. Instead keep each one
-  **pinned in that player's nest until it's their turn again**, so before you roll
-  you can see what every other player/AI did since your last turn. Touches the
-  notice/last-roll lifecycle in [useGame.ts](../src/ui/useGame.ts) /
-  [GameBoard.tsx](../src/ui/GameBoard.tsx).
 - **Richer notice copy — describe the last action.** Add notice strings that say
   *what* a previous player actually did on their turn (e.g. moved a piton, entered,
-  finished one), not just captures/passes. Pairs with the persistent-notices item
-  above (the notices have to linger to be worth reading). New copy in
-  [strings.ts](../src/ui/strings.ts).
+  finished one), not just captures/passes. The persistence it depends on is now
+  **shipped** (see "Where we are"), so a plain move currently shows only a lingering
+  die and no text — this fills that gap. New copy in [strings.ts](../src/ui/strings.ts);
+  the plug-in point is a marked **SEAM** in [useGame.ts](../src/ui/useGame.ts)'s
+  `pick` case (derive a description part from `action.move`).
 - **Smarter AI strategy.** A stronger `Strategy` beyond the current `greedyStrategy`
   priority ladder — e.g. weighing safety, blocking, racing the leader, or shallow
   lookahead. The swappable-policy seam (`src/ai/strategy.ts`) means this is a new

@@ -10,6 +10,29 @@
 > [rules-and-lineage.md](rules-and-lineage.md), [board-model.md](board-model.md)).
 > Don't duplicate git history — capture reasoning a commit message wouldn't.
 
+- **2026-06-19** — **Per-player notices + last-roll dice, pinned until that seat's
+  turn comes round again.** Was: one global `notice`/`rolled` (+ owner) that jumped
+  to whoever just acted and erased the previous. Now `GameView` carries **per-seat
+  arrays** (`rolls[p]`, `notices[p]`): each seat's roll + message lingers in *their*
+  nest while play goes round the table, so before you roll you can read what every
+  other player/AI did since your last turn. **Key simplification — no explicit
+  "clear on my turn" logic:** a stale slot is wiped at the *handover* (a single
+  `handover()` helper, fired only when the turn actually leaves the actor), so when
+  the turn lands back on a seat its nest already shows the clean "Roll" prompt +
+  centre die, not a leftover line. A turn that *stays* (a bonus 6) is not a handover,
+  so the roller's own "Roll again" line + die persist with no special case. The
+  centre die now rests on `rolls[turn]` (the current player's roll) — invisible under
+  the "Roll" label in awaiting-roll, the just-rolled value in awaiting-move. **Win
+  styling** had to switch from "the single notice owner" to a colour→seat lookup
+  (`state.winner` is a colour), since multiple nests can now show lingering lines at
+  game-over but only the winner's gets the win look. Dev rig kept its **scalar**
+  authoring form (`build()` returns one `rolled`/`rolledBy`); `loadScenario` fans it
+  into the per-seat array, so no scenario file changed. **Deliberately left for next
+  session** ([STATUS](STATUS.md) "Richer notice copy"): an ordinary move still makes
+  *no* notice, so a plain turn shows only the lingering die — the reducer's `pick`
+  case carries a marked SEAM where an action-description part plugs in. Built the
+  persistence first because the richer copy is worthless until notices linger, and
+  the copy itself is a design call the user wants to own.
 - **2026-06-19** — **AI opponents as a third pure layer — a swappable `Strategy`,
   not engine code.** First-draft AI. Key realisation that makes it small: the whole
   decision surface of this game is one question — *which legal move do I play?* —

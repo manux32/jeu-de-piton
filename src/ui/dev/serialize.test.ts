@@ -13,10 +13,12 @@ describe('slugify', () => {
 })
 
 describe('serializeScenario', () => {
+  // Place the single shown roll in the current player's per-seat slot, the way a
+  // real game does — serialize reads `rolls[turn]` back out as the scalar `rolled`.
   const view = (game: GameView['game'], rolled: number | null): GameView => ({
     game,
-    rolled,
-    notice: null,
+    rolls: game.players.map((_, i) => (i === game.turn ? rolled : null)),
+    notices: game.players.map(() => null),
   })
 
   it('emits a place map, skips nest-default pitons, and sets turn/roll/phase', () => {

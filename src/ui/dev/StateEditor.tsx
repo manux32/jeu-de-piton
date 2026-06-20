@@ -42,16 +42,22 @@ export function StateEditor({ view, onChange }: Props) {
   const { game } = view
   const { trackLength, laneLength } = game.geometry
 
-  // All edits clear the notice — once the state is hand-tweaked, the loaded
-  // scenario's message no longer describes it.
-  const setGame = (next: GameState) => onChange({ ...view, game: next, notice: null })
+  // All edits clear every nest's notice — once the state is hand-tweaked, the
+  // loaded scenario's messages no longer describe it.
+  const blankNotices = () => game.players.map(() => null)
+  const setGame = (next: GameState) =>
+    onChange({ ...view, game: next, notices: next.players.map(() => null) })
 
-  const setRoll = (roll: number | null) =>
+  // Set the *current* player's roll slot (leaving other seats' pinned rolls),
+  // matching how a real roll lands it under the roller. "none" clears it.
+  const setRoll = (roll: number | null) => {
+    const rolls = view.rolls.map((r, i) => (i === game.turn ? roll : r))
     onChange(
       roll === null
-        ? { ...view, game: { ...game, phase: 'awaiting-roll', lastRoll: null }, rolled: null, notice: null }
-        : { ...view, game: { ...game, phase: 'awaiting-move', lastRoll: roll }, rolled: roll, notice: null },
+        ? { ...view, game: { ...game, phase: 'awaiting-roll', lastRoll: null }, rolls, notices: blankNotices() }
+        : { ...view, game: { ...game, phase: 'awaiting-move', lastRoll: roll }, rolls, notices: blankNotices() },
     )
+  }
 
   const setPiton = (id: string, position: PitonPosition) =>
     setGame(place(game, { [id]: position }))
