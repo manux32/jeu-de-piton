@@ -88,10 +88,14 @@ the candidate list below, in no particular order:
   `[0]`) and the per-seat `players[].color` field — so this is mostly UI. Folds in
   the colour-choice and (eventual) ruleset-picker follow-ons already noted under
   *Rule-variant layer* above; do them as one New Game redesign.
-- **Smarter AI strategy.** A stronger `Strategy` beyond the current `greedyStrategy`
-  priority ladder — e.g. weighing safety, blocking, racing the leader, or shallow
-  lookahead. The swappable-policy seam (`src/ai/strategy.ts`) means this is a new
-  strategy function dropped in, no engine/UI change.
+- **Smarter AI strategy.** The chosen near-term path is to **grow `greedyStrategy`
+  itself in baby steps** — tweak the priority ladder and let each tier weigh more
+  factors — playtesting between changes, rather than jumping straight to a wholesale
+  replacement. (Latest step: the ladder now reasons about the start-square capture
+  trap — see [decisions.md](decisions.md).) A richer rung might fold in blocking, or
+  racing the leader more deliberately; a fundamentally different brain (e.g. shallow
+  lookahead) is still a clean drop-in later via the swappable-policy seam
+  (`src/ai/strategy.ts`), no engine/UI change.
 - **Mobile (iPad) winner-popup bug.** On iPad the win popup renders very small and
   pinned to the top-left corner instead of centred/sized over the board. Likely a
   viewport/SVG-sizing issue specific to the mobile PWA layout — chase the win-popup
