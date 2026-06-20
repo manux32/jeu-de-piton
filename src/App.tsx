@@ -20,10 +20,10 @@ function App() {
   // Which seats a human controls; every other seat is driven by the AI. This is
   // controller config (not game/render state), so it lives here, not in the
   // engine or the game view. Default: you are seat 0, the rest are AI. `[]` makes
-  // every seat AI (watch a game play itself). A future New Game UI will set it;
-  // for now it's fixed. (Seat→corner map for a 4-player game: 0 bottom-right,
-  // 1 top-right, 2 top-left, 3 bottom-left.)
-  const [humanSeats] = useState<number[]>([0])
+  // every seat AI (watch a game play itself). The New Game setup window sets it on
+  // "Start game" (alongside the new colours/count). (Seat→corner map for a
+  // 4-player game: 0 bottom-right, 1 top-right, 2 top-left, 3 bottom-left.)
+  const [humanSeats, setHumanSeats] = useState<number[]>([0])
 
   // The roll sequencer owns the die's spin/settle/handover timing (view-only);
   // it generates the value, peeks the engine for the post-settle branch, and
@@ -54,8 +54,15 @@ function App() {
         face={face}
         rolling={rolling}
         log={log}
+        humanSeats={humanSeats}
         onPick={(move) => dispatch({ type: 'pick', move })}
-        onNewGame={(playerCount) => dispatch({ type: 'newGame', playerCount })}
+        onNewGame={(setup) => {
+          // Apply the whole draft at once: the controller config (which seats are
+          // human) and the engine game (count + per-seat colours) — so a new game
+          // and its players land together.
+          setHumanSeats(setup.humanSeats)
+          dispatch({ type: 'newGame', playerCount: setup.colors.length, colors: setup.colors })
+        }}
         onForceNextTurn={() => dispatch({ type: 'forceNextTurn' })}
         onRoll={roll}
       />

@@ -36,6 +36,7 @@ import {
   JEU_DE_PITON,
   type GameState,
   type Move,
+  type PlayerColor,
 } from '../engine'
 import { NOTICE, joinNotice, type Notice } from './strings'
 
@@ -59,7 +60,10 @@ export interface GameView {
 export type GameAction =
   | { type: 'roll'; value: number }
   | { type: 'pick'; move: Move }
-  | { type: 'newGame'; playerCount: number }
+  // Start a fresh game. `colors` (optional) sets each seat's colour from the New
+  // Game setup window; its length is the player count. Omit it and `playerCount`
+  // chooses the count with the default seat→colour order.
+  | { type: 'newGame'; playerCount: number; colors?: PlayerColor[] }
   // Escape hatch: force the turn to the next player to unstick a wedged game.
   | { type: 'forceNextTurn' }
   // DEV-only: drop a fully-built view straight in (see src/ui/dev/).
@@ -72,8 +76,8 @@ const nestCount = (game: GameState, i: number) =>
 const setAt = <T>(arr: T[], i: number, value: T): T[] =>
   arr.map((x, j) => (j === i ? value : x))
 
-function init(playerCount: number): GameView {
-  const game = createGame(JEU_DE_PITON, playerCount)
+function init(playerCount: number, colors?: PlayerColor[]): GameView {
+  const game = createGame(JEU_DE_PITON, playerCount, colors)
   return {
     game,
     log: game.players.map(() => []),
@@ -124,7 +128,7 @@ function describeMove(move: Move, before: GameState, mover: number): Notice[] {
 function reducer(view: GameView, action: GameAction): GameView {
   switch (action.type) {
     case 'newGame':
-      return init(action.playerCount)
+      return init(action.playerCount, action.colors)
 
     case 'load':
       return action.view

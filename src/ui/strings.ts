@@ -38,6 +38,23 @@ export const PROMPT = {
   awaitingMove: 'Pick a piton',
 } as const
 
+/** Copy for the New Game setup window (per-seat human/AI + colour, opened from
+ *  the New game button; nothing takes effect until "Start game"). */
+export const SETUP = {
+  /** The window's heading. */
+  title: 'New game',
+  /** Label beside the 2/3/4 player-count picker. */
+  players: 'Players',
+  /** The two states of a seat's type toggle. */
+  human: 'Human',
+  ai: 'AI',
+  /** A seat's row label — `n` is the 1-based seat number ("Player 1"). */
+  seat: (n: number) => `Player ${n}`,
+  /** The bottom-bar buttons: discard the draft vs. apply it and deal a new game. */
+  cancel: 'Cancel',
+  start: 'Start game',
+} as const
+
 export const WIN = {
   /** The big board announcement. `color` is the engine's lowercase colour name
    *  (e.g. 'green'); it's capitalized for display → "Green wins! 🎉". */

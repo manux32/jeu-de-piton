@@ -16,19 +16,32 @@ import { makeGeometry } from './board'
  * to which physical arm is a board-layout concern; the engine only cares about
  * the index ordering.)
  */
-const PLAYER_COLORS: PlayerColor[] = ['red', 'blue', 'yellow', 'green']
+export const PLAYER_COLORS: PlayerColor[] = ['red', 'blue', 'yellow', 'green']
 
 /**
  * Build the opening state for a game of `ruleset` with `playerCount` players
  * (defaults to the ruleset's own count). Every piton starts in its nest and
  * player 0 is first to roll.
+ *
+ * `colors` lets a seat take a colour other than its default seat colour (the New
+ * Game setup uses this for per-seat colour choice). It must have one entry per
+ * seat and they must be distinct — colours are the engine's player identity
+ * (piton ids, owner, capture/win), so duplicates would collide. Omit it to keep
+ * the default seat→colour order.
  */
 export function createGame(
   ruleset: Ruleset,
   playerCount = ruleset.playerCount,
+  colors: readonly PlayerColor[] = PLAYER_COLORS.slice(0, playerCount),
 ): GameState {
   if (playerCount < 2 || playerCount > 4) {
     throw new Error(`playerCount must be 2–4, got ${playerCount}`)
+  }
+  if (colors.length !== playerCount) {
+    throw new Error(`colors must have ${playerCount} entries, got ${colors.length}`)
+  }
+  if (new Set(colors).size !== colors.length) {
+    throw new Error(`colors must be distinct, got ${colors.join(', ')}`)
   }
 
   const geometry = makeGeometry(
@@ -40,7 +53,7 @@ export function createGame(
 
   const players: PlayerState[] = []
   for (let i = 0; i < playerCount; i++) {
-    const color = PLAYER_COLORS[i]
+    const color = colors[i]
     const pitons: Piton[] = []
     for (let n = 0; n < ruleset.pitonsPerPlayer; n++) {
       pitons.push({ id: `${color}-${n}`, owner: color, position: { kind: 'nest' } })

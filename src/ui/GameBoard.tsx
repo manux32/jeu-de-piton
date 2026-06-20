@@ -20,12 +20,12 @@ import { Pitons } from './Pitons'
 import { DieFace } from './DieFace'
 import { TITLE, PROMPT, DIE, WIN, type Notice } from './strings'
 import type { TurnEntry } from './useGame'
+import { NewGameModal, type GameSetup } from './NewGameModal'
 import {
   PLAYER_HEX,
   boardThemeVars,
   CTRL_SCALE,
   CTRL_W_CLOSED,
-  CTRL_W_OPEN,
   CTRL_H,
   CTRL_INSET,
   DIE_SIZE,
@@ -64,10 +64,18 @@ interface Props {
    *  shown as stacked die+notice rows in that player's nest until their turn comes
    *  round again. See useGame.GameView. */
   log: TurnEntry[][]
+  /** The seats a human controls (the rest are AI) — passed through to pre-fill
+   *  the New Game setup window's per-seat type toggles. */
+  humanSeats: number[]
   onPick: (move: Move) => void
-  onNewGame: (playerCount: number) => void
+  /** Apply a new game from the setup window: per-seat colours + which seats are
+   *  human. Fired only when the player presses "Start game". */
+  onNewGame: (setup: GameSetup) => void
   /** Escape hatch: force the turn to the next player to unstick a wedged game.
-   *  Sits behind the New Game disclosure so it can't be hit during normal play. */
+   *  Currently wired but not surfaced — its button was retired with the New Game
+   *  disclosure; it'll return in the planned gear menu. Kept here (App still
+   *  passes it, the reducer action still exists) so restoring it is a one-button
+   *  change. See the stuck-turn bug in STATUS. */
   onForceNextTurn: () => void
   onRoll: () => void
 }
@@ -105,9 +113,9 @@ export function GameBoard({
   face,
   rolling,
   log,
+  humanSeats,
   onPick,
   onNewGame,
-  onForceNextTurn,
   onRoll,
 }: Props) {
   const layout = useMemo(
@@ -115,10 +123,11 @@ export function GameBoard({
     [state.geometry, state.players.length],
   )
 
-  // New Game picker disclosure (view-local state, no rules): collapsed to a
-  // single toggle until the player opens it; choosing a count collapses it.
-  const [pickerOpen, setPickerOpen] = useState(false)
-  const ctrlW = pickerOpen ? CTRL_W_OPEN : CTRL_W_CLOSED
+  // New Game setup window (view-local state, no rules): the corner button just
+  // opens it; all the settings live inside, and nothing touches the live game
+  // until the player presses "Start game" (which fires onNewGame and closes it).
+  const [setupOpen, setSetupOpen] = useState(false)
+  const ctrlW = CTRL_W_CLOSED
 
   // Each corner's chrome centres horizontally on that corner's nest cluster,
   // read straight from the layout (no re-derived geometry). Corner→nest mapping
@@ -239,60 +248,23 @@ export function GameBoard({
         {TITLE}
       </text>
 
-      {/* New Game, top-right — a disclosure: the "New game" toggle alone until
-          opened, then the 2/3/4 picker (choosing collapses it). Real HTML
-          buttons mounted in the SVG via foreignObject, rendered at natural px
-          and scaled into board units so they reuse .pill styling and stay
+      {/* New Game button, top-right — a single button that opens the setup
+          window (count + per-seat human/AI + colour) over the board. A real HTML
+          button mounted in the SVG via foreignObject, rendered at natural px and
+          scaled into board units so it reuses .pill styling and stays
           accessible. */}
       <g transform={`translate(${ctrlX}, ${CTRL_INSET}) scale(${CTRL_SCALE})`}>
         <foreignObject x={0} y={0} width={ctrlW} height={CTRL_H}>
-          <div
-            className="board-controls"
-            role="group"
-            aria-label="new game — player count"
-          >
+          <div className="board-controls">
             <button
               type="button"
-              className={pickerOpen ? 'pill pill-on' : 'pill'}
-              aria-expanded={pickerOpen}
-              onClick={() => setPickerOpen((open) => !open)}
+              className={setupOpen ? 'pill pill-on' : 'pill'}
+              aria-haspopup="dialog"
+              aria-expanded={setupOpen}
+              onClick={() => setSetupOpen(true)}
             >
               New game
             </button>
-            {pickerOpen &&
-              [2, 3, 4].map((n) => (
-                <button
-                  key={n}
-                  type="button"
-                  className={
-                    n === state.players.length ? 'pill pill-on' : 'pill'
-                  }
-                  aria-pressed={n === state.players.length}
-                  onClick={() => {
-                    onNewGame(n)
-                    setPickerOpen(false)
-                  }}
-                >
-                  {n}
-                </button>
-              ))}
-            {/* Escape hatch, right of the count picker: force the turn on to
-                unstick a wedged game. Tucked behind the New Game disclosure (and
-                styled apart from the count pills) so it's never a play-time
-                mis-tap. See the stuck-turn bug in the STATUS backlog. */}
-            {pickerOpen && (
-              <button
-                type="button"
-                className="pill pill-skip"
-                aria-label="force the turn to the next player (unstick a wedged game)"
-                onClick={() => {
-                  onForceNextTurn()
-                  setPickerOpen(false)
-                }}
-              >
-                Skip turn
-              </button>
-            )}
           </div>
         </foreignObject>
       </g>
@@ -486,6 +458,26 @@ export function GameBoard({
               <span className="win-hint">{WIN.hint}</span>
             </button>
           </div>
+        </foreignObject>
+      )}
+
+      {/* New Game setup window — painted last (above the win popup too, so you can
+          start a fresh game from the win screen). Same over-board foreignObject
+          pattern as the win popup, including the explicit board-unit sizing that
+          keeps it centred on iOS Safari. Cancel/Start both close it; only Start
+          applies the draft (via onNewGame). */}
+      {setupOpen && (
+        <foreignObject x={0} y={0} width={layout.extent} height={layout.extent}>
+          <NewGameModal
+            colors={state.players.map((p) => p.color)}
+            humanSeats={humanSeats}
+            extent={layout.extent}
+            onCancel={() => setSetupOpen(false)}
+            onStart={(setup) => {
+              onNewGame(setup)
+              setSetupOpen(false)
+            }}
+          />
         </foreignObject>
       )}
     </svg>

@@ -219,20 +219,6 @@ code {
   border-color: #aa3bff;
   color: #08060d;
 }
-.board-controls .muted {
-  color: #6b6375;
-}
-/* "Skip turn" escape hatch beside the count picker: force the turn on to unstick
-   a wedged game. Muted + dashed so it reads as a utility, never a count pill, and
-   so it can't be fat-fingered for one mid-play. */
-.board-controls .pill-skip {
-  border-style: dashed;
-  color: #6b6375;
-}
-.board-controls .pill-skip:hover {
-  border-color: #aa3bff;
-  color: #08060d;
-}
 
 /* Per-nest notice: a short line anchored in a player's own corner. The event
    line (what just happened) sits in the acting player's nest; the turn prompt
@@ -355,6 +341,110 @@ code {
     opacity: 1;
     transform: scale(1);
   }
+}
+
+/* New Game setup window — the panel GameBoard centres over the board (same
+   over-board foreignObject pattern as the win popup). Sized entirely in em off
+   the panel's font-size (SETUP_TEXT_SIZE board units), so one knob scales the
+   whole thing. The board is always light, so colours are pinned here rather than
+   inheriting the page theme. */
+.setup-overlay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* A faint scrim signals the setup is modal and blocks play behind it; only the
+     Cancel / Start buttons dismiss it (per design — a scrim tap does nothing). */
+  background: rgba(8, 6, 13, 0.3);
+}
+.setup-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7em;
+  min-width: 14em;
+  max-width: 22em;
+  padding: 1em 1.1em 0.9em;
+  border-radius: 0.5em;
+  background: var(--setup-bg, rgba(20, 18, 28, 0.94));
+  color: #f3f1f6;
+  font-family: var(--heading);
+  line-height: 1.15;
+  box-shadow: 0 0.3em 1.4em rgba(0, 0, 0, 0.5);
+  animation: win-pop 0.28s cubic-bezier(0.2, 1.2, 0.3, 1) both;
+}
+.setup-title {
+  font-size: 1.3em;
+  font-weight: 800;
+  text-align: center;
+}
+.setup-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6em;
+}
+.setup-rowlabel {
+  font-weight: 600;
+  opacity: 0.85;
+}
+.setup-group {
+  display: flex;
+  gap: 0.4em;
+}
+/* The per-seat rows, fenced off from the count picker and action bar above/below. */
+.setup-seats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  padding: 0.7em 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+/* Count pills, the Human/AI toggle, and the Cancel/Start buttons share one look. */
+.setup-pill {
+  font: inherit;
+  font-weight: 600;
+  padding: 0.32em 0.75em;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #f3f1f6;
+  cursor: pointer;
+}
+.setup-pill:hover {
+  border-color: #aa3bff;
+}
+.setup-pill-on {
+  background: rgba(170, 59, 255, 0.3);
+  border-color: #aa3bff;
+}
+/* Fixed width so toggling Human↔AI doesn't reflow the row. */
+.setup-type {
+  min-width: 4.2em;
+}
+.setup-swatch {
+  width: 1.5em;
+  height: 1.5em;
+  padding: 0;
+  border: 0.18em solid transparent;
+  border-radius: 50%;
+  background: var(--swatch);
+  cursor: pointer;
+  /* A thin dark ring keeps a light swatch (yellow) legible on the dark panel. */
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35);
+}
+.setup-swatch-on {
+  border-color: #fff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 0 0.4em rgba(255, 255, 255, 0.55);
+}
+.setup-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6em;
+}
+.setup-pill-go {
+  background: rgba(170, 59, 255, 0.3);
+  border-color: #aa3bff;
+  font-weight: 700;
 }
 
 /* Game title rendered inside the board SVG (top-left). Drawn on the always-light

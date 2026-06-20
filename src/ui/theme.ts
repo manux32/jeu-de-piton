@@ -105,6 +105,10 @@ export const NOTICE_WIN = '#08060d'
  *  PLAYER_HEX). Lower the alpha to let more board show through. */
 export const WIN_PANEL_BG = 'rgba(18, 16, 26, 0.84)'
 
+/** Backdrop of the New Game setup window over the board. Near-opaque so the
+ *  controls read clearly while the board still shows faintly behind it. */
+export const SETUP_PANEL_BG = 'rgba(20, 18, 28, 0.94)'
+
 // ── How strongly a player's colour shows through ────────────────────────────
 // These are see-through amounts (0 = invisible, 1 = solid), not sizes.
 /** Home-lane fill: the player's colour at a soft wash so the white shows through. */
@@ -331,13 +335,19 @@ export const NOTICE_DEBUG_OUTLINE = false // dev: outline the box so you can see
 // this one size is the only knob it needs.
 export const WIN_TEXT_SIZE = 1.5      // text height of the win announcement, in squares
 
+// ── New Game setup window (the panel over the board: player count, per-seat
+//    human/AI + colour, Cancel / Start game) ─────────────────────────────────
+// Drawn the same way as the win popup — a panel centred over the board whose
+// content sizes off one text knob (everything inside is in em, so padding,
+// swatches and buttons all scale from this). Colour the backdrop with
+// SETUP_PANEL_BG up in COLOURS.
+export const SETUP_TEXT_SIZE = 0.62   // body text height in the setup window, in squares
+
 // ── New Game button (built as HTML at [px] sizes, then shrunk onto the board) ─
-// CTRL_SCALE is the shrink factor (pixels → squares). The button widens from
-// CLOSED to OPEN so the 2/3/4 picker + "Skip turn" escape hatch fit; INSET is how
-// far down from the top it sits. These size the New Game control only — notices
-// have their own knobs above.
+// CTRL_SCALE is the shrink factor (pixels → squares); INSET is how far down from
+// the top it sits. This sizes the New Game button (which opens the setup window)
+// only — notices and the setup window have their own knobs.
 export const CTRL_SCALE = 0.019      // shrink factor: button pixels → board squares
-export const CTRL_W_CLOSED = 112     // [px] button width, collapsed
-export const CTRL_W_OPEN = 356       // [px] button width, with the 2/3/4 picker + "Skip turn" open
+export const CTRL_W_CLOSED = 112     // [px] button width
 export const CTRL_H = 52             // [px] button height
 export const CTRL_INSET = 0.4        // distance down from the top edge
