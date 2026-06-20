@@ -116,6 +116,10 @@ the candidate list below, in no particular order:
   priority ladder — e.g. weighing safety, blocking, racing the leader, or shallow
   lookahead. The swappable-policy seam (`src/ai/strategy.ts`) means this is a new
   strategy function dropped in, no engine/UI change.
+- **Mobile (iPad) winner-popup bug.** On iPad the win popup renders very small and
+  pinned to the top-left corner instead of centred/sized over the board. Likely a
+  viewport/SVG-sizing issue specific to the mobile PWA layout — chase the win-popup
+  render in [GameBoard.tsx](../src/ui/GameBoard.tsx).
 
 ## Open rule details
 - **None open.** All cabin rules are confirmed and shipped as of 2026-06-13 — the

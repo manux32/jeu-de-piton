@@ -5,7 +5,11 @@
 		},
 		{
 			"path": "C:/Users/Administrator/.claude"
-		}
+		},
+		{
+        "path": "C:/Users/Administrator/.claude/projects/d--claude-projects-games-jeu-de-piton/memory",
+        "name": "piton-memory"
+    	}
 	],
 	"settings": {
 		"claudeCode.respectGitIgnore": false,
