@@ -270,7 +270,7 @@
   **(3) Win popup.** A win was only a nest line; now a content-sized panel over the
   board centre announces "{Colour} wins!" in the winner's hue, tap-to-dismiss — the
   full-board wrapper is click-through so New Game stays live, and dismissal re-arms
-  on the next win (tracked by game-state identity). Knobs `WIN_TEXT_SIZE` /
+  on the next win (tracked by game-state identity). Knobs `WIN_WINDOW_SIZE` /
   `WIN_PANEL_BG`.
   **(4) Notices became rich text** — a `Notice` is a list of optionally-tinted
   segments — so a capture **names the captured colour in its own colour**

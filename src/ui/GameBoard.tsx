@@ -30,7 +30,7 @@ import {
   CTRL_INSET,
   DIE_SIZE,
   WIN_PANEL_BG,
-  WIN_TEXT_SIZE,
+  WIN_WINDOW_SIZE,
   NOTICE_TEXT_SIZE,
   NOTICE_OFFSET_X,
   NOTICE_OFFSET_Y,
@@ -474,7 +474,7 @@ export function GameBoard({
             {
               '--win-color': PLAYER_HEX[state.winner],
               '--win-bg': WIN_PANEL_BG,
-              fontSize: `${WIN_TEXT_SIZE}vmin`,
+              fontSize: `${WIN_WINDOW_SIZE}vmin`,
             } as CSSProperties
           }
         >

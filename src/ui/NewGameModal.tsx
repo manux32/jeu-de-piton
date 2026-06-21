@@ -15,7 +15,7 @@
  */
 import { useState, type CSSProperties } from 'react'
 import { PLAYER_COLORS, type PlayerColor } from '../engine'
-import { PLAYER_HEX, SETUP_PANEL_BG, SETUP_TEXT_SIZE } from './theme'
+import { PLAYER_HEX, SETUP_PANEL_BG, SETUP_WINDOW_SIZE } from './theme'
 import { SETUP } from './strings'
 
 /** The next game's settings, as the setup window hands them back on Start. */
@@ -91,7 +91,7 @@ export function NewGameModal({ colors: initialColors, humanSeats, onCancel, onSt
       // (see .setup-panel in index.css). The board is ~100 vmin, so the window
       // keeps a stable fraction of the board across screens.
       style={
-        { '--setup-bg': SETUP_PANEL_BG, fontSize: `${SETUP_TEXT_SIZE}vmin` } as CSSProperties
+        { '--setup-bg': SETUP_PANEL_BG, fontSize: `${SETUP_WINDOW_SIZE}vmin` } as CSSProperties
       }
     >
       <div className="setup-title">{SETUP.title}</div>

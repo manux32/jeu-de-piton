@@ -362,7 +362,7 @@ code {
   justify-content: center;
   background: rgba(8, 6, 13, 0.32);
 }
-/* The panel's base font-size is set inline from the SETUP_TEXT_SIZE knob (in
+/* The panel's base font-size is set inline from the SETUP_WINDOW_SIZE knob (in
    vmin); EVERY dimension below is in `em` off it, so that one knob scales the
    whole window proportionally. The em ratios reproduce the old fixed-px look at
    the default size (1em == the old 15px). */
