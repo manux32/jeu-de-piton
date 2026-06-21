@@ -19,7 +19,8 @@ import { Board } from './Board'
 import { Pitons } from './Pitons'
 import { DieFace } from './DieFace'
 import { GearIcon } from './GearIcon'
-import { TITLE, PROMPT, DIE, WIN, OPTIONS, type Notice } from './strings'
+import { BoardTitle } from './BoardTitle'
+import { PROMPT, DIE, WIN, OPTIONS, type Notice } from './strings'
 import type { TurnEntry } from './useGame'
 import { NewGameModal, type GameSetup } from './NewGameModal'
 import { OptionsMenu } from './OptionsMenu'
@@ -47,8 +48,6 @@ import {
   NOTICE_DEBUG_OUTLINE,
   NOTICE_FONT_PX,
   NOTICE_LINE_HEIGHT,
-  TITLE_FONT_SIZE,
-  TITLE_TOP,
   MOVE_TARGET_R,
   MOVE_TARGET_STROKE_W,
   CAPTURE_TARGET_R,
@@ -246,17 +245,9 @@ export function GameBoard({
       <Board state={state} layout={layout} />
 
       {/* Game title, baked into the board's top-left corner so it scales with
-          the board and needs no chrome outside it. Non-interactive. */}
-      <text
-        className="board-title"
-        x={titleX}
-        y={TITLE_TOP}
-        fontSize={TITLE_FONT_SIZE}
-        textAnchor="middle"
-        dominantBaseline="hanging"
-      >
-        {TITLE}
-      </text>
+          the board and needs no chrome outside it. A small "Pitons" wordmark
+          (the "i" is a pawn, the "o" a die) — see BoardTitle. Non-interactive. */}
+      <BoardTitle cx={titleX} />
 
       {/* Options button, top-right — a single gear that is the one way into the
           game's options. It opens the Options menu (New game, Dev tools, …) over

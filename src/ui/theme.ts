@@ -83,7 +83,7 @@ export const HOME_STROKE = '#c79bab'
 export const PITON_STROKE = '#2b2b2b'
 /** Thin outline that lifts a start-arrow off the dark safe square under it. */
 export const START_ARROW_STROKE = '#fdfcf8'
-/** Colour of the "Jeu de piton" title on the board. */
+/** Colour of the "Pitons" title wordmark on the board (letters and icons). */
 export const TITLE_FILL = '#9b96a3'
 
 // ── Corner-notice text colours ──────────────────────────────────────────────
@@ -314,9 +314,27 @@ export const CAPTURE_TARGET_STROKE_W = 0.1
 export const HOME_TARGET_R = 2.2         // reaching HOME to finish — biggest, the prize
 export const HOME_TARGET_STROKE_W = 0.12
 
-// ── The "Jeu de piton" title on the board ───────────────────────────────────
-export const TITLE_FONT_SIZE = 0.6   // text height
-export const TITLE_TOP = 0.5         // distance down from the top edge
+// ── The "Pitons" title wordmark on the board ─────────────────────────────────
+// The title is a small logo, not plain text: it still reads "Pitons", but the
+// two thematic letters are swapped for icons drawn in board units — the "i"
+// becomes a side-view pawn (a *piton*, the game's own piece) and the "o" becomes
+// a die. See BoardTitle.tsx for the drawing; these knobs tune the layout.
+export const TITLE_FONT_SIZE = 0.6     // overall wordmark height (em for the glyphs below)
+export const TITLE_TOP = 0.5           // distance down from the top edge to the glyph tops
+export const TITLE_BASELINE_RATIO = 0.72 // baseline drop below TITLE_TOP, in ems (≈ cap height)
+export const TITLE_KERN = 1.0          // tightness: scales every glyph's cell width at once
+
+// The wordmark, left to right. Each glyph gets a fixed cell `w` (in ems of
+// TITLE_FONT_SIZE) and is centred in it, so layout never depends on measuring
+// text. Widen a cell to give a letter more room; narrow it to pull neighbours in.
+export const TITLE_GLYPHS = [
+  { kind: 'text', char: 'P', w: 0.60 },
+  { kind: 'pawn', w: 0.46 }, // the "i"
+  { kind: 'text', char: 't', w: 0.34 },
+  { kind: 'die', w: 0.70 }, //  the "o"
+  { kind: 'text', char: 'n', w: 0.56 },
+  { kind: 'text', char: 's', w: 0.44 },
+] as const
 
 // ── Corner notices (the stacked "Your turn" / move / capture / win rows) ─────
 // Each of a player's turn now shows a stack of rows in their nest — one per

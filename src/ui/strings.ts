@@ -17,7 +17,7 @@
  */
 import type { PlayerColor } from '../engine'
 
-export const TITLE = 'Jeu de piton'
+export const TITLE = 'Pitons'
 
 export const DIE = {
   /** Shown on the centre die when it's a player's turn to roll (in place of pips). */

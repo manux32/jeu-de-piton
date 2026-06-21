@@ -566,6 +566,16 @@ code {
   user-select: none;
 }
 
+/* The two icon glyphs in the title wordmark (the pawn "i" and the die "o"). Same
+   fill as the letters so the logo reads as one piece; the die's pips are punched
+   in the board background colour so they look like holes. */
+.board-title-icon {
+  fill: var(--title-fill, #9b96a3);
+}
+.board-title-pip {
+  fill: var(--board-bg, #faf8f2);
+}
+
 /* The "Roll" prompt drawn on the die when it's a player's turn to roll (in place
    of pips). Heading font to match the title; fill is the player's tint, set
    inline by DieFace. Sized in viewBox units, so it scales with the board. */
