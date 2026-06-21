@@ -10,6 +10,31 @@
 > [rules-and-lineage.md](rules-and-lineage.md), [board-model.md](board-model.md)).
 > Don't duplicate git history — capture reasoning a commit message wouldn't.
 
+- **2026-06-20** — **Mobile-fix session: dev panel ships everywhere; modals will
+  move off the SVG to DOM overlays.** Two decisions, both driven by iOS Safari /
+  WebKit being flaky with HTML inside `<foreignObject>` (desktop never shows it, so
+  the iPad is the only real test). (1) **The Dev scenario panel now ships in *every*
+  build** (incl. the deployed PWA), so mobile-only issues are driven from scenarios
+  on-device instead of by playing a whole game. Its toggle moved off a fixed-position
+  floating button onto the board, right of New Game (a generic `devButton` slot on
+  GameBoard, so the presentation file keeps no dev dependency); the panel chunk stays
+  lazy. A proper on/off gate is deferred — for now it's always on, *publicly* (no
+  security surface: pure client-side state editing, repo already public). (2)
+  **Decided to render the win popup and New Game window as DOM overlays *over* the
+  board rather than inside the SVG** — the prior win-popup fix (`1a1348a`, explicit
+  board-unit dims) didn't work and the New Game window shows the same tiny-top-left
+  symptom, so it's general foreignObject-centring flakiness, not one CSS property.
+  Plain HTML/CSS centring works on Safari; the bugs are specific to HTML *inside*
+  SVG. This **narrows the early "all chrome on the board SVG" principle**: persistent
+  chrome (title, die, notices, buttons, arrows) stays on the SVG; full-screen modal
+  overlays may live in the DOM over the board (still no standing external HUD, so the
+  self-contained-board spirit holds). The refactor itself is **deferred** to a fresh
+  session (structural + iPad-verified); full handoff + the running gotcha/guideline
+  log now live in [cross-platform-ui.md](cross-platform-ui.md). *Also fixed this
+  session:* the live sub-turn notice flew to the screen's top-left on iOS (the
+  `1643570` regression) — it centred the live row with `position:absolute`, which iOS
+  anchors to the SVG root inside a foreignObject; re-centred with a flexbox spacer, no
+  absolute positioning.
 - **2026-06-20** — **New Game became a setup *window*; over-board HTML chrome is
   authored in px + scaled, not in board units.** Replaced the inline 2/3/4
   disclosure with a modal (`NewGameModal`) over the board: player count, a

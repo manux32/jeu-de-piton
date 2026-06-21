@@ -102,13 +102,18 @@ the candidate list below, in no particular order:
   racing the leader more deliberately; a fundamentally different brain (e.g. shallow
   lookahead) is still a clean drop-in later via the swappable-policy seam
   (`src/ai/strategy.ts`), no engine/UI change.
-- **Mobile (iPad) winner-popup bug — likely fixed, awaiting on-device check.** The
-  win popup rendered tiny in the top-left on iPad: WebKit doesn't resolve `%`
-  against a `foreignObject`, so its centring frame collapsed. Fixed by giving the
-  overlay explicit board-unit dimensions (committed). **Not yet verified on iPad** —
-  the user will validate before the next session; opening the **New Game setup
-  window** on iPad confirms it in one tap (same over-board pattern). If still wrong,
-  re-chase the win-popup render in [GameBoard.tsx](../src/ui/GameBoard.tsx).
+- **NEXT TASK (decided, scoped, deferred): move the win popup + New Game window to
+  DOM overlays ("approach B").** Both render as HTML inside the board SVG via
+  `foreignObject`, and iOS Safari mis-centres them (tiny, top-left) — the prior
+  board-unit-dimensions fix (`1a1348a`) did **not** work; the New Game window shows
+  the same symptom, confirming it's general foreignObject-centring flakiness. Decided
+  fix: render both as ordinary DOM overlays *over* the board instead of inside the
+  SVG — sidesteps the whole bug class. Structural + iPad-verified, so deferred to a
+  fresh session with full context. **The complete handoff (current vs target
+  structure, files, watch-outs) lives in
+  [cross-platform-ui.md](cross-platform-ui.md).** Test on iPad via Dev → `win-green`
+  / the New Game button. *(The live-notice top-left bug — same bug family — was fixed
+  this session.)*
 
 ## Open rule details
 - **None open.** All cabin rules are confirmed and shipped as of 2026-06-13 — the
@@ -118,8 +123,11 @@ the candidate list below, in no particular order:
 ## Dev quick-ref
 - Basic commands (`npm install`/`dev`/`build`/`test`) → [README](../README.md#develop).
   Dev server is port 5173 — see [CLAUDE.md](../CLAUDE.md) session-start policy.
-- **Dev scenario panel** (dev builds only) lets you drop into doctored board states
-  to validate UI fixes — feature-complete; how it works → [dev-tooling.md](dev-tooling.md).
+- **Dev scenario panel** now ships in **every** build (incl. the deployed PWA) so
+  mobile/iPad issues can be driven from scenarios — opened from the **Dev** button on
+  the board, right of New Game; panel chunk stays lazy. Lets you drop into doctored
+  board states to validate UI fixes — how it works → [dev-tooling.md](dev-tooling.md).
+  (A proper on/off gate is a later nicety; for now it's always on, incl. publicly.)
 - Eyeball a render **without** the dev server via a throwaway Vitest →
   `references/` SVG → `scripts/render-board.mjs` (details in [dev-tooling.md](dev-tooling.md)).
 - **Deploy:** push `main` → the GitHub Action builds + publishes to Pages (live URL

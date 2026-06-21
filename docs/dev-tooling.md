@@ -6,11 +6,17 @@
 > 2026-06-12 / -13 entries of [decisions.md](decisions.md). Current status +
 > day-to-day commands stay in [STATUS.md](STATUS.md).
 
-A right-hand **Dev** panel (floating "Dev" toggle, top-right) drops the app into
-doctored board situations to validate UI/interaction fixes without playing up to
-them. The whole surface is one lazy `import()` behind `import.meta.env.DEV`
-([`DevTools.tsx`](../src/ui/dev/DevTools.tsx)), so it dead-code-eliminates out of
-prod (no chunk emitted; byte-identical to pre-tooling). Engine stays untouched —
+A right-hand **Dev** panel drops the app into doctored board situations to validate
+UI/interaction fixes without playing up to them. It's opened by a **Dev** toggle on
+the board (right of New Game — a generic `devButton` slot App fills in
+[`App.tsx`](../src/App.tsx); the old fixed-position floating toggle is gone). The
+whole surface is one lazy `import()` ([`DevTools.tsx`](../src/ui/dev/DevTools.tsx)) —
+**no longer gated behind `import.meta.env.DEV`: it now ships in *every* build** (incl.
+the deployed PWA) so mobile/iPad issues can be driven from scenarios on-device. The
+chunk stays lazy (fetched only when the toggle is tapped), so it adds nothing to the
+normal load. *(A proper on/off gate is a later nicety; for now it's always on,
+publicly — pure client-side state editing, no security surface.)* Engine stays
+untouched —
 scenarios dispatch a `load` action ([`useGame.ts`](../src/ui/useGame.ts)) carrying
 a full `GameView`. Three pieces:
 

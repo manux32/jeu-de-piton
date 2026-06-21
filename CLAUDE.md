@@ -24,8 +24,11 @@ task touches that area**, to keep session context lean:
 - **Board model** (engine indices ↔ screen, seating, how a piton travels) →
   [docs/board-model.md](docs/board-model.md) — read before touching board geometry
   or `src/ui/` layout (it's where past sessions drifted).
+- **PC ↔ mobile parity** (iOS Safari `foreignObject` gotchas + do/don'ts) →
+  [docs/cross-platform-ui.md](docs/cross-platform-ui.md) — read before authoring or
+  moving any HTML inside the board SVG; desktop hides bugs that only bite the iPad.
 - ***Why* a past choice was made** (dated rationale log) → [docs/decisions.md](docs/decisions.md)
-- **Dev scenario rig** (the dev-only `src/ui/dev/` panel) → [docs/dev-tooling.md](docs/dev-tooling.md)
+- **Dev scenario rig** (the `src/ui/dev/` panel — now ships in every build) → [docs/dev-tooling.md](docs/dev-tooling.md)
 - Original scaffold-time plan, frozen → [docs/archive/PLAN.md](docs/archive/PLAN.md)
 
 This is its own independent git repo (`manux32/jeu-de-piton`), nested under the
