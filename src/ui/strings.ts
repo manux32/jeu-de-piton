@@ -16,6 +16,7 @@
  * hex via PLAYER_HEX — strings stay free of theme values.
  */
 import type { PlayerColor } from '../engine'
+import type { StrategyId } from '../ai/strategy'
 
 export const TITLE = 'Pitons'
 
@@ -66,6 +67,14 @@ export const SETUP = {
   ai: 'AI',
   /** A seat's row label — `n` is the 1-based seat number ("Player 1"). */
   seat: (n: number) => `Player ${n}`,
+  /** Accessible label for a seat's colour picker (`n` is the 1-based seat). */
+  colorPicker: (n: number) => `Player ${n} colour`,
+  /** Accessible label for an AI seat's difficulty picker. */
+  strategyPicker: (n: number) => `Player ${n} AI level`,
+  /** Human-facing names for the AI strategies — the display side of the ai
+   *  layer's strategy ids (see ai/strategy.ts STRATEGY_BY_ID). Rename freely;
+   *  the ai code keys off the ids, not these words. */
+  strategyLabels: { easy: 'Easy', hard: 'Hard' } as Record<StrategyId, string>,
   /** The bottom-bar buttons: discard the draft vs. apply it and deal a new game. */
   cancel: 'Cancel',
   start: 'Start game',

@@ -38,7 +38,8 @@ export function useAiTurn(
   rolling: boolean,
   roll: () => void,
   dispatch: (action: GameAction) => void,
-  strategy: Strategy,
+  /** One strategy per seat (seat-indexed); each AI seat plays its own. */
+  strategies: Strategy[],
 ) {
   // It's an AI's move when the live game is mid-play and the seat to act isn't a
   // human one. (A finished game has no seat to drive.)
@@ -62,9 +63,9 @@ export function useAiTurn(
       // enters it when one exists), but guard defensively rather than dispatch junk.
       if (moves.length === 0) return
       const timer = window.setTimeout(() => {
-        dispatch({ type: 'pick', move: strategy(game, moves) })
+        dispatch({ type: 'pick', move: strategies[game.turn](game, moves) })
       }, AI_MOVE_DELAY_MS)
       return () => window.clearTimeout(timer)
     }
-  }, [game, isAiTurn, rolling, roll, dispatch, strategy])
+  }, [game, isAiTurn, rolling, roll, dispatch, strategies])
 }

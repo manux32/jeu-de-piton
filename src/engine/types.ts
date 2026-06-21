@@ -12,8 +12,22 @@
 
 import type { BoardGeometry } from './board'
 
-/** One of the (up to) four corners / sides of the cross board. */
-export type PlayerColor = 'red' | 'blue' | 'yellow' | 'green'
+/**
+ * A player's identity colour. The first four are the default seat colours (one
+ * per arm of the cross); the rest are extra colours a seat can be switched to in
+ * New Game. A game still seats at most four players — more colours just widens
+ * the *choice*, not the player count. (`black` is intentionally not here yet: it
+ * collides with the near-black safe squares and needs a piton-outline tweak
+ * first — see decisions.md.)
+ */
+export type PlayerColor =
+  | 'red'
+  | 'blue'
+  | 'yellow'
+  | 'green'
+  | 'orange'
+  | 'white'
+  | 'purple'
 
 /**
  * Where a single piton currently sits.

@@ -25,6 +25,7 @@ import { GLYPHS, type Glyph } from './glyphs'
 import type { TurnEntry } from './useGame'
 import { NewGameModal, type GameSetup } from './NewGameModal'
 import { OptionsMenu } from './OptionsMenu'
+import type { StrategyId } from '../ai/strategy'
 import {
   PLAYER_HEX,
   boardThemeVars,
@@ -72,6 +73,9 @@ interface Props {
   /** The seats a human controls (the rest are AI) — passed through to pre-fill
    *  the New Game setup window's per-seat type toggles. */
   humanSeats: number[]
+  /** Each seat's AI difficulty (seat-indexed) — pre-fills the New Game window's
+   *  per-seat strategy pickers. */
+  seatStrategies: StrategyId[]
   onPick: (move: Move) => void
   /** Apply a new game from the setup window: per-seat colours + which seats are
    *  human. Fired only when the player presses "Start game". */
@@ -121,6 +125,7 @@ export function GameBoard({
   rolling,
   log,
   humanSeats,
+  seatStrategies,
   onPick,
   onNewGame,
   onRoll,
@@ -515,6 +520,7 @@ export function GameBoard({
         <NewGameModal
           colors={state.players.map((p) => p.color)}
           humanSeats={humanSeats}
+          strategies={seatStrategies}
           onCancel={() => setSetupOpen(false)}
           onStart={(setup) => {
             onNewGame(setup)

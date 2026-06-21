@@ -19,6 +19,20 @@ import { makeGeometry } from './board'
 export const PLAYER_COLORS: PlayerColor[] = ['red', 'blue', 'yellow', 'green']
 
 /**
+ * The full palette a seat may be switched to in New Game, in picker order — the
+ * four default seat colours above plus the extras. A game still seats ≤ 4
+ * players (so `PLAYER_COLORS` alone always fills the defaults); this superset
+ * only widens what a player can *pick*, keeping every seat's colour distinct.
+ * Add a new colour here (and its hex in theme.ts) to offer it.
+ */
+export const ALL_PLAYER_COLORS: PlayerColor[] = [
+  ...PLAYER_COLORS,
+  'orange',
+  'white',
+  'purple',
+]
+
+/**
  * Build the opening state for a game of `ruleset` with `playerCount` players
  * (defaults to the ruleset's own count). Every piton starts in its nest and
  * player 0 is first to roll.

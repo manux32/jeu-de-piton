@@ -14,9 +14,11 @@
  * there are spare colours to take freely.
  */
 import { useState, type CSSProperties } from 'react'
-import { PLAYER_COLORS, type PlayerColor } from '../engine'
+import { ALL_PLAYER_COLORS, PLAYER_COLORS, type PlayerColor } from '../engine'
+import { STRATEGY_IDS, type StrategyId } from '../ai/strategy'
 import { PLAYER_HEX, SETUP_PANEL_BG, SETUP_WINDOW_SIZE } from './theme'
 import { SETUP } from './strings'
+import { Dropdown } from './Dropdown'
 
 /** The next game's settings, as the setup window hands them back on Start. */
 export interface GameSetup {
@@ -24,6 +26,9 @@ export interface GameSetup {
   colors: PlayerColor[]
   /** Which seats a human controls; every other seat is AI. */
   humanSeats: number[]
+  /** Per-seat AI difficulty, in seat order (parallel to `colors`). Only used for
+   *  the AI seats; a seat a human controls keeps its value but ignores it. */
+  strategies: StrategyId[]
 }
 
 interface Props {
@@ -31,9 +36,25 @@ interface Props {
   colors: PlayerColor[]
   /** The seats a human currently controls, to pre-fill the type toggles. */
   humanSeats: number[]
+  /** The current per-seat AI difficulty, to pre-fill the strategy pickers. */
+  strategies: StrategyId[]
   onCancel: () => void
   onStart: (setup: GameSetup) => void
 }
+
+// The colour and strategy options are the same for every seat, so build them
+// once. A colour option is a bare swatch (its name is the accessible label); a
+// strategy option is just its display word.
+const COLOR_OPTIONS = ALL_PLAYER_COLORS.map((pc) => ({
+  value: pc,
+  label: pc,
+  node: <span className="swatch" style={{ '--swatch': PLAYER_HEX[pc] } as CSSProperties} />,
+}))
+const STRATEGY_OPTIONS = STRATEGY_IDS.map((id) => ({
+  value: id,
+  label: SETUP.strategyLabels[id],
+  node: SETUP.strategyLabels[id],
+}))
 
 /** Resize a per-seat array to `n` seats, filling new tail slots with `fill(i)`. */
 function resize<T>(arr: T[], n: number, fill: (i: number) => T): T[] {
@@ -41,18 +62,26 @@ function resize<T>(arr: T[], n: number, fill: (i: number) => T): T[] {
   return [...arr, ...Array.from({ length: n - arr.length }, (_, k) => fill(arr.length + k))]
 }
 
-export function NewGameModal({ colors: initialColors, humanSeats, onCancel, onStart }: Props) {
+export function NewGameModal({
+  colors: initialColors,
+  humanSeats,
+  strategies: initialStrategies,
+  onCancel,
+  onStart,
+}: Props) {
   // Draft state, pre-filled from the live game. `colors.length` is the player
-  // count; `humans[i]` is whether seat i is human (else AI).
+  // count; `humans[i]` is whether seat i is human (else AI); `strategies[i]` is
+  // seat i's AI difficulty (kept even for human seats, so toggling back restores).
   const [colors, setColors] = useState<PlayerColor[]>(initialColors)
   const [humans, setHumans] = useState<boolean[]>(
     initialColors.map((_, i) => humanSeats.includes(i)),
   )
+  const [strategies, setStrategies] = useState<StrategyId[]>(initialStrategies)
 
-  // Change the player count, growing/shrinking both per-seat arrays together.
-  // Each new seat takes the first palette colour not already taken (tracked as we
-  // add, so growing by several still stays distinct) and defaults to AI (the
-  // common case is one human against AIs).
+  // Change the player count, growing/shrinking every per-seat array together.
+  // Each new seat takes the first default seat colour not already taken (tracked
+  // as we add, so growing by several stays distinct), defaults to AI (the common
+  // case is one human against AIs), and defaults to the harder AI.
   const changeCount = (n: number) => {
     setColors((prev) => {
       if (n <= prev.length) return prev.slice(0, n)
@@ -61,6 +90,7 @@ export function NewGameModal({ colors: initialColors, humanSeats, onCancel, onSt
       return next
     })
     setHumans((prev) => resize(prev, n, () => false))
+    setStrategies((prev) => resize(prev, n, () => 'hard'))
   }
 
   // Pick a colour for a seat, keeping all seats' colours distinct: if another
@@ -79,8 +109,11 @@ export function NewGameModal({ colors: initialColors, humanSeats, onCancel, onSt
   const toggleType = (seat: number) =>
     setHumans((prev) => prev.map((h, i) => (i === seat ? !h : h)))
 
+  const pickStrategy = (seat: number, id: StrategyId) =>
+    setStrategies((prev) => prev.map((s, i) => (i === seat ? id : s)))
+
   const start = () =>
-    onStart({ colors, humanSeats: humans.flatMap((h, i) => (h ? [i] : [])) })
+    onStart({ colors, humanSeats: humans.flatMap((h, i) => (h ? [i] : [])), strategies })
 
   const count = colors.length
 
@@ -114,7 +147,8 @@ export function NewGameModal({ colors: initialColors, humanSeats, onCancel, onSt
         </div>
       </div>
 
-      {/* One row per seat: type toggle + colour swatches */}
+      {/* One row per seat: the human/AI toggle, a colour picker, and — for AI
+          seats only — a difficulty picker. */}
       <div className="setup-seats">
         {colors.map((c, seat) => (
           <div className="setup-row setup-seat" key={seat}>
@@ -126,18 +160,22 @@ export function NewGameModal({ colors: initialColors, humanSeats, onCancel, onSt
             >
               {humans[seat] ? SETUP.human : SETUP.ai}
             </button>
-            <div className="setup-group setup-swatches">
-              {PLAYER_COLORS.map((pc) => (
-                <button
-                  key={pc}
-                  type="button"
-                  className={pc === c ? 'setup-swatch setup-swatch-on' : 'setup-swatch'}
-                  style={{ '--swatch': PLAYER_HEX[pc] } as CSSProperties}
-                  aria-label={pc}
-                  aria-pressed={pc === c}
-                  onClick={() => pickColor(seat, pc)}
+            <div className="setup-group setup-seat-controls">
+              <Dropdown
+                value={c}
+                options={COLOR_OPTIONS}
+                onChange={(color) => pickColor(seat, color)}
+                ariaLabel={SETUP.colorPicker(seat + 1)}
+                menuClassName="dropdown-menu-swatches"
+              />
+              {!humans[seat] && (
+                <Dropdown
+                  value={strategies[seat]}
+                  options={STRATEGY_OPTIONS}
+                  onChange={(id) => pickStrategy(seat, id)}
+                  ariaLabel={SETUP.strategyPicker(seat + 1)}
                 />
-              ))}
+              )}
             </div>
           </div>
         ))}

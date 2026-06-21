@@ -457,20 +457,93 @@ code {
 .setup-type {
   min-width: 4.13em;
 }
-.setup-swatch {
-  width: 1.73em;
-  height: 1.73em;
-  padding: 0;
-  border: none;
+/* The right-hand cluster of a seat row: its colour picker + (AI only) difficulty
+   picker, kept together and pushed to the row's right by the row's space-between. */
+.setup-seat-controls {
+  align-items: center;
+}
+
+/* A colour swatch — a filled circle. Used both as a dropdown trigger's current
+   value and as each option inside the colour popover. A thin dark ring keeps a
+   light swatch (yellow/white) legible on the dark panel. */
+.swatch {
+  width: 1.4em;
+  height: 1.4em;
   border-radius: 50%;
   background: var(--swatch);
-  /* A thin dark ring keeps a light swatch (yellow) legible on the dark panel. */
   box-shadow: 0 0 0 0.067em rgba(0, 0, 0, 0.35);
 }
-/* Selected: a white ring AROUND the swatch (via box-shadow, not a border) so the
-   colour fill stays fully visible, plus a soft glow. */
-.setup-swatch-on {
-  box-shadow: 0 0 0 0.167em #fff, 0 0 0.47em rgba(255, 255, 255, 0.6);
+
+/* ── Dropdown (colour + AI-level pickers in New Game) ──────────────────────── */
+.dropdown {
+  position: relative;
+  display: inline-flex;
+}
+.dropdown-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.33em;
+  padding: 0.33em 0.53em;
+  border: 0.067em solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #f3f1f6;
+}
+.dropdown-trigger:hover {
+  border-color: #aa3bff;
+}
+.dropdown-current {
+  display: inline-flex;
+  align-items: center;
+}
+.dropdown-caret {
+  font-size: 0.7em;
+  opacity: 0.7;
+  line-height: 1;
+}
+/* The popover, anchored under the trigger's right edge so it stays inside the
+   panel. Opaque so the options read clearly over the board behind the window. */
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 0.27em);
+  right: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 0.27em;
+  padding: 0.4em;
+  border-radius: 0.6em;
+  background: #2a2735;
+  border: 0.067em solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 0.3em 1em rgba(0, 0, 0, 0.5);
+}
+/* Colour variant: lay the swatches out as a compact wrapping grid (a palette),
+   not a tall single column. */
+.dropdown-menu-swatches {
+  flex-direction: row;
+  flex-wrap: wrap;
+  width: 8.5em;
+}
+.dropdown-option {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  padding: 0.27em 0.47em;
+  border-radius: 0.4em;
+  border: 0.067em solid transparent;
+  background: transparent;
+  color: #f3f1f6;
+  white-space: nowrap;
+}
+.dropdown-menu-swatches .dropdown-option {
+  padding: 0.2em;
+}
+.dropdown-option:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+.dropdown-option-on {
+  border-color: #aa3bff;
+  background: rgba(170, 59, 255, 0.22);
 }
 .setup-actions {
   display: flex;

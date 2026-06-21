@@ -4,7 +4,7 @@ import { GameBoard } from './ui/GameBoard'
 import { useGame } from './ui/useGame'
 import { useDieRoll } from './ui/useDieRoll'
 import { useAiTurn } from './ui/useAiTurn'
-import { greedyStrategy } from './ai/strategy'
+import { STRATEGY_BY_ID, type StrategyId } from './ai/strategy'
 
 // Dev tools now ship in EVERY build (incl. the deployed PWA) so we can drive
 // scenarios on-device while the game is in development — the proper on/off gate
@@ -26,6 +26,16 @@ function App() {
   // 4-player game: 0 bottom-right, 1 top-right, 2 top-left, 3 bottom-left.)
   const [humanSeats, setHumanSeats] = useState<number[]>([0])
 
+  // Per-seat AI difficulty (seat-indexed; only the AI seats' entries are used).
+  // Like `humanSeats`, this is controller config, not engine/render state, so it
+  // lives here. The New Game window sets it on "Start game"; default every seat to
+  // the harder brain (the previous behaviour: all AIs played greedy). Resolved to
+  // actual `Strategy` functions for the AI driver below.
+  const [seatStrategies, setSeatStrategies] = useState<StrategyId[]>(
+    () => Array.from({ length: 4 }, () => 'hard'),
+  )
+  const strategies = seatStrategies.map((id) => STRATEGY_BY_ID[id])
+
   // Dev-tools sidebar open state (view-only). It's opened from the Dev tools row
   // of the board's Options menu (via onOpenDev → setDevOpen); the panel itself is
   // a DOM sidebar mounted here, outside the board, only while open.
@@ -43,7 +53,7 @@ function App() {
   // a move (via the greedy strategy) on a watchable beat, reusing the same roll
   // trigger and 'pick' dispatch a human uses. Dormant on a human's turn. See
   // useAiTurn.
-  useAiTurn(game, humanSeats, rolling, roll, dispatch, greedyStrategy)
+  useAiTurn(game, humanSeats, rolling, roll, dispatch, strategies)
 
   // The board lights up the current player's legal moves only while a roll is
   // awaiting a move; everything that decides them lives in the engine.
@@ -61,12 +71,14 @@ function App() {
         rolling={rolling}
         log={log}
         humanSeats={humanSeats}
+        seatStrategies={seatStrategies}
         onPick={(move) => dispatch({ type: 'pick', move })}
         onNewGame={(setup) => {
           // Apply the whole draft at once: the controller config (which seats are
-          // human) and the engine game (count + per-seat colours) — so a new game
-          // and its players land together.
+          // human, each AI's difficulty) and the engine game (count + per-seat
+          // colours) — so a new game and its players land together.
           setHumanSeats(setup.humanSeats)
+          setSeatStrategies(setup.strategies)
           dispatch({ type: 'newGame', playerCount: setup.colors.length, colors: setup.colors })
         }}
         onRoll={roll}

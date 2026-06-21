@@ -131,3 +131,22 @@ export const randomStrategy =
   (rng: () => number = Math.random): Strategy =>
   (_state, moves) =>
     moves[Math.floor(rng() * moves.length)]
+
+/**
+ * The selectable AI strategies, by stable id, in the order a picker should list
+ * them (easiest first). This is the indirection seam the New Game window picks
+ * through: the UI stores an id per AI seat and asks `STRATEGY_BY_ID` for the
+ * policy to run, so swapping which brain "Easy"/"Hard" map to — or adding a
+ * third rung — happens here, with no UI change.
+ *
+ * The *display labels* deliberately live in the UI layer (`strings.ts`), not
+ * here: this layer owns the policies and their ids; renaming "Easy"/"Hard" (or
+ * translating them) never touches the ai code.
+ */
+export const STRATEGY_IDS = ['easy', 'hard'] as const
+export type StrategyId = (typeof STRATEGY_IDS)[number]
+
+export const STRATEGY_BY_ID: Record<StrategyId, Strategy> = {
+  easy: randomStrategy(),
+  hard: greedyStrategy,
+}
