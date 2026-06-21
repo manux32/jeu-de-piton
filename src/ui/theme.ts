@@ -321,7 +321,7 @@ export const HOME_TARGET_STROKE_W = 0.12
 // a die. See BoardTitle.tsx for the drawing; these knobs tune the layout.
 export const TITLE_SIZE = 0.85   // overall size of the whole wordmark
 export const TITLE_X = 0         // nudge left/right; 0 = centred over the corner nest, + = right
-export const TITLE_Y = 0.5       // distance down from the board's top edge
+export const TITLE_Y = 0.47       // distance down from the board's top edge
 export const TITLE_KERN = 1.0    // letter spacing: < 1 tightens the whole wordmark, > 1 loosens it
 
 // The wordmark, left to right. Each glyph gets a fixed cell `w` (in ems of
@@ -374,13 +374,16 @@ export const OPTIONS_WINDOW_SIZE = 3.5  // OVERALL size of the Options window, i
 
 // ── Options gear button (the single button on the board — built as HTML at [px]
 //    size, then shrunk onto the board with CTRL_SCALE so its thin border stays
-//    crisp). A square, icon-only button. The knobs map to what you'd want to
-//    tweak: overall button size, how much of it the gear fills (the rest is
-//    padding), the gear's colour, and the outline colour. INSET is how far below
-//    the top edge it sits. (The Options *window* has its own OPTIONS_WINDOW_SIZE.)
+//    crisp). A square, icon-only button. Knobs below are grouped by intent:
+//    size, then where it sits (X/Y), then its look. (The Options *window* has its
+//    own OPTIONS_WINDOW_SIZE.)
+// size
 export const CTRL_SCALE = 0.019      // shrink factor: button px → board squares (keeps the thin border crisp)
 export const CTRL_SIZE = 44          // [px] overall button size (square)
-export const CTRL_INSET = 0.4        // distance down from the top edge
 export const GEAR_SHARE = 0.66       // [share 0–1] how much of the button the gear fills (bigger = less padding around it)
-export const GEAR_COLOR = '#6b6570'  // the gear's colour (darker = more ink; the button is white)
+// position
+export const CTRL_X = 0              // nudge left/right; 0 = centred over the corner nest, + = right
+export const CTRL_Y = 0.4            // distance down from the board's top edge
+// look
+export const GEAR_COLOR = '#9b96a3'  // the gear's colour (darker = more ink; the button is white)
 export const CTRL_BORDER_COLOR = '#a9a3b1' // the button's outline colour (darker = more visible against the board)

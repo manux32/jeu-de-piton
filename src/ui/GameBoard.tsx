@@ -29,7 +29,8 @@ import {
   boardThemeVars,
   CTRL_SCALE,
   CTRL_SIZE,
-  CTRL_INSET,
+  CTRL_X,
+  CTRL_Y,
   GEAR_SHARE,
   GEAR_COLOR,
   CTRL_BORDER_COLOR,
@@ -87,7 +88,7 @@ interface Props {
 // in viewBox units. (The die is the exception: native SVG drawn directly in board
 // units — see DieFace.) The corner chrome (title, Options) is centred
 // horizontally on its corner's nest cluster (see nestX in the body) and
-// vertically inset from the board edge by CTRL_INSET. The single Options gear
+// vertically inset from the board edge by CTRL_Y. The single Options gear
 // button (a square CTRL_W_CLOSED × CTRL_H) is the one way into the game's options:
 // it opens OptionsMenu — a plain DOM overlay OVER the board (NOT inside this SVG;
 // iOS Safari mis-centres foreignObject content — see cross-platform-ui.md + the
@@ -146,7 +147,7 @@ export function GameBoard({
   // width left of the nest centre (the inner flex is justify-content:center).
   const nestX = (corner: number) => layout.nestCentres[corner].cx
   const titleX = nestX(1)
-  const ctrlX = nestX(0) - (ctrlW * CTRL_SCALE) / 2
+  const ctrlX = nestX(0) - (ctrlW * CTRL_SCALE) / 2 + CTRL_X
   // The die sits at the dead centre of the board, over the HOME area — rolling is
   // the core gameplay act, so it earns the middle (see this session's decision).
   // Painted last (below) so it sits on top of any finished pitons; the HOME-bound
@@ -254,7 +255,7 @@ export function GameBoard({
           the board. A real HTML button mounted in the SVG via foreignObject,
           rendered at natural px and scaled into board units so it reuses .pill
           styling and stays accessible. */}
-      <g transform={`translate(${ctrlX}, ${CTRL_INSET}) scale(${CTRL_SCALE})`}>
+      <g transform={`translate(${ctrlX}, ${CTRL_Y}) scale(${CTRL_SCALE})`}>
         <foreignObject x={0} y={0} width={ctrlW} height={CTRL_SIZE}>
           <div className="board-controls">
             <button
