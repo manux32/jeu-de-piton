@@ -152,6 +152,10 @@ export function NewGameModal({
       <div className="setup-seats">
         {colors.map((c, seat) => (
           <div className="setup-row setup-seat" key={seat}>
+            {/* Three fixed grid columns — type | colour | strategy — so every
+                seat's controls line up vertically and nothing shifts. The
+                strategy column is reserved even on human rows (where it's empty),
+                keeping the colour picker in the same column throughout. */}
             <button
               type="button"
               className="setup-pill setup-type"
@@ -160,23 +164,21 @@ export function NewGameModal({
             >
               {humans[seat] ? SETUP.human : SETUP.ai}
             </button>
-            <div className="setup-group setup-seat-controls">
+            <Dropdown
+              value={c}
+              options={COLOR_OPTIONS}
+              onChange={(color) => pickColor(seat, color)}
+              ariaLabel={SETUP.colorPicker(seat + 1)}
+              menuClassName="dropdown-menu-swatches"
+            />
+            {!humans[seat] && (
               <Dropdown
-                value={c}
-                options={COLOR_OPTIONS}
-                onChange={(color) => pickColor(seat, color)}
-                ariaLabel={SETUP.colorPicker(seat + 1)}
-                menuClassName="dropdown-menu-swatches"
+                value={strategies[seat]}
+                options={STRATEGY_OPTIONS}
+                onChange={(id) => pickStrategy(seat, id)}
+                ariaLabel={SETUP.strategyPicker(seat + 1)}
               />
-              {!humans[seat] && (
-                <Dropdown
-                  value={strategies[seat]}
-                  options={STRATEGY_OPTIONS}
-                  onChange={(id) => pickStrategy(seat, id)}
-                  ariaLabel={SETUP.strategyPicker(seat + 1)}
-                />
-              )}
-            </div>
+            )}
           </div>
         ))}
       </div>

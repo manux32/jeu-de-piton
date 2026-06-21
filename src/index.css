@@ -437,10 +437,17 @@ code {
   border-top: 0.067em solid rgba(255, 255, 255, 0.12);
   border-bottom: 0.067em solid rgba(255, 255, 255, 0.12);
 }
-/* Count pills, the Human/AI toggle, and the Cancel/Start buttons share one look. */
+/* Count pills, the Human/AI toggle, and the Cancel/Start buttons share one look.
+   A fixed height (shared with the dropdown triggers below) keeps every control in
+   the window the same size; horizontal padding flexes with the text. */
 .setup-pill {
   font-weight: 600;
-  padding: 0.4em 0.93em;
+  height: 2.2em;
+  padding: 0 0.93em;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: 0.067em solid rgba(255, 255, 255, 0.28);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.06);
@@ -453,22 +460,31 @@ code {
   background: rgba(170, 59, 255, 0.3);
   border-color: #aa3bff;
 }
-/* Fixed width so toggling Human↔AI doesn't reflow the row. */
-.setup-type {
-  min-width: 4.13em;
-}
-/* The right-hand cluster of a seat row: its colour picker + (AI only) difficulty
-   picker, kept together and pushed to the row's right by the row's space-between. */
-.setup-seat-controls {
+/* Each seat row is a 3-column grid — type | colour | strategy — with fixed outer
+   tracks and a flexing middle, so every seat's controls align vertically and the
+   colour picker never moves when the strategy label changes width. The strategy
+   column is reserved even on human rows, where it sits empty. */
+.setup-seat {
+  display: grid;
+  grid-template-columns: 4.6em 1fr 5em;
   align-items: center;
+  gap: 0.53em;
+}
+/* All three controls fill their column, so Human/AI are identical width and the
+   pickers read as equal, aligned blocks. */
+.setup-type,
+.setup-seat .dropdown {
+  width: 100%;
+  min-width: 0;
 }
 
 /* A colour swatch — a filled circle. Used both as a dropdown trigger's current
    value and as each option inside the colour popover. A thin dark ring keeps a
-   light swatch (yellow/white) legible on the dark panel. */
+   light swatch (yellow) legible on the dark panel. */
 .swatch {
-  width: 1.4em;
-  height: 1.4em;
+  width: 1.6em;
+  height: 1.6em;
+  flex: none;
   border-radius: 50%;
   background: var(--swatch);
   box-shadow: 0 0 0 0.067em rgba(0, 0, 0, 0.35);
@@ -480,10 +496,14 @@ code {
   display: inline-flex;
 }
 .dropdown-trigger {
+  width: 100%;
+  height: 2.2em;
+  box-sizing: border-box;
   display: inline-flex;
   align-items: center;
+  justify-content: space-between;
   gap: 0.33em;
-  padding: 0.33em 0.53em;
+  padding: 0 0.6em;
   border: 0.067em solid rgba(255, 255, 255, 0.28);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.06);

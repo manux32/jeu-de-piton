@@ -35,12 +35,10 @@ export const PLAYER_HEX: Record<PlayerColor, string> = {
   yellow: '#e0a81e',
   green: '#3a9d4a',
   // Extra pickable colours (offered in New Game; not a default seat colour).
-  // Every piton carries a dark outline (PITON_STROKE), so even `white` stays
-  // legible on both the white track and the near-black safe squares. `black`
-  // is the one exception and isn't offered yet (it would vanish on the safe
-  // squares without an outline tweak — see decisions.md).
+  // `black`/`white` aren't offered yet: each blends into a near-its-own-colour
+  // board element (black on the dark safe squares; white on the near-white nest
+  // holes + die face) and needs a rendering tweak first — see decisions.md.
   orange: '#e27a1e',
-  white: '#f2efe7',
   purple: '#8e54c6',
 }
 

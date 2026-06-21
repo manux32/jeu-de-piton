@@ -25,12 +25,7 @@ export const PLAYER_COLORS: PlayerColor[] = ['red', 'blue', 'yellow', 'green']
  * only widens what a player can *pick*, keeping every seat's colour distinct.
  * Add a new colour here (and its hex in theme.ts) to offer it.
  */
-export const ALL_PLAYER_COLORS: PlayerColor[] = [
-  ...PLAYER_COLORS,
-  'orange',
-  'white',
-  'purple',
-]
+export const ALL_PLAYER_COLORS: PlayerColor[] = [...PLAYER_COLORS, 'orange', 'purple']
 
 /**
  * Build the opening state for a game of `ruleset` with `playerCount` players
