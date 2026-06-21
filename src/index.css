@@ -482,17 +482,13 @@ code {
   width: 100%;
   min-width: 0;
 }
-/* The chosen-colour pill shown on the picker button — sized by its own knob, big
-   on purpose. The button grows to fit it (so it can be taller than the row's
-   other controls) and hugs it with a snug padding. */
-.setup-pick-color .dropdown-trigger {
-  height: auto;
-  min-height: 2.2em;
-  padding: 0.2em 0.5em;
-}
+/* The chosen-colour pill shown on the picker button — sized by its own knob,
+   independent of the button. The button keeps the standard control height (from
+   .dropdown-trigger), so resizing the pill never changes the widget; the pill is
+   just drawn inside it. */
 .setup-pick-color .swatch {
-  width: var(--setup-swatch-size, 3.2em);
-  height: var(--setup-swatch-size, 3.2em);
+  width: var(--setup-swatch-size, 1.2em);
+  height: var(--setup-swatch-size, 1.2em);
 }
 
 /* A colour swatch — a filled circle. Used both as a dropdown trigger's current
