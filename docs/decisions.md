@@ -10,6 +10,21 @@
 > [rules-and-lineage.md](rules-and-lineage.md), [board-model.md](board-model.md)).
 > Don't duplicate git history — capture reasoning a commit message wouldn't.
 
+- **2026-06-21** — **Die labels ("Roll", "!") are baked SVG path geometry, not
+  live text.** They render identically on PC and iPad now (user-confirmed). *Why
+  this and not a text tweak:* native SVG `<text>` in `system-ui` substitutes a
+  different physical font per platform (Segoe UI ↔ San Francisco), so both the
+  baseline centring and any hand-tuned nudge drift between devices — no
+  text-rendering setting can fully fix it, since it's at the substituted font's
+  mercy. So we stop rendering text: trace the two fixed strings once from **Nunito
+  ExtraBold (OFL)** into `src/ui/glyphs.ts` via `tools/gen-glyphs.mjs`, and render
+  the path **bbox-centred** in `DieFace` (which also removed the residual
+  horizontal drift). Pure geometry = pixel-identical everywhere. *General rule this
+  set:* native SVG `<text>` is platform-dependent too (not just `foreignObject`);
+  for small fixed strings that must match exactly, prefer baked paths — full
+  symptom→cause→fix in [cross-platform-ui.md](cross-platform-ui.md). *Deferred:*
+  the title wordmark's plain letters still use the system font and drift the same
+  way, but converting them needs its hand-drawn icons re-tuned by eye (see STATUS).
 - **2026-06-21** — **The board title became a "Pitons" logo wordmark; its
   positioning knobs were cut to plain X/Y/size.** Renamed the title from "Jeu de
   piton" to **"Pitons"** and turned it from one `<text>` into a small logo
