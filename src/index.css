@@ -576,13 +576,12 @@ code {
   fill: var(--board-bg, #faf8f2);
 }
 
-/* The "Roll" prompt drawn on the die when it's a player's turn to roll (in place
-   of pips). Heading font to match the title; fill is the player's tint, set
-   inline by DieFace. Sized in viewBox units, so it scales with the board. */
+/* The label drawn on the die in place of pips (the "Roll" prompt, the notice
+   "!"). It's a baked SVG <path>, not text (see DieFace / glyphs.ts), so it needs
+   no font styling — fill (the player's tint) and the centring transform are set
+   inline by DieFace. Class kept only as a render hook. */
 .die-label {
-  font-family: var(--heading);
-  font-weight: 700;
-  user-select: none;
+  pointer-events: none;
 }
 
 /* --- shared bits -------------------------------------------------------- */

@@ -15,6 +15,7 @@ import {
   DIE_PROMPT_TEXT,
   DIE_PROMPT_OFFSET_X,
 } from './theme'
+import type { Glyph } from './glyphs'
 
 // Which of the 3×3 grid cells carry a pip for each value, in units of the grid
 // step (cols/rows at −1, 0, +1 from centre). Standard western die pip layout.
@@ -37,18 +38,21 @@ interface Props {
   size: number
   /** Tint for the border and pips (the acting player's colour). */
   color: string
-  /** When set, the face shows this text (e.g. a "Roll" prompt) instead of pips. */
-  label?: string
-  /** Label font size as a [share] of die size. Defaults to DIE_PROMPT_TEXT (tuned
-   *  for the centre die's "Roll"); the tiny notice die overrides it larger for its
-   *  single-glyph prompt. */
+  /** When set, the face shows this baked label glyph (e.g. the "Roll" prompt)
+   *  instead of pips. It's pre-traced outline geometry, not live text — see
+   *  glyphs.ts — so it renders pixel-identically on every platform with no
+   *  system-font substitution or per-font centring drift. */
+  label?: Glyph
+  /** Label size as a [share] of die size (the em-scale applied to the em=1 glyph).
+   *  Defaults to DIE_PROMPT_TEXT (tuned for the centre die's "Roll"); the tiny
+   *  notice die overrides it larger for its single-glyph prompt. */
   labelSize?: number
-  /** Label horizontal nudge as a [share] of die size. Defaults to
-   *  DIE_PROMPT_OFFSET_X (a nudge that centres "Roll"). */
+  /** Label horizontal nudge as a [share] of die size (+ = right). Defaults to
+   *  DIE_PROMPT_OFFSET_X. The glyph is already bbox-centred, so this is just an
+   *  optical fine-tune escape hatch. */
   labelOffsetX?: number
-  /** Label vertical nudge as a [share] of die size (− = up). Defaults to 0; the
-   *  notice die overrides it to lift its tall single glyph off SVG's "central"
-   *  baseline so it reads centred. */
+  /** Label vertical nudge as a [share] of die size (− = up). Defaults to 0 — the
+   *  glyph is already bbox-centred; optical fine-tune escape hatch. */
   labelOffsetY?: number
 }
 
@@ -71,17 +75,19 @@ export function DieFace({ value, cx, cy, size, color, label, labelSize, labelOff
         strokeWidth={size * DIE_STROKE_W}
       />
       {label != null ? (
-        <text
+        // Scale the em=1 glyph by (size × share), then translate its bbox centre
+        // onto the die centre (+ optional optical nudge). Transforms apply
+        // right-to-left: recentre on the bbox, scale, then move to the die.
+        <path
           className="die-label"
-          x={cx + size * (labelOffsetX ?? DIE_PROMPT_OFFSET_X)}
-          y={cy + size * (labelOffsetY ?? 0)}
-          fontSize={size * (labelSize ?? DIE_PROMPT_TEXT)}
+          d={label.d}
           fill={color}
-          textAnchor="middle"
-          dominantBaseline="central"
-        >
-          {label}
-        </text>
+          transform={
+            `translate(${cx + size * (labelOffsetX ?? DIE_PROMPT_OFFSET_X)}, ${cy + size * (labelOffsetY ?? 0)})` +
+            ` scale(${size * (labelSize ?? DIE_PROMPT_TEXT)})` +
+            ` translate(${-label.cx}, ${-label.cy})`
+          }
+        />
       ) : (
         (PIPS[value] ?? PIPS[1]).map(([dx, dy], i) => (
           <circle

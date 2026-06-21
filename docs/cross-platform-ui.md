@@ -58,6 +58,24 @@ scenarios, rather than playing a whole game).
 
 Newest first. Each entry: symptom → cause → fix.
 
+- **Die-label text ("Roll", "!") looked centred on PC but off-centre on iPad**
+  (fixed 2026-06-21). This is *not* a foreignObject bug — it's native SVG `<text>`.
+  Two compounding causes, both rooted in **`system-ui` resolving to a different
+  physical font per platform** (Segoe UI on Windows, San Francisco on iOS): (1)
+  `dominant-baseline="central"` centres against the font's em box *including
+  descender room the glyph doesn't use*, so a descender-less glyph sits low by a
+  font-dependent amount; (2) hand-tuned X/Y nudges that corrected this were
+  calibrated to Segoe's metrics, so they mis-corrected under SF. Intermediate fixes
+  (drop the descender dependence, zero the nudges, bbox-style centring) reduced but
+  couldn't *eliminate* the drift — any approach that renders the substituted system
+  font is at that font's mercy. **Fix:** stop rendering text at all — bake the fixed
+  strings as SVG `<path>` outline geometry traced from one font (Nunito ExtraBold,
+  OFL) via `tools/gen-glyphs.mjs` → `src/ui/glyphs.ts`, and render the path
+  bbox-centred (`DieFace`). Pure geometry = pixel-identical everywhere, no font, no
+  centring drift. **General rule this establishes:** native SVG `<text>` is *also*
+  platform-dependent (via font substitution), not just foreignObject HTML — for
+  small fixed strings that must look identical, prefer baked path geometry. (Live
+  text still fine where exact match doesn't matter — e.g. the notice prose.)
 - **Live sub-turn notice flew to the screen's top-left** (regression from commit
   `1643570`, fixed 2026-06-20). The live row centred its text with
   `position: absolute; left:0; right:0`. iOS anchored that absolute span to the SVG

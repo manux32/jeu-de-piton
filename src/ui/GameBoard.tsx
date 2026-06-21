@@ -20,7 +20,8 @@ import { Pitons } from './Pitons'
 import { DieFace } from './DieFace'
 import { GearIcon } from './GearIcon'
 import { BoardTitle } from './BoardTitle'
-import { PROMPT, DIE, WIN, OPTIONS, type Notice } from './strings'
+import { PROMPT, WIN, OPTIONS, type Notice } from './strings'
+import { GLYPHS, type Glyph } from './glyphs'
 import type { TurnEntry } from './useGame'
 import { NewGameModal, type GameSetup } from './NewGameModal'
 import { OptionsMenu } from './OptionsMenu'
@@ -207,26 +208,26 @@ export function GameBoard({
   // nest) and clips the oldest off the top if they overflow the box.
   // `current` marks the live row — the one the prompt sits on this sub-turn — so
   // the render can centre it on the nest while finished rows stay left-aligned.
-  type NestRow = { die: number | null; label: string | null; content: Notice | string; current?: boolean }
+  type NestRow = { die: number | null; glyph: Glyph | null; content: Notice | string; current?: boolean }
   const nestRows = (p: number): NestRow[] => {
-    const rows: NestRow[] = log[p].map((e) => ({ die: e.die, label: null, content: e.notice }))
+    const rows: NestRow[] = log[p].map((e) => ({ die: e.die, glyph: null, content: e.notice }))
     if (!over && p === state.turn) {
       if (state.phase === 'awaiting-roll') {
         // "Roll again" (vs "Your turn!") whenever this seat already has finished
         // sub-turns this turn — i.e. it's a bonus roll off a 6, not the first
         // roll. So "roll again" shows only on the live row, never on the rows
         // above it. (The log is wiped at handover, so a non-empty log here always
-        // means the streak is still the same seat's.) The die shows a big glyph
-        // (DIE.rollGlyph) — the word "Roll" is illegible at notice size.
+        // means the streak is still the same seat's.) The die shows a big single
+        // glyph (GLYPHS.glyph, "!") — the word "Roll" is illegible at notice size.
         const bonus = log[p].length > 0
         rows.push({
           die: null,
-          label: DIE.rollGlyph,
+          glyph: GLYPHS.glyph,
           content: bonus ? PROMPT.rollAgain : PROMPT.awaitingRoll,
           current: true,
         })
       } else if (state.phase === 'awaiting-move') {
-        rows.push({ die: state.lastRoll, label: null, content: PROMPT.awaitingMove, current: true })
+        rows.push({ die: state.lastRoll, glyph: null, content: PROMPT.awaitingMove, current: true })
       }
     }
     return rows
@@ -321,7 +322,7 @@ export function GameBoard({
                     key={ri}
                     className={row.current ? 'nest-notice-row nest-notice-row-current' : 'nest-notice-row'}
                   >
-                    {(row.die != null || row.label != null) && (
+                    {(row.die != null || row.glyph != null) && (
                       <svg
                         className="nest-row-die"
                         viewBox="-1.25 -1.25 2.5 2.5"
@@ -334,13 +335,13 @@ export function GameBoard({
                           cy={0}
                           size={2}
                           color={dieColor}
-                          label={row.label ?? undefined}
-                          // The glyph fills the face (its own big knob); its X/Y
-                          // nudge knobs fine-centre it (font metrics leave it a
-                          // touch low + left) — independent of the centre die's "Roll".
-                          labelSize={row.label != null ? NOTICE_DIE_GLYPH_TEXT : undefined}
-                          labelOffsetX={row.label != null ? NOTICE_DIE_GLYPH_OFFSET_X : undefined}
-                          labelOffsetY={row.label != null ? NOTICE_DIE_GLYPH_OFFSET_Y : undefined}
+                          label={row.glyph ?? undefined}
+                          // The glyph fills the face (its own big knob). It's
+                          // bbox-centred, so the X/Y nudges stay at 0 — kept only
+                          // as optical escape hatches, independent of "Roll".
+                          labelSize={row.glyph != null ? NOTICE_DIE_GLYPH_TEXT : undefined}
+                          labelOffsetX={row.glyph != null ? NOTICE_DIE_GLYPH_OFFSET_X : undefined}
+                          labelOffsetY={row.glyph != null ? NOTICE_DIE_GLYPH_OFFSET_Y : undefined}
                         />
                       </svg>
                     )}
@@ -412,7 +413,7 @@ export function GameBoard({
           cy={dieCentre}
           size={DIE_SIZE}
           color={dieColor}
-          label={canRoll ? DIE.rollPrompt : undefined}
+          label={canRoll ? GLYPHS.roll : undefined}
         />
       </g>
 

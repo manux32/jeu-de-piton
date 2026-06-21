@@ -303,7 +303,7 @@ export const DIE_PIP_R = 0.085       // [share] pip radius
 export const DIE_CORNER_RX = 0.18    // [share] rounded corners
 export const DIE_STROKE_W = 0.04     // [share] border thickness
 export const DIE_PROMPT_TEXT = 0.25       // [share] size of the "Roll" prompt text shown on the die when it's a player's turn to roll
-export const DIE_PROMPT_OFFSET_X = 0.04   // [share] nudge the prompt text sideways to look centred (+ = right)
+export const DIE_PROMPT_OFFSET_X = 0      // [share] optical nudge of the prompt text sideways (+ = right). 0 = pure geometric centring (textAnchor=middle); only set this if a font's ink looks off-centre in its advance width — but any nudge is font-specific and won't match across PC/mobile.
 
 // ── Move rings (shown on every square you can move to, after you roll) ──────
 // Three sizes, by what the move is. R = how wide the ring · STROKE_W = how thick.
@@ -347,8 +347,8 @@ export const NOTICE_WIDTH = 7.8       // box width, in squares (a row's text wra
 export const NOTICE_MAX_LINES = 4     // lines of room for the stack before the oldest rows clip off the top (a turn caps at 3 sub-turns)
 export const NOTICE_DIE_SIZE = 1.6    // each row's little die, as a multiple of the row's text height
 export const NOTICE_DIE_GLYPH_TEXT = 1.0 // [share] size of the roll-prompt glyph (DIE.rollGlyph) on the current sub-turn's die, as a share of that die's size (big — one char filling the face, vs the centre die's small "Roll")
-export const NOTICE_DIE_GLYPH_OFFSET_X = 0.04 // [share] nudge the glyph sideways to look centred in the die (+ = right); the glyph's ink isn't dead-centre in its advance width
-export const NOTICE_DIE_GLYPH_OFFSET_Y = -0.06 // [share] nudge the glyph up/down to look centred (− = up); a tall single glyph sits a touch low under SVG's "central" baseline (which reserves descender room it doesn't use)
+export const NOTICE_DIE_GLYPH_OFFSET_X = 0 // [share] optical nudge of the glyph sideways (+ = right). 0 = pure geometric centring; see DIE_PROMPT_OFFSET_X — a nudge is font-specific and won't match across PC/mobile.
+export const NOTICE_DIE_GLYPH_OFFSET_Y = 0 // [share] optical nudge of the glyph up/down (− = up). 0 — the fixed-fraction baseline in DieFace already centres a descender-less glyph the same way on every font, so the old Segoe-tuned lift is no longer needed.
 export const NOTICE_DEBUG_OUTLINE = false // dev: outline the box so you can see its extents while tuning
 
 // ── Win popup (the "Green wins!" panel centred over the board, tap to dismiss) ─
