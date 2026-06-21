@@ -35,11 +35,15 @@ Options gear button is the one entry to every game option** (`OptionsMenu`): it
 opens a small window whose rows launch New Game and the Dev panel — future options
 add rows here. **New Game opens
 a setup window over the board** (`NewGameModal`) to pick player count, each seat's
-**human/AI**, and each seat's **colour** (kept distinct — picking one a seat holds
-swaps them); nothing applies until "Start game". Seats you don't control play
-themselves via a swappable **`Strategy`** — a pure third layer in
-[`src/ai/`](../src/ai/) (default: you're seat 0, the rest AI; all-AI is allowed —
-watch it play). Each seat keeps a **turn log** pinned in its nest until its turn comes round
+**human/AI**, each seat's **colour** (a dropdown picker; kept distinct — picking one
+a seat holds swaps them), and **each AI seat's difficulty** (an Easy/Hard dropdown).
+Nothing applies until "Start game". Seats you don't control play themselves via a
+swappable **`Strategy`** — a pure third layer in [`src/ai/`](../src/ai/) chosen
+per-seat through an id→strategy seam (`STRATEGY_BY_ID`; labels in `strings.ts`);
+default you're seat 0, the rest AI on Hard; all-AI is allowed — watch it play.
+Player colours run beyond the four seat defaults — the engine `PlayerColor` union +
+an `ALL_PLAYER_COLORS` pickable palette currently add **orange** and **purple**
+(black/white wait on a render tweak — see backlog). Each seat keeps a **turn log** pinned in its nest until its turn comes round
 again: a stack of rows, one per sub-turn, each showing the die rolled and what it
 did — moves are described in words (left the nest, reached the home lane, got one
 home, reached a safe square, left the start square, a plain move, plus captures /
@@ -67,10 +71,14 @@ the candidate list below, in no particular order:
 - **Rule-variant layer.** The cabin ruleset already ships as a `Ruleset` and the
   engine is variant-agnostic, so this is mostly *proving* a second variant (e.g.
   canonical Parcheesi) drops in with **no UI change** — likely a ruleset picker
-  beside the player-count pills in New Game. *Colour follow-ons in the same
-  direction:* colours beyond 4 extend the engine `PlayerColor` union + the palette;
-  letting players *choose* builds on the per-seat `players[].color` field that
-  already exists (a picker that sets it with uniqueness; seat→colour stays default).
+  beside the player-count pills in New Game. *Colour follow-on (mostly shipped):*
+  the per-seat colour picker + extra colours now ship (orange/purple added to the
+  `PlayerColor` union + the `ALL_PLAYER_COLORS` palette). **Remaining: offer `black`
+  + `white`** — each currently collides with a near-its-own-colour board element
+  (black on the dark safe squares; white on the near-white nest holes + die face),
+  so each needs a small render tweak first (e.g. a contrasting outline for black; a
+  non-white nest-hole/die treatment, or outline, for white) before adding it to the
+  union + palette.
 - **Finish the knob-set audit.** Squares + notices were audited; the **die, New
   Game button, and start arrows** remain — refine their `theme.ts` knobs as needed
   (the `knob-design-user-intent` memory holds the principle). Not blocking.
@@ -86,7 +94,9 @@ the candidate list below, in no particular order:
   cross-doc redundancy — a content-excavation task best started fresh, not bolted
   onto a session tail.
 - **New Game UI — tweaks + extensions.** The per-seat setup window ships (count,
-  human/AI, colour, Cancel/Start), reached from the Options menu. Remaining, all
+  human/AI, **colour dropdown**, **AI-difficulty dropdown**, Cancel/Start), reached
+  from the Options menu; seat rows are a left-packed 3-column grid and the colour
+  pills size via `SETUP_SWATCH_SIZE` / `SETUP_PALETTE_SWATCH_SIZE`. Remaining, all
   optional: tune the look via `SETUP_WINDOW_SIZE` (overall size) and the `setup-*`
   styles; maybe label each seat with its **board corner** (deferred — corners shift
   with player count). The **ruleset picker** (per *Rule-variant layer* above) is the
@@ -127,7 +137,10 @@ the candidate list below, in no particular order:
   trap — see [decisions.md](decisions.md).) A richer rung might fold in blocking, or
   racing the leader more deliberately; a fundamentally different brain (e.g. shallow
   lookahead) is still a clean drop-in later via the swappable-policy seam
-  (`src/ai/strategy.ts`), no engine/UI change.
+  (`src/ai/strategy.ts`), no engine/UI change — and that seam is now player-facing:
+  the New Game window picks a strategy per AI seat by id (`STRATEGY_BY_ID`), so a new
+  brain is registered there + given a label in `strings.ts`. The current rungs are
+  surfaced as **Easy** (`randomStrategy`) / **Hard** (`greedyStrategy`).
 
 ## Open rule details
 - **None open.** All cabin rules are confirmed and shipped as of 2026-06-13 — the

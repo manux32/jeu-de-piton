@@ -70,9 +70,11 @@ React/DOM. Because the only decision in this game is *which legal move to play*
 `legalMoves` list), an AI is just a **`Strategy`**: `(state, moves) => Move`,
 choosing among moves the rules already allowed. Like a `Ruleset` for rules, a
 `Strategy` makes the *opponent* swappable config, not a code branch — a smarter AI
-is a drop-in new function. Which seats are AI is **controller state in the UI**
-(`humanSeats`), not engine state; a small driver hook (`useAiTurn`) walks an AI
-seat through the same roll→move path a human taps. Rationale + the v1 `greedyStrategy`
+is a drop-in new function. Which seats are AI — and which `Strategy` each AI seat
+runs — is **controller state in the UI** (`humanSeats` + a seat-indexed
+`seatStrategies`, chosen in New Game via the `STRATEGY_BY_ID` id→policy seam), not
+engine state; a small driver hook (`useAiTurn`) walks an AI seat through the same
+roll→move path a human taps, playing that seat's own strategy. Rationale + the v1 `greedyStrategy`
 choice → [decisions.md](decisions.md) (2026-06-19).
 
 ### Design consequence: path-based move validation

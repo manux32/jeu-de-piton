@@ -10,6 +10,36 @@
 > [rules-and-lineage.md](rules-and-lineage.md), [board-model.md](board-model.md)).
 > Don't duplicate git history — capture reasoning a commit message wouldn't.
 
+- **2026-06-21** — **New Game gained a per-AI-seat difficulty picker and a
+  dropdown colour picker; two new player colours shipped, two stay deferred.**
+  Each AI seat now picks its own brain (**Easy** = `randomStrategy`, **Hard** =
+  `greedyStrategy`) in the New Game window. *Non-obvious choices:* (1) **An
+  id→strategy indirection seam, with labels in the UI layer.** `src/ai/strategy.ts`
+  exports `STRATEGY_IDS` + `STRATEGY_BY_ID` (the "mini labelling indirection" the
+  user asked for); the human words "Easy"/"Hard" live in `strings.ts`
+  (`SETUP.strategyLabels`), so renaming/translating them — or adding a third rung —
+  never touches the ai layer. The draft flows seat-indexed through
+  `GameSetup.strategies` → `App.seatStrategies` → `useAiTurn`, which now takes
+  **one `Strategy` per seat** (was one for all). (2) **A custom `Dropdown`
+  component, not native `<select>`.** The colour picker's options are bare coloured
+  swatches, which a native select can't render cross-platform; the New Game window
+  is a plain DOM overlay (not in the board SVG), so there's no `foreignObject`
+  caveat to a custom popover. The same component drives both pickers. (3) **`black`
+  and `white` are deliberately *not* offered yet** — each blends into a
+  near-its-own-colour board element (black on the dark safe squares; white on the
+  near-white nest holes + die face) and needs a render tweak first. `orange` +
+  `purple` shipped (they read fine, since every piton carries a dark outline). The
+  engine `PlayerColor` union widened + a new `ALL_PLAYER_COLORS` *pickable palette*
+  (superset of the 4 default seat colours; a game still seats ≤ 4). (4) **A
+  dropdown widget's height is locked to the standard control height; its pill-size
+  knob sizes only the swatch *inside* it.** An earlier pass let the colour button
+  grow to fit a big pill — which broke sibling alignment and made the knob a
+  coupled trial-and-error tweak. The fix decouples them: `SETUP_SWATCH_SIZE` (the
+  chosen-colour pill on the closed picker) and `SETUP_PALETTE_SWATCH_SIZE` (the
+  open palette's pills) change pills with zero layout side-effects. *General UI
+  principle:* a control's outer size stays fixed; cosmetic knobs never feed back
+  into layout. Seat rows are a left-packed 3-column grid (type | colour | strategy)
+  so every seat's controls align and nothing shifts when a label's width changes.
 - **2026-06-21** — **Die labels ("Roll", "!") are baked SVG path geometry, not
   live text.** They render identically on PC and iPad now (user-confirmed). *Why
   this and not a text tweak:* native SVG `<text>` in `system-ui` substitutes a
