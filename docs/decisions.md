@@ -10,6 +10,26 @@
 > [rules-and-lineage.md](rules-and-lineage.md), [board-model.md](board-model.md)).
 > Don't duplicate git history — capture reasoning a commit message wouldn't.
 
+- **2026-06-20** — **Modals moved off the SVG to DOM overlays (the deferred
+  refactor, now done); each window has one overall-size knob.** Executed the move
+  decided just below: the win popup and New Game window now render as plain DOM
+  overlays (`position:fixed; inset:0`, flex-centred) instead of HTML inside the
+  board `<svg>`. iPad-verified — the tiny-top-left foreignObject-centring bug is
+  gone. *Non-obvious choices:* (1) **kept both in GameBoard** (it returns a
+  fragment of the `<svg>` + the two overlays) rather than lifting them to App —
+  their open state (`dismissedWin`/`setupOpen`) and the New Game button already
+  live there, so a fragment preserves cohesion with no state-lifting. (2)
+  **Centred on the *viewport*, not the board** — the user explicitly rejected
+  deriving a board-sized stage wrapper as needless complexity: a modal just needs
+  to sit in the middle of the screen, which `fixed` + flexbox does with no
+  geometry math. (3) **One overall-size knob per window** (`WIN_WINDOW_SIZE` /
+  `SETUP_WINDOW_SIZE`, both in `vmin`): the panel's whole layout is now `em` off
+  that one base font, so the knob scales the entire window proportionally. `vmin`
+  because the board is ~100 vmin tall on every device, so a window stays a stable
+  fraction of the board. Defaults reproduce the old (correct desktop) sizes. This
+  retired the board-unit/scale plumbing for these two (`SETUP_SCALE`/`W`/`H`, the
+  `frameW/H` props, the `.setup-scrim` rect + `.setup-frame`). Named `WINDOW` not
+  `TEXT` because they size the window, not just its text.
 - **2026-06-20** — **Mobile-fix session: dev panel ships everywhere; modals will
   move off the SVG to DOM overlays.** Two decisions, both driven by iOS Safari /
   WebKit being flaky with HTML inside `<foreignObject>` (desktop never shows it, so

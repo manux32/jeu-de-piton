@@ -30,11 +30,11 @@ scenarios, rather than playing a whole game).
 ## Guidelines (the do / don't)
 
 1. **Modals & overlays go in the DOM *over* the board, NOT in a foreignObject.**
-   Anything full-board and centred (the win popup, the New Game window) should be a
-   normal absolutely-positioned HTML element layered over the board container, sized
-   in `vmin`/`%`/`rem`, centred with ordinary flexbox. Plain HTML/CSS centring "just
-   works" on Safari — the bugs are specific to HTML *inside* SVG. *(This is the
-   pending refactor — see below.)*
+   Anything full-board and centred (the win popup, the New Game window) is a normal
+   `position:fixed` HTML element over the *viewport*, sized in `vmin`/`em`, centred
+   with ordinary flexbox. Plain HTML/CSS centring "just works" on Safari — the bugs
+   are specific to HTML *inside* SVG. *(Done 2026-06-20 — both modals are now DOM
+   overlays; see the issue log below + the decision in [decisions.md](decisions.md).)*
 2. **Inside a foreignObject, never use `position: absolute`/`fixed`.** Lay things
    out with flow + flexbox. To centre text while pinning an icon left, flank the
    text with an equal-width **spacer** instead of absolutely positioning it (this is
@@ -63,50 +63,33 @@ Newest first. Each entry: symptom → cause → fix.
   root → top-left of the screen. **Fix:** centre via flexbox instead — text span
   `flex:1; text-align:center` flanked by a die-width spacer on the right
   (`.nest-notice-row-current`). No absolute positioning.
-- **Win popup renders tiny in the top-left on iPad** (open as of 2026-06-20 — the
-  driver for the pending refactor below). First attributed to `%` not resolving
-  against a foreignObject; the fix (explicit board-unit dimensions on `.win-overlay`,
-  commit `1a1348a`) **did not work** — same symptom. **The New Game window shows the
-  same tiny-and-top-left symptom**, confirming it's the general foreignObject-centring
-  flakiness, not one specific property. **Resolution:** stop fighting it inside the
-  foreignObject — move both modals to DOM overlays (Guideline 1 / the refactor below).
+- **Win popup (and New Game window) rendered tiny in the top-left on iPad** (fixed
+  2026-06-20). First attributed to `%` not resolving against a foreignObject; the
+  fix (explicit board-unit dimensions on `.win-overlay`, commit `1a1348a`) **did not
+  work** — same symptom, and the New Game window showed it too, confirming it's the
+  general foreignObject-centring flakiness, not one specific property. **Fix:** stop
+  fighting it inside the foreignObject — both modals moved out to plain DOM overlays
+  (`position:fixed; inset:0`, flex-centred on the *viewport*, panels sized in
+  `vmin`/`em`). iPad-verified centred. See the 2026-06-20 decision in
+  [decisions.md](decisions.md).
 
-## Pending: move the win popup & New Game window to DOM overlays (approach "B")
+## How the two modals are structured now (the DOM-overlay pattern)
 
-**Decided 2026-06-20, deferred to a fresh session** (structural change, iPad-verified
-— better with a full context budget). Goal: both full-board modals render as ordinary
-HTML over the board, ending the iOS foreignObject-centring bugs for good.
-
-**Current structure** (all inside GameBoard's single `<svg>`, in
-[GameBoard.tsx](../src/ui/GameBoard.tsx)):
-- **Win popup** (~line 460): `<foreignObject x=0 y=0 width=extent height=extent>` →
-  `.win-overlay` (flex-centre) → `.win-panel` button. CSS in
-  [index.css](../src/index.css) `.win-overlay` / `.win-panel`.
-- **New Game window** (~line 475): full-board `<rect class="setup-scrim">` +
-  `<g transform="translate(centre) scale(SETUP_SCALE)"><foreignObject SETUP_W×SETUP_H>`
-  → `<NewGameModal>`. Knobs `SETUP_SCALE` / `SETUP_W` / `SETUP_H` in
-  [theme.ts](../src/ui/theme.ts) (~line 348); `setup-*` styles in index.css.
-
-**Target structure:**
-- GameBoard returns a positioned **stage wrapper** (`position:relative`, sized to the
-  board) containing the `<svg>` plus the modal overlays as DOM siblings — OR lift the
-  overlays to App as siblings of `<GameBoard>` inside `.board-shell`. Keep them in
-  GameBoard if it keeps cohesion; either way they leave the `<svg>`.
-- Each overlay: `position:absolute; inset:0; display:flex; align-items:center;
-  justify-content:center`, click-through scrim where needed. Panels sized in
-  `vmin`/`%`/`rem` of the stage (drop the board-unit/`scale()` plumbing —
-  `SETUP_SCALE`/`SETUP_W`/`SETUP_H` and `CTRL_SCALE`-style tricks are no longer
-  needed for these two; the px-then-scale border gotcha disappears once they're real
-  DOM).
-- Z-order: scrim < win popup < New Game (New Game opens from the win screen too).
-- **Leave on the SVG, untouched:** title, die, start arrows, per-nest notices, and
-  the New Game *button* itself (small in-board chrome that already works on iOS).
-
-**Watch-outs:** the win popup's dismiss-on-click and the "re-arm on next win"
-(`dismissedWin` reference equality) must survive the move; the New Game draft
-state (nothing applies until Start) is inside `NewGameModal`, so moving its mount
-point shouldn't disturb it. Verify on the iPad via Dev → `win-green` (popup) and
-the New Game button (window).
+Both full-board modals moved out of the SVG on 2026-06-20 (the *why* is in
+[decisions.md](decisions.md); this is the shape to copy if a third one is added):
+- **GameBoard returns a fragment** of its single `<svg>` plus the two overlays as
+  DOM siblings — they are no longer inside the `<svg>`. State (`dismissedWin`,
+  `setupOpen`) stays in GameBoard; the New Game *button* and the rest of the
+  persistent chrome stay on the SVG.
+- **Each overlay** is `position:fixed; inset:0; display:flex` centred on the
+  **viewport** (not sized to the board — a modal just needs the middle of the
+  screen). `.win-overlay` is click-through (`pointer-events:none`) so the board
+  behind stays live; `.setup-overlay` doubles as the click-eating scrim. Z-order
+  via `z-index`: board < win popup (20) < New Game (30).
+- **Panels are sized in `vmin`/`em`** from one knob each — `WIN_WINDOW_SIZE` /
+  `SETUP_WINDOW_SIZE` (the panel's whole layout is `em` off that base font, so the
+  knob scales the whole window). No board-unit/`scale()` plumbing — that retired
+  `SETUP_SCALE`/`W`/`H`, the `frameW/H` props, and the `.setup-scrim`/`.setup-frame`.
 
 ## Note on the "all chrome on the board SVG" principle
 

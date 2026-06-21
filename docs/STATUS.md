@@ -23,9 +23,11 @@
 
 ## Where we are
 A **playable, polished** cross-and-circle race game — hot-seat **plus AI
-opponents** — with **all chrome rendered on the board SVG**, no HUD: the title, the
-New Game button, the centre die over HOME, per-nest notices, and a whose-turn
-corner wash. The cabin ruleset is shipped end-to-end, including the start-square
+opponents** — with **all persistent chrome rendered on the board SVG**, no HUD: the
+title, the New Game button, the centre die over HOME, per-nest notices, and a
+whose-turn corner wash. (The two full-board modals — the win popup and the New Game
+window — sit *over* the board as DOM overlays, not inside the SVG, so they centre
+reliably on iOS; each is sized by one `*_WINDOW_SIZE` knob.) The cabin ruleset is shipped end-to-end, including the start-square
 exception (engine `legalMoves` *and* the visual ownership arrows). **New Game opens
 a setup window over the board** (`NewGameModal`) to pick player count, each seat's
 **human/AI**, and each seat's **colour** (kept distinct — picking one a seat holds
@@ -89,7 +91,7 @@ the candidate list below, in no particular order:
   onto a session tail.
 - **New Game UI — tweaks + extensions.** The per-seat setup window **shipped** this
   session (count, human/AI, colour, Cancel/Start). Remaining, all optional: tune the
-  look via `SETUP_SCALE`/`SETUP_W`/`SETUP_H` and the `setup-*` styles; maybe label
+  look via `SETUP_WINDOW_SIZE` (overall size) and the `setup-*` styles; maybe label
   each seat with its **board corner** (deferred — corners shift with player count);
   and the **gear menu** (its now-retired Skip-turn button is the first tenant — see
   the stuck-turn item; `forceNextTurn` is still wired from App). The **ruleset
@@ -102,18 +104,6 @@ the candidate list below, in no particular order:
   racing the leader more deliberately; a fundamentally different brain (e.g. shallow
   lookahead) is still a clean drop-in later via the swappable-policy seam
   (`src/ai/strategy.ts`), no engine/UI change.
-- **NEXT TASK (decided, scoped, deferred): move the win popup + New Game window to
-  DOM overlays ("approach B").** Both render as HTML inside the board SVG via
-  `foreignObject`, and iOS Safari mis-centres them (tiny, top-left) — the prior
-  board-unit-dimensions fix (`1a1348a`) did **not** work; the New Game window shows
-  the same symptom, confirming it's general foreignObject-centring flakiness. Decided
-  fix: render both as ordinary DOM overlays *over* the board instead of inside the
-  SVG — sidesteps the whole bug class. Structural + iPad-verified, so deferred to a
-  fresh session with full context. **The complete handoff (current vs target
-  structure, files, watch-outs) lives in
-  [cross-platform-ui.md](cross-platform-ui.md).** Test on iPad via Dev → `win-green`
-  / the New Game button. *(The live-notice top-left bug — same bug family — was fixed
-  this session.)*
 
 ## Open rule details
 - **None open.** All cabin rules are confirmed and shipped as of 2026-06-13 — the
