@@ -32,7 +32,6 @@ import {
   applyMove,
   applyRoll,
   createGame,
-  forceNextTurn,
   JEU_DE_PITON,
   type GameState,
   type Move,
@@ -64,8 +63,6 @@ export type GameAction =
   // Game setup window; its length is the player count. Omit it and `playerCount`
   // chooses the count with the default seat→colour order.
   | { type: 'newGame'; playerCount: number; colors?: PlayerColor[] }
-  // Escape hatch: force the turn to the next player to unstick a wedged game.
-  | { type: 'forceNextTurn' }
   // DEV-only: drop a fully-built view straight in (see src/ui/dev/).
   | { type: 'load'; view: GameView }
 
@@ -132,16 +129,6 @@ function reducer(view: GameView, action: GameAction): GameView {
 
     case 'load':
       return action.view
-
-    case 'forceNextTurn': {
-      // Unstick a wedged game: hand the turn on. A finished game has no "next
-      // turn", so leave game-over untouched.
-      if (view.game.phase === 'game-over') return view
-      const next = forceNextTurn(view.game)
-      // Treat it as a handover: wipe the seat now on the clock (the skipped seat
-      // keeps its log — that's legit history).
-      return handover(view, next, view.game.turn)
-    }
 
     case 'roll': {
       const prev = view.game

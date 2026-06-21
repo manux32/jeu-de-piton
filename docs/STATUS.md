@@ -24,11 +24,15 @@
 ## Where we are
 A **playable, polished** cross-and-circle race game — hot-seat **plus AI
 opponents** — with **all persistent chrome rendered on the board SVG**, no HUD: the
-title, the New Game button, the centre die over HOME, per-nest notices, and a
-whose-turn corner wash. (The two full-board modals — the win popup and the New Game
-window — sit *over* the board as DOM overlays, not inside the SVG, so they centre
-reliably on iOS; each is sized by one `*_WINDOW_SIZE` knob.) The cabin ruleset is shipped end-to-end, including the start-square
-exception (engine `legalMoves` *and* the visual ownership arrows). **New Game opens
+title, the Options gear button, the centre die over HOME, per-nest notices, and a
+whose-turn corner wash. (The full-board modals — the win popup, the New Game
+window, and the Options menu — sit *over* the board as DOM overlays, not inside the
+SVG, so they centre reliably on iOS; each is sized by one `*_WINDOW_SIZE` knob.) The
+cabin ruleset is shipped end-to-end, including the start-square
+exception (engine `legalMoves` *and* the visual ownership arrows). **A single
+Options gear button is the one entry to every game option** (`OptionsMenu`): it
+opens a small window whose rows launch New Game and the Dev panel — future options
+add rows here. **New Game opens
 a setup window over the board** (`NewGameModal`) to pick player count, each seat's
 **human/AI**, and each seat's **colour** (kept distinct — picking one a seat holds
 swaps them); nothing applies until "Start game". Seats you don't control play
@@ -75,27 +79,23 @@ the candidate list below, in no particular order:
   centres on the nest; its die shows a big "!" via the `NOTICE_DIE_GLYPH_*` knobs).
   Still optional: the `current` vs `previous` per-role *text* knobs (italic / size /
   weight) — the CSS classes exist, so it's adding knobs + forwarding, no render change.
-- **Stuck-turn bug (repro unknown).** A real game once wedged on a player's turn —
-  it could not be advanced by normal play and had to be unstuck manually. Not yet
-  reproducible, so the cause is unknown (likely candidate: a state where the turn
-  fails to auto-pass — e.g. no legal move not forfeiting). The `forceNextTurn`
-  recovery action still exists (reducer + engine, still dispatched from App), but
-  its **"Skip turn" button was retired** with the New Game redesign — it'll return
-  in the planned gear menu. The underlying defect is unfixed — chase a repro + root
-  cause in a fresh session (start in the engine's `passTurn` / `applyRoll` /
-  `applyMove` flow).
 - **Fuller docs drift/redundancy sweep.** A systematic pass over the docs not
   recently touched ([architecture.md](architecture.md),
   [rules-and-lineage.md](rules-and-lineage.md)) for pre-existing staleness and
   cross-doc redundancy — a content-excavation task best started fresh, not bolted
   onto a session tail.
-- **New Game UI — tweaks + extensions.** The per-seat setup window **shipped** this
-  session (count, human/AI, colour, Cancel/Start). Remaining, all optional: tune the
-  look via `SETUP_WINDOW_SIZE` (overall size) and the `setup-*` styles; maybe label
-  each seat with its **board corner** (deferred — corners shift with player count);
-  and the **gear menu** (its now-retired Skip-turn button is the first tenant — see
-  the stuck-turn item; `forceNextTurn` is still wired from App). The **ruleset
-  picker** (per *Rule-variant layer* above) is the natural next control to add here.
+- **New Game UI — tweaks + extensions.** The per-seat setup window ships (count,
+  human/AI, colour, Cancel/Start), reached from the Options menu. Remaining, all
+  optional: tune the look via `SETUP_WINDOW_SIZE` (overall size) and the `setup-*`
+  styles; maybe label each seat with its **board corner** (deferred — corners shift
+  with player count). The **ruleset picker** (per *Rule-variant layer* above) is the
+  natural next control to add — either to the New Game window or as its own Options
+  row.
+- **Options menu — extensions.** The single gear button + the Options window
+  (`OptionsMenu`) ship; rows launch New Game and the Dev panel. Optional: tune the
+  look via `OPTIONS_WINDOW_SIZE` + the `options-*` styles; the gear button reuses the
+  `CTRL_*` knobs. Future options (e.g. a ruleset picker, sound/animation toggles)
+  drop in as one more row + a label in `strings.OPTIONS`.
 - **Smarter AI strategy.** The chosen near-term path is to **grow `greedyStrategy`
   itself in baby steps** — tweak the priority ladder and let each tier weigh more
   factors — playtesting between changes, rather than jumping straight to a wholesale

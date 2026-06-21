@@ -10,8 +10,8 @@ import { greedyStrategy } from './ai/strategy'
 // scenarios on-device while the game is in development — the proper on/off gate
 // comes later (see STATUS). They're pure client-side state editing, no security
 // surface (the repo is public anyway). The panel chunk is still lazy-loaded, so
-// it's only fetched when the Dev button is actually tapped — the toggle button
-// itself is plain and lives on the board (passed to GameBoard as `devButton`).
+// it's only fetched when the Dev tools row of the Options menu is tapped (that row
+// calls onOpenDev, set below). The Options gear button itself lives on the board.
 const DevTools = lazy(() => import('./ui/dev/DevTools'))
 
 function App() {
@@ -26,9 +26,9 @@ function App() {
   // 4-player game: 0 bottom-right, 1 top-right, 2 top-left, 3 bottom-left.)
   const [humanSeats, setHumanSeats] = useState<number[]>([0])
 
-  // Dev-tools sidebar open state (view-only). The toggle button is rendered on
-  // the board next to New Game (passed into GameBoard); the panel itself is a
-  // DOM sidebar mounted here, outside the board, only while open.
+  // Dev-tools sidebar open state (view-only). It's opened from the Dev tools row
+  // of the board's Options menu (via onOpenDev → setDevOpen); the panel itself is
+  // a DOM sidebar mounted here, outside the board, only while open.
   const [devOpen, setDevOpen] = useState(false)
 
   // The roll sequencer owns the die's spin/settle/handover timing (view-only);
@@ -69,13 +69,8 @@ function App() {
           setHumanSeats(setup.humanSeats)
           dispatch({ type: 'newGame', playerCount: setup.colors.length, colors: setup.colors })
         }}
-        onForceNextTurn={() => dispatch({ type: 'forceNextTurn' })}
         onRoll={roll}
-        devButton={
-          <button type="button" className="pill" onClick={() => setDevOpen(true)}>
-            Dev
-          </button>
-        }
+        onOpenDev={() => setDevOpen(true)}
       />
 
       {devOpen && (

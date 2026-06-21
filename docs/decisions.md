@@ -10,6 +10,26 @@
 > [rules-and-lineage.md](rules-and-lineage.md), [board-model.md](board-model.md)).
 > Don't duplicate git history — capture reasoning a commit message wouldn't.
 
+- **2026-06-20** — **Options gear menu became the single entry to game options;
+  `forceNextTurn` removed entirely.** Replaced the two board pills (New game + Dev)
+  with **one gear button** that opens an **Options window** (`OptionsMenu`), whose
+  rows launch the existing New Game window and the Dev panel — and where every future
+  option lives (one row + a `strings.OPTIONS` label). *Design choices:* (1) a
+  **window, not a dropdown** — a menu anchored inside the board's `<foreignObject>` is
+  exactly what iOS Safari mis-positions (flies to a screen corner), so it reuses the
+  trusted DOM-overlay pattern the win/New-Game modals already use (centred on the
+  viewport; see [cross-platform-ui.md](cross-platform-ui.md)). It's a pure launcher —
+  no state, no rules. (2) The **gear icon is self-authored** (a small SVG path
+  computed from a few radii in `GearIcon.tsx`), so there's no third-party asset or
+  licence to track. (3) GameBoard signals App to open Dev via an **`onOpenDev`
+  callback** (replacing the old `devButton` node slot), keeping the presentation file
+  free of any dev dependency. (4) **`forceNextTurn` deleted outright** — the engine
+  function, the reducer action, *and* the App wiring. It was a recovery hatch for a
+  stuck-turn bug that hasn't recurred in a long time; with the Dev panel now shipping
+  everywhere (incl. mobile), any future wedge can be unstuck from a scenario, so the
+  standing escape hatch (and its retired-button thread through the gear menu) earned
+  removal rather than resurrection. The stuck-turn backlog item was dropped too — it
+  can be re-added from this entry if the bug returns.
 - **2026-06-20** — **Modals moved off the SVG to DOM overlays (the deferred
   refactor, now done); each window has one overall-size knob.** Executed the move
   decided just below: the win popup and New Game window now render as plain DOM

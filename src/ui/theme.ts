@@ -109,6 +109,10 @@ export const WIN_PANEL_BG = 'rgba(18, 16, 26, 0.84)'
  *  controls read clearly while the board still shows faintly behind it. */
 export const SETUP_PANEL_BG = 'rgba(20, 18, 28, 0.94)'
 
+/** Backdrop of the Options menu window — same near-opaque dark panel as the New
+ *  Game window so the two read as one family. */
+export const OPTIONS_PANEL_BG = 'rgba(20, 18, 28, 0.94)'
+
 // ── How strongly a player's colour shows through ────────────────────────────
 // These are see-through amounts (0 = invisible, 1 = solid), not sizes.
 /** Home-lane fill: the player's colour at a soft wash so the white shows through. */
@@ -345,11 +349,17 @@ export const WIN_WINDOW_SIZE = 7        // OVERALL size of the win popup, in vmi
 //    the window proportionally. Colour the backdrop with SETUP_PANEL_BG above.
 export const SETUP_WINDOW_SIZE = 3.5    // OVERALL size of the New Game window, in vmin
 
-// ── New Game button (built as HTML at [px] sizes, then shrunk onto the board) ─
-// CTRL_SCALE is the shrink factor (pixels → squares); INSET is how far down from
-// the top it sits. This sizes the New Game button (which opens the setup window)
-// only — notices and the setup window have their own knobs.
+// ── Options menu window — same DOM-overlay pattern + sizing as the New Game
+//    window (see cross-platform-ui.md). One overall-size knob in [vmin]; the
+//    panel's layout is all `em` off it in index.css. Backdrop: OPTIONS_PANEL_BG.
+export const OPTIONS_WINDOW_SIZE = 3.5  // OVERALL size of the Options window, in vmin
+
+// ── Options button (the gear on the board — built as HTML at [px] sizes, then
+//    shrunk onto the board) ─ CTRL_SCALE is the shrink factor (pixels → squares);
+//    INSET is how far down from the top it sits. This sizes the single Options
+//    gear button (which opens the Options window); the window + notices have their
+//    own knobs. CTRL_W_CLOSED/CTRL_H are the gear button's px box.
 export const CTRL_SCALE = 0.019      // shrink factor: button pixels → board squares
-export const CTRL_W_CLOSED = 112     // [px] button width
-export const CTRL_H = 52             // [px] button height
+export const CTRL_W_CLOSED = 52      // [px] gear button width (square — icon only)
+export const CTRL_H = 52             // [px] gear button height
 export const CTRL_INSET = 0.4        // distance down from the top edge

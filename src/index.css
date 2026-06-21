@@ -219,6 +219,26 @@ code {
   border-color: #aa3bff;
   color: #08060d;
 }
+/* The Options button is icon-only (a gear), so it's a square pill with the icon
+   centred and no text padding. Sizes are explicit px (NOT %) because this lives
+   inside the board's foreignObject, where iOS Safari mishandles percentage sizing
+   — see cross-platform-ui.md. The gear inherits the pill's colour via
+   currentColor. */
+.pill-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 52px;
+  height: 52px;
+  min-width: 0;
+  padding: 0;
+}
+.pill-gear {
+  width: 28px;
+  height: 28px;
+  display: block;
+}
 
 /* Per-nest notice: a short line anchored in a player's own corner. The event
    line (what just happened) sits in the acting player's nest; the turn prompt
@@ -462,6 +482,78 @@ code {
   background: rgba(170, 59, 255, 0.3);
   border-color: #aa3bff;
   font-weight: 700;
+}
+
+/* Options menu window — the single window the board's gear button opens; its rows
+   launch each option's own window. Same DOM-overlay pattern + sizing as the New
+   Game window (a plain fixed layer over the viewport, NOT in the board SVG — see
+   cross-platform-ui.md), so it reads as one family. The overlay doubles as the
+   scrim; its panel's base font-size is set inline from OPTIONS_WINDOW_SIZE (vmin)
+   and every dimension below is em off it, so that one knob scales the whole
+   window. Sits at the New Game window's z-index — only one is ever open. */
+.options-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(8, 6, 13, 0.32);
+}
+.options-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.73em;
+  width: min(16em, 84vmin);
+  box-sizing: border-box;
+  padding: 1.07em 1.2em 0.93em;
+  border-radius: 0.8em;
+  background: var(--options-bg, rgba(20, 18, 28, 0.94));
+  color: #f3f1f6;
+  font-family: var(--heading);
+  line-height: 1.15;
+  box-shadow: 0 0.4em 1.87em rgba(0, 0, 0, 0.5);
+  animation: win-pop 0.28s cubic-bezier(0.2, 1.2, 0.3, 1) both;
+}
+.options-panel button {
+  font: inherit;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  margin: 0;
+}
+.options-title {
+  font-size: 1.27em;
+  font-weight: 800;
+  text-align: center;
+}
+/* The menu rows — full-width buttons stacked, fenced off from the title and the
+   action bar (matches the New Game window's seat block). */
+.options-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.53em;
+  padding: 0.67em 0;
+  border-top: 0.067em solid rgba(255, 255, 255, 0.12);
+  border-bottom: 0.067em solid rgba(255, 255, 255, 0.12);
+}
+.options-item {
+  width: 100%;
+  text-align: center;
+  font-weight: 600;
+  padding: 0.53em 0.93em;
+  border: 0.067em solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #f3f1f6;
+}
+.options-item:hover {
+  border-color: #aa3bff;
+  background: rgba(170, 59, 255, 0.18);
+}
+.options-actions {
+  display: flex;
+  justify-content: flex-end;
 }
 
 /* Game title rendered inside the board SVG (top-left). Drawn on the always-light

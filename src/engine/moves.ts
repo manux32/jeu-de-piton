@@ -280,17 +280,6 @@ function passTurn(state: GameState): GameState {
 }
 
 /**
- * Escape hatch — NOT part of normal play. Hands the turn to the next player from
- * any phase, leaving them a clean `awaiting-roll`. The forced-move rule means a
- * turn ends on its own when nothing can move, so this exists only to recover a
- * game that has wedged on someone's turn (see the stuck-turn bug in the STATUS
- * backlog). Reuses the same `passTurn` primitive an ordinary forfeit uses.
- */
-export function forceNextTurn(state: GameState): GameState {
-  return passTurn(state)
-}
-
-/**
  * Apply a roll in the `awaiting-roll` phase.
  *
  *  - A penalized streak roll (the 3rd consecutive 6) is "not played": resolve

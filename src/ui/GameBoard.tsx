@@ -9,18 +9,20 @@
  * seat's turn comes round again), while the current player's nest shows the live
  * turn prompt. This is the interaction-loop seam (Milestone 4): it takes the
  * current player's `legalMoves` / die `face` + `rolling` / the per-seat `notices`
- * + `rolls` and the `onPick` / `onRoll` / `onNewGame` callbacks; it adds no rules
- * of its own (every decision is the engine's, made in App).
+ * + `rolls` and the `onPick` / `onRoll` / `onNewGame` / `onOpenDev` callbacks; it
+ * adds no rules of its own (every decision is the engine's, made in App).
  */
-import { useMemo, useState, type CSSProperties, type ReactNode } from 'react'
+import { useMemo, useState, type CSSProperties } from 'react'
 import type { GameState, Move } from '../engine'
 import { buildLayout, destinationCell, cellMid, cellStart } from './layout'
 import { Board } from './Board'
 import { Pitons } from './Pitons'
 import { DieFace } from './DieFace'
-import { TITLE, PROMPT, DIE, WIN, type Notice } from './strings'
+import { GearIcon } from './GearIcon'
+import { TITLE, PROMPT, DIE, WIN, OPTIONS, type Notice } from './strings'
 import type { TurnEntry } from './useGame'
 import { NewGameModal, type GameSetup } from './NewGameModal'
+import { OptionsMenu } from './OptionsMenu'
 import {
   PLAYER_HEX,
   boardThemeVars,
@@ -71,33 +73,25 @@ interface Props {
   /** Apply a new game from the setup window: per-seat colours + which seats are
    *  human. Fired only when the player presses "Start game". */
   onNewGame: (setup: GameSetup) => void
-  /** Escape hatch: force the turn to the next player to unstick a wedged game.
-   *  Currently wired but not surfaced — its button was retired with the New Game
-   *  disclosure; it'll return in the planned gear menu. Kept here (App still
-   *  passes it, the reducer action still exists) so restoring it is a one-button
-   *  change. See the stuck-turn bug in STATUS. */
-  onForceNextTurn: () => void
   onRoll: () => void
-  /** Optional control rendered in the top-right cluster, right of New Game — the
-   *  dev-tools toggle. A generic slot (any node) so this presentation file keeps
-   *  no hard dependency on the dev tooling; App fills it. Omitted ⇒ New Game sits
-   *  alone, centred on its nest as before. */
-  devButton?: ReactNode
+  /** Open the dev-tools panel — fired by the Dev tools row of the Options menu.
+   *  GameBoard keeps no dependency on the dev tooling itself (App owns the panel);
+   *  this just signals App to mount it. */
+  onOpenDev: () => void
 }
 
-// In-board HTML chrome (New Game controls, per-nest notices) lives in the SVG
-// via foreignObject, authored at natural px then scaled into board units — so it
-// reuses the page's .pill / .nest-notice styling rather than re-expressing it in
-// viewBox units. (The die is the exception: native SVG drawn directly in board
-// units — see DieFace.) The corner chrome (title, New Game) is centred
+// In-board HTML chrome (the Options gear button, per-nest notices) lives in the
+// SVG via foreignObject, authored at natural px then scaled into board units — so
+// it reuses the page's .pill / .nest-notice styling rather than re-expressing it
+// in viewBox units. (The die is the exception: native SVG drawn directly in board
+// units — see DieFace.) The corner chrome (title, Options) is centred
 // horizontally on its corner's nest cluster (see nestX in the body) and
-// vertically inset from the board edge by CTRL_INSET. New Game (width
-// CTRL_W_CLOSED) opens the setup window (count, per-seat human/AI + colour) in
-// NewGameModal — which, like the win popup, renders as a plain DOM overlay OVER
-// the board, NOT inside this SVG (iOS Safari mis-centres foreignObject content;
-// see cross-platform-ui.md + the overlay blocks at the end of the return). An
-// optional Dev toggle (the `devButton` slot) sits right of it, widening the
-// cluster box to keep the pair centred on the nest.
+// vertically inset from the board edge by CTRL_INSET. The single Options gear
+// button (a square CTRL_W_CLOSED × CTRL_H) is the one way into the game's options:
+// it opens OptionsMenu — a plain DOM overlay OVER the board (NOT inside this SVG;
+// iOS Safari mis-centres foreignObject content — see cross-platform-ui.md + the
+// overlay blocks at the end of the return) — whose rows open the New Game setup
+// window and the Dev tools panel.
 //
 // Every size knob this file draws with — title, chrome, die, the move rings, and
 // the notices — lives in theme.ts (GEOMETRY).
@@ -126,21 +120,21 @@ export function GameBoard({
   onPick,
   onNewGame,
   onRoll,
-  devButton,
+  onOpenDev,
 }: Props) {
   const layout = useMemo(
     () => buildLayout(state.geometry, state.players.length),
     [state.geometry, state.players.length],
   )
 
-  // New Game setup window (view-local state, no rules): the corner button just
-  // opens it; all the settings live inside, and nothing touches the live game
-  // until the player presses "Start game" (which fires onNewGame and closes it).
+  // Options menu + New Game setup window (view-local state, no rules). The gear
+  // button opens the Options menu; its rows open the New Game window (setupOpen)
+  // or signal App to mount the Dev panel (onOpenDev). Nothing touches the live
+  // game until the player presses "Start game" in the New Game window.
+  const [optionsOpen, setOptionsOpen] = useState(false)
   const [setupOpen, setSetupOpen] = useState(false)
-  // The control box widens to hold the Dev toggle beside New Game when present.
-  // The inner flex stays centred, so the extra width is split evenly and the
-  // *pair* lands on the nest centre (New Game shifts a touch left of centre).
-  const ctrlW = devButton ? CTRL_W_CLOSED * 2 : CTRL_W_CLOSED
+  // The Options gear is a single square button, so its box is just CTRL_W_CLOSED.
+  const ctrlW = CTRL_W_CLOSED
 
   // Each corner's chrome centres horizontally on that corner's nest cluster,
   // read straight from the layout (no re-derived geometry). Corner→nest mapping
@@ -262,26 +256,25 @@ export function GameBoard({
         {TITLE}
       </text>
 
-      {/* New Game button, top-right — a single button that opens the setup
-          window (count + per-seat human/AI + colour) over the board. A real HTML
-          button mounted in the SVG via foreignObject, rendered at natural px and
-          scaled into board units so it reuses .pill styling and stays
-          accessible. */}
+      {/* Options button, top-right — a single gear that is the one way into the
+          game's options. It opens the Options menu (New game, Dev tools, …) over
+          the board. A real HTML button mounted in the SVG via foreignObject,
+          rendered at natural px and scaled into board units so it reuses .pill
+          styling and stays accessible. */}
       <g transform={`translate(${ctrlX}, ${CTRL_INSET}) scale(${CTRL_SCALE})`}>
         <foreignObject x={0} y={0} width={ctrlW} height={CTRL_H}>
           <div className="board-controls">
             <button
               type="button"
-              className={setupOpen ? 'pill pill-on' : 'pill'}
+              className={optionsOpen ? 'pill pill-icon pill-on' : 'pill pill-icon'}
               aria-haspopup="dialog"
-              aria-expanded={setupOpen}
-              onClick={() => setSetupOpen(true)}
+              aria-expanded={optionsOpen}
+              aria-label={OPTIONS.button}
+              title={OPTIONS.button}
+              onClick={() => setOptionsOpen(true)}
             >
-              New game
+              <GearIcon className="pill-gear" />
             </button>
-            {/* Dev-tools toggle, right of New Game — App passes it (the slot is
-                empty otherwise). Styled as a .pill like its neighbour. */}
-            {devButton}
           </div>
         </foreignObject>
       </g>
@@ -481,6 +474,26 @@ export function GameBoard({
           <span>{WIN.banner(state.winner)}</span>
           <span className="win-hint">{WIN.hint}</span>
         </button>
+      </div>
+    )}
+
+    {/* Options menu — the single window the gear button opens; its rows launch
+        each option's own window. A DOM overlay (scrim) like the New Game window;
+        its rows close it as they open the next window (New Game) or signal App to
+        mount the Dev panel. */}
+    {optionsOpen && (
+      <div className="options-overlay">
+        <OptionsMenu
+          onNewGame={() => {
+            setOptionsOpen(false)
+            setSetupOpen(true)
+          }}
+          onDev={() => {
+            setOptionsOpen(false)
+            onOpenDev()
+          }}
+          onClose={() => setOptionsOpen(false)}
+        />
       </div>
     )}
 

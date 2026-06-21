@@ -38,8 +38,24 @@ export const PROMPT = {
   awaitingMove: 'Pick a piton',
 } as const
 
+/** Copy for the Options menu — the single board button (a gear) that is the one
+ *  way into the game's options. It opens a small window listing the options as
+ *  rows; each opens its own window. New options get a label here + a row in
+ *  OptionsMenu. */
+export const OPTIONS = {
+  /** Accessible name for the gear button on the board (it shows no text). */
+  button: 'Options',
+  /** The Options window's heading. */
+  title: 'Options',
+  /** The menu rows, each opening its sub-window. */
+  newGame: 'New game',
+  dev: 'Dev tools',
+  /** Bottom-bar button that dismisses the Options window with no change. */
+  close: 'Close',
+} as const
+
 /** Copy for the New Game setup window (per-seat human/AI + colour, opened from
- *  the New game button; nothing takes effect until "Start game"). */
+ *  the Options menu; nothing takes effect until "Start game"). */
 export const SETUP = {
   /** The window's heading. */
   title: 'New game',
