@@ -16,7 +16,13 @@
 import { useState, type CSSProperties } from 'react'
 import { ALL_PLAYER_COLORS, PLAYER_COLORS, type PlayerColor } from '../engine'
 import { STRATEGY_IDS, type StrategyId } from '../ai/strategy'
-import { PLAYER_HEX, SETUP_PANEL_BG, SETUP_SWATCH_SIZE, SETUP_WINDOW_SIZE } from './theme'
+import {
+  PLAYER_HEX,
+  SETUP_PALETTE_SWATCH_SIZE,
+  SETUP_PANEL_BG,
+  SETUP_SWATCH_SIZE,
+  SETUP_WINDOW_SIZE,
+} from './theme'
 import { SETUP } from './strings'
 import { Dropdown } from './Dropdown'
 
@@ -127,6 +133,7 @@ export function NewGameModal({
         {
           '--setup-bg': SETUP_PANEL_BG,
           '--setup-swatch-size': `${SETUP_SWATCH_SIZE}em`,
+          '--setup-palette-swatch-size': `${SETUP_PALETTE_SWATCH_SIZE}em`,
           fontSize: `${SETUP_WINDOW_SIZE}vmin`,
         } as CSSProperties
       }

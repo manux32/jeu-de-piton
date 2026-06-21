@@ -372,11 +372,14 @@ export const WIN_WINDOW_SIZE = 7        // OVERALL size of the win popup, in vmi
 //    pills, swatches) is sized in `em` off this in index.css, so bumping it grows
 //    the window proportionally. Colour the backdrop with SETUP_PANEL_BG above.
 export const SETUP_WINDOW_SIZE = 3.5    // OVERALL size of the New Game window, in vmin
-// Diameter of a colour pill in the colour-picker popover (the circles you choose
-// from), as a multiple of the window's base font — so it scales with the window.
-// Tune this alone to grow/shrink the pickable swatches; the small swatch in the
-// closed picker is sized to the control and unaffected.
-export const SETUP_SWATCH_SIZE = 3.4    // colour-pill size in the picker, in em
+// Two independent colour-pill sizes, both in em of the window's base font (so
+// they scale with the window):
+//  - SETUP_SWATCH_SIZE: the pill shown ON the colour-picker button (the closed
+//    widget) — the colour currently chosen for that seat. The button grows to fit
+//    it, so this can exceed the other controls' height.
+//  - SETUP_PALETTE_SWATCH_SIZE: the pills in the OPEN palette you pick from.
+export const SETUP_SWATCH_SIZE = 3.2          // chosen-colour pill on the picker, in em
+export const SETUP_PALETTE_SWATCH_SIZE = 2.0  // pills in the open palette, in em
 
 // ── Options menu window — same DOM-overlay pattern + sizing as the New Game
 //    window (see cross-platform-ui.md). One overall-size knob in [vmin]; the
