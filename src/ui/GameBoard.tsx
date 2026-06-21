@@ -12,7 +12,7 @@
  * + `rolls` and the `onPick` / `onRoll` / `onNewGame` callbacks; it adds no rules
  * of its own (every decision is the engine's, made in App).
  */
-import { useMemo, useState, type CSSProperties } from 'react'
+import { useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 import type { GameState, Move } from '../engine'
 import { buildLayout, destinationCell, cellMid, cellStart } from './layout'
 import { Board } from './Board'
@@ -81,6 +81,11 @@ interface Props {
    *  change. See the stuck-turn bug in STATUS. */
   onForceNextTurn: () => void
   onRoll: () => void
+  /** Optional control rendered in the top-right cluster, right of New Game — the
+   *  dev-tools toggle. A generic slot (any node) so this presentation file keeps
+   *  no hard dependency on the dev tooling; App fills it. Omitted ⇒ New Game sits
+   *  alone, centred on its nest as before. */
+  devButton?: ReactNode
 }
 
 // In-board HTML chrome (New Game controls, per-nest notices) lives in the SVG
@@ -121,6 +126,7 @@ export function GameBoard({
   onPick,
   onNewGame,
   onRoll,
+  devButton,
 }: Props) {
   const layout = useMemo(
     () => buildLayout(state.geometry, state.players.length),
@@ -131,7 +137,10 @@ export function GameBoard({
   // opens it; all the settings live inside, and nothing touches the live game
   // until the player presses "Start game" (which fires onNewGame and closes it).
   const [setupOpen, setSetupOpen] = useState(false)
-  const ctrlW = CTRL_W_CLOSED
+  // The control box widens to hold the Dev toggle beside New Game when present.
+  // The inner flex stays centred, so the extra width is split evenly and the
+  // *pair* lands on the nest centre (New Game shifts a touch left of centre).
+  const ctrlW = devButton ? CTRL_W_CLOSED * 2 : CTRL_W_CLOSED
 
   // Each corner's chrome centres horizontally on that corner's nest cluster,
   // read straight from the layout (no re-derived geometry). Corner→nest mapping
@@ -269,6 +278,9 @@ export function GameBoard({
             >
               New game
             </button>
+            {/* Dev-tools toggle, right of New Game — App passes it (the slot is
+                empty otherwise). Styled as a .pill like its neighbour. */}
+            {devButton}
           </div>
         </foreignObject>
       </g>
@@ -344,6 +356,16 @@ export function GameBoard({
                             </span>
                           ))}
                     </span>
+                    {/* Live rows only: a right spacer the same width as the die so
+                        the centred text span is flanked symmetrically and lands on
+                        the nest centre (the die is pinned left). Finished rows have
+                        no spacer and stay left-aligned. */}
+                    {row.current && (
+                      <span
+                        aria-hidden
+                        style={{ flex: 'none', width: `${NOTICE_DIE_SIZE}em` }}
+                      />
+                    )}
                   </div>
                 ))}
               </div>

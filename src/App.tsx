@@ -6,12 +6,13 @@ import { useDieRoll } from './ui/useDieRoll'
 import { useAiTurn } from './ui/useAiTurn'
 import { greedyStrategy } from './ai/strategy'
 
-// Dev tools are lazy-loaded ONLY in dev builds. In production `import.meta.env.DEV`
-// is statically false, so the ternary collapses to `null` and the dynamic import
-// is dead code — Rollup never emits the dev chunk (panel, scenarios, dev.css).
-const DevTools = import.meta.env.DEV
-  ? lazy(() => import('./ui/dev/DevTools'))
-  : null
+// Dev tools now ship in EVERY build (incl. the deployed PWA) so we can drive
+// scenarios on-device while the game is in development — the proper on/off gate
+// comes later (see STATUS). They're pure client-side state editing, no security
+// surface (the repo is public anyway). The panel chunk is still lazy-loaded, so
+// it's only fetched when the Dev button is actually tapped — the toggle button
+// itself is plain and lives on the board (passed to GameBoard as `devButton`).
+const DevTools = lazy(() => import('./ui/dev/DevTools'))
 
 function App() {
   const [view, dispatch] = useGame(4)
@@ -24,6 +25,11 @@ function App() {
   // "Start game" (alongside the new colours/count). (Seat→corner map for a
   // 4-player game: 0 bottom-right, 1 top-right, 2 top-left, 3 bottom-left.)
   const [humanSeats, setHumanSeats] = useState<number[]>([0])
+
+  // Dev-tools sidebar open state (view-only). The toggle button is rendered on
+  // the board next to New Game (passed into GameBoard); the panel itself is a
+  // DOM sidebar mounted here, outside the board, only while open.
+  const [devOpen, setDevOpen] = useState(false)
 
   // The roll sequencer owns the die's spin/settle/handover timing (view-only);
   // it generates the value, peeks the engine for the post-settle branch, and
@@ -65,13 +71,19 @@ function App() {
         }}
         onForceNextTurn={() => dispatch({ type: 'forceNextTurn' })}
         onRoll={roll}
+        devButton={
+          <button type="button" className="pill" onClick={() => setDevOpen(true)}>
+            Dev
+          </button>
+        }
       />
 
-      {DevTools && (
+      {devOpen && (
         <Suspense fallback={null}>
           <DevTools
             view={view}
             onLoad={(loaded) => dispatch({ type: 'load', view: loaded })}
+            onClose={() => setDevOpen(false)}
           />
         </Suspense>
       )}
