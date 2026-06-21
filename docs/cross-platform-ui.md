@@ -30,11 +30,12 @@ scenarios, rather than playing a whole game).
 ## Guidelines (the do / don't)
 
 1. **Modals & overlays go in the DOM *over* the board, NOT in a foreignObject.**
-   Anything full-board and centred (the win popup, the New Game window) is a normal
-   `position:fixed` HTML element over the *viewport*, sized in `vmin`/`em`, centred
-   with ordinary flexbox. Plain HTML/CSS centring "just works" on Safari — the bugs
-   are specific to HTML *inside* SVG. *(Done 2026-06-20 — both modals are now DOM
-   overlays; see the issue log below + the decision in [decisions.md](decisions.md).)*
+   Anything full-board and centred (the win popup, the New Game window, the Options
+   menu) is a normal `position:fixed` HTML element over the *viewport*, sized in
+   `vmin`/`em`, centred with ordinary flexbox. Plain HTML/CSS centring "just works"
+   on Safari — the bugs are specific to HTML *inside* SVG. *(Established 2026-06-20
+   — see the issue log below + the decision in [decisions.md](decisions.md); the
+   Options menu was the first new modal to adopt the pattern.)*
 2. **Inside a foreignObject, never use `position: absolute`/`fixed`.** Lay things
    out with flow + flexbox. To centre text while pinning an icon left, flank the
    text with an equal-width **spacer** instead of absolutely positioning it (this is
@@ -73,23 +74,26 @@ Newest first. Each entry: symptom → cause → fix.
   `vmin`/`em`). iPad-verified centred. See the 2026-06-20 decision in
   [decisions.md](decisions.md).
 
-## How the two modals are structured now (the DOM-overlay pattern)
+## How the modals are structured (the DOM-overlay pattern)
 
-Both full-board modals moved out of the SVG on 2026-06-20 (the *why* is in
-[decisions.md](decisions.md); this is the shape to copy if a third one is added):
-- **GameBoard returns a fragment** of its single `<svg>` plus the two overlays as
-  DOM siblings — they are no longer inside the `<svg>`. State (`dismissedWin`,
-  `setupOpen`) stays in GameBoard; the New Game *button* and the rest of the
-  persistent chrome stay on the SVG.
+The full-board modals live as DOM overlays, not in the SVG (established 2026-06-20;
+the *why* is in [decisions.md](decisions.md)). There are three — the win popup, the
+New Game window, and the Options menu — all the same shape, which is what to copy
+for any future one:
+- **GameBoard returns a fragment** of its single `<svg>` plus the overlays as DOM
+  siblings — they are no longer inside the `<svg>`. Their open state
+  (`dismissedWin`, `setupOpen`, `optionsOpen`) stays in GameBoard; the Options gear
+  *button* and the rest of the persistent chrome stay on the SVG.
 - **Each overlay** is `position:fixed; inset:0; display:flex` centred on the
   **viewport** (not sized to the board — a modal just needs the middle of the
   screen). `.win-overlay` is click-through (`pointer-events:none`) so the board
-  behind stays live; `.setup-overlay` doubles as the click-eating scrim. Z-order
-  via `z-index`: board < win popup (20) < New Game (30).
+  behind stays live; `.setup-overlay` / `.options-overlay` double as the
+  click-eating scrim. Z-order via `z-index`: board < win popup (20) < New Game /
+  Options (30) — only one of the latter two is ever open at once.
 - **Panels are sized in `vmin`/`em`** from one knob each — `WIN_WINDOW_SIZE` /
-  `SETUP_WINDOW_SIZE` (the panel's whole layout is `em` off that base font, so the
-  knob scales the whole window). No board-unit/`scale()` plumbing — that retired
-  `SETUP_SCALE`/`W`/`H`, the `frameW/H` props, and the `.setup-scrim`/`.setup-frame`.
+  `SETUP_WINDOW_SIZE` / `OPTIONS_WINDOW_SIZE` (the panel's whole layout is `em` off
+  that base font, so the knob scales the whole window). No board-unit/`scale()`
+  plumbing.
 
 ## Note on the "all chrome on the board SVG" principle
 
