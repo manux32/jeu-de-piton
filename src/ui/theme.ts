@@ -319,14 +319,14 @@ export const HOME_TARGET_STROKE_W = 0.12
 // two thematic letters are swapped for icons drawn in board units — the "i"
 // becomes a side-view pawn (a *piton*, the game's own piece) and the "o" becomes
 // a die. See BoardTitle.tsx for the drawing; these knobs tune the layout.
-export const TITLE_FONT_SIZE = 0.6     // overall wordmark height (em for the glyphs below)
-export const TITLE_TOP = 0.5           // distance down from the top edge to the glyph tops
-export const TITLE_BASELINE_RATIO = 0.72 // baseline drop below TITLE_TOP, in ems (≈ cap height)
-export const TITLE_KERN = 1.0          // tightness: scales every glyph's cell width at once
+export const TITLE_SIZE = 0.85   // overall size of the whole wordmark
+export const TITLE_X = 0         // nudge left/right; 0 = centred over the corner nest, + = right
+export const TITLE_Y = 0.5       // distance down from the board's top edge
+export const TITLE_KERN = 1.0    // letter spacing: < 1 tightens the whole wordmark, > 1 loosens it
 
 // The wordmark, left to right. Each glyph gets a fixed cell `w` (in ems of
-// TITLE_FONT_SIZE) and is centred in it, so layout never depends on measuring
-// text. Widen a cell to give a letter more room; narrow it to pull neighbours in.
+// TITLE_SIZE) and is centred in it, so layout never depends on measuring text.
+// Widen a cell to give a letter more room; narrow it to pull neighbours in.
 export const TITLE_GLYPHS = [
   { kind: 'text', char: 'P', w: 0.60 },
   { kind: 'pawn', w: 0.46 }, // the "i"

@@ -16,17 +16,18 @@
  * screen readers still hear the title even though it's drawn as shapes.
  */
 import { TITLE } from './strings'
-import {
-  TITLE_FONT_SIZE,
-  TITLE_TOP,
-  TITLE_BASELINE_RATIO,
-  TITLE_KERN,
-  TITLE_GLYPHS,
-} from './theme'
+import { TITLE_SIZE, TITLE_X, TITLE_Y, TITLE_KERN, TITLE_GLYPHS } from './theme'
 
-/** Centre the wordmark on this board-unit x (the top-left nest centre). */
+// Cap-height ratio: where the text baseline sits below the glyph tops, as a
+// fraction of the size. Pure font geometry, not a design knob — it just lets
+// TITLE_Y mean "top of the letters" (the intuitive thing) while the letters and
+// icons are actually drawn from a baseline. Tweak only if the font changes.
+const CAP_RATIO = 0.72
+
+/** Centre the wordmark on this board-unit x (the top-left nest centre); TITLE_X
+ *  then nudges it from there. */
 export function BoardTitle({ cx }: { cx: number }) {
-  const F = TITLE_FONT_SIZE
+  const F = TITLE_SIZE
   const cells = TITLE_GLYPHS.map((g) => g.w * TITLE_KERN * F)
   const totalW = cells.reduce((a, b) => a + b, 0)
   // Centre x of each glyph's cell: the running offset to a cell's left edge plus
@@ -34,12 +35,12 @@ export function BoardTitle({ cx }: { cx: number }) {
   // stays a pure derivation of the cell widths.
   const centres = cells.map((w, i) => cells.slice(0, i).reduce((a, b) => a + b, 0) + w / 2)
   // Local space: baseline at y=0, x starts at 0. Translate the whole group so the
-  // wordmark is centred on cx and its baseline sits TITLE_BASELINE_RATIO ems below
-  // TITLE_TOP (so the glyph tops still hug TITLE_TOP, as the old text did).
-  const baselineY = TITLE_TOP + TITLE_BASELINE_RATIO * F
+  // wordmark is centred on cx (plus the TITLE_X nudge) and its glyph tops sit at
+  // TITLE_Y below the board's top edge.
+  const baselineY = TITLE_Y + CAP_RATIO * F
   return (
     <g
-      transform={`translate(${cx - totalW / 2}, ${baselineY})`}
+      transform={`translate(${cx - totalW / 2 + TITLE_X}, ${baselineY})`}
       role="img"
       aria-label={TITLE}
     >
