@@ -329,25 +329,21 @@ export const NOTICE_DIE_GLYPH_OFFSET_X = 0.04 // [share] nudge the glyph sideway
 export const NOTICE_DIE_GLYPH_OFFSET_Y = -0.06 // [share] nudge the glyph up/down to look centred (− = up); a tall single glyph sits a touch low under SVG's "central" baseline (which reserves descender room it doesn't use)
 export const NOTICE_DEBUG_OUTLINE = false // dev: outline the box so you can see its extents while tuning
 
-// ── Win popup (the "Green wins!" panel over the board centre, tap to dismiss) ─
+// ── Win popup (the "Green wins!" panel centred over the board, tap to dismiss) ─
 // Colour it with WIN_PANEL_BG up in COLOURS; the text takes the winner's hue.
-// The panel auto-fits its text; padding/rounding scale with the text (em), so
-// this one size is the only knob it needs.
-export const WIN_TEXT_SIZE = 1.5      // text height of the win announcement, in squares
+// It's a plain DOM overlay (not in the board SVG — see cross-platform-ui.md), so
+// it's sized in viewport units: WIN_TEXT_SIZE is the headline height in [vmin]
+// (1 vmin = 1% of the smaller screen side; the board is ~100 vmin tall, so this
+// is also ~its fraction of the board). The panel auto-fits its text, and
+// padding/rounding scale with it (em), so this one size is the only knob it needs.
+export const WIN_TEXT_SIZE = 7        // OVERALL size of the win popup, in vmin
 
-// ── New Game setup window (the panel over the board: player count, per-seat
-//    human/AI + colour, Cancel / Start game) ─────────────────────────────────
-// Built as HTML at natural [px] sizes then shrunk onto the board by SETUP_SCALE
-// (the same trick as the New Game button below) — NOT in board units like the
-// win popup, because the window has real borders, and a sub-px border in board
-// units gets clamped up to a 1px (= one whole board square) ring. So author it
-// in ordinary pixels and let the scale do the shrinking. SETUP_SCALE is the one
-// size knob (bigger = a bigger window); SETUP_W/H are the px frame the panel is
-// centred in — keep them a touch larger than the panel at 4 players. Colour the
-// backdrop with SETUP_PANEL_BG up in COLOURS.
-export const SETUP_SCALE = 0.05      // shrink factor: window pixels → board squares
-export const SETUP_W = 270           // [px] frame width the panel centres in
-export const SETUP_H = 380           // [px] frame height (must fit 4 seat rows)
+// ── New Game setup window — a plain DOM overlay centred over the board (not in
+//    the SVG; see cross-platform-ui.md). SETUP_TEXT_SIZE is its base font height
+//    in [vmin] and the ONE overall-size knob: the whole panel (width, padding,
+//    pills, swatches) is sized in `em` off this in index.css, so bumping it grows
+//    the window proportionally. Colour the backdrop with SETUP_PANEL_BG above.
+export const SETUP_TEXT_SIZE = 3.5    // OVERALL size of the New Game window, in vmin
 
 // ── New Game button (built as HTML at [px] sizes, then shrunk onto the board) ─
 // CTRL_SCALE is the shrink factor (pixels → squares); INSET is how far down from

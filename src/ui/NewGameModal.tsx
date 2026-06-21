@@ -1,8 +1,8 @@
 /**
- * The New Game setup window — the HTML content of the panel GameBoard centres
- * over the board (mounted in a full-board foreignObject, sized in board units;
- * see GameBoard's win-popup pattern, which it shares including the iOS Safari
- * fix). It holds NO rules and no engine state: it edits a local *draft* of the
+ * The New Game setup window — the panel content of the DOM overlay GameBoard
+ * centres over the board (`.setup-overlay`; a plain DOM layer, not in the board
+ * SVG — see cross-platform-ui.md). It holds NO rules and no engine state: it
+ * edits a local *draft* of the
  * next game's settings — player count, each seat's human/AI type, each seat's
  * colour — and only on "Start game" hands that draft back via `onStart`. Cancel
  * throws the draft away. The live game is untouched until then.
@@ -15,7 +15,7 @@
  */
 import { useState, type CSSProperties } from 'react'
 import { PLAYER_COLORS, type PlayerColor } from '../engine'
-import { PLAYER_HEX, SETUP_PANEL_BG } from './theme'
+import { PLAYER_HEX, SETUP_PANEL_BG, SETUP_TEXT_SIZE } from './theme'
 import { SETUP } from './strings'
 
 /** The next game's settings, as the setup window hands them back on Start. */
@@ -31,10 +31,6 @@ interface Props {
   colors: PlayerColor[]
   /** The seats a human currently controls, to pre-fill the type toggles. */
   humanSeats: number[]
-  /** The px frame the panel is centred in (the foreignObject GameBoard scales
-   *  onto the board). Set explicitly, not 100%, so iOS Safari sizes it. */
-  frameW: number
-  frameH: number
   onCancel: () => void
   onStart: (setup: GameSetup) => void
 }
@@ -45,7 +41,7 @@ function resize<T>(arr: T[], n: number, fill: (i: number) => T): T[] {
   return [...arr, ...Array.from({ length: n - arr.length }, (_, k) => fill(arr.length + k))]
 }
 
-export function NewGameModal({ colors: initialColors, humanSeats, frameW, frameH, onCancel, onStart }: Props) {
+export function NewGameModal({ colors: initialColors, humanSeats, onCancel, onStart }: Props) {
   // Draft state, pre-filled from the live game. `colors.length` is the player
   // count; `humans[i]` is whether seat i is human (else AI).
   const [colors, setColors] = useState<PlayerColor[]>(initialColors)
@@ -89,69 +85,72 @@ export function NewGameModal({ colors: initialColors, humanSeats, frameW, frameH
   const count = colors.length
 
   return (
-    <div className="setup-frame" style={{ width: frameW, height: frameH }}>
-      <div
-        className="setup-panel"
-        style={{ '--setup-bg': SETUP_PANEL_BG } as CSSProperties}
-      >
-        <div className="setup-title">{SETUP.title}</div>
+    <div
+      className="setup-panel"
+      // The one overall-size knob: base font in vmin; everything else is em off it
+      // (see .setup-panel in index.css). The board is ~100 vmin, so the window
+      // keeps a stable fraction of the board across screens.
+      style={
+        { '--setup-bg': SETUP_PANEL_BG, fontSize: `${SETUP_TEXT_SIZE}vmin` } as CSSProperties
+      }
+    >
+      <div className="setup-title">{SETUP.title}</div>
 
-        {/* Player count */}
-        <div className="setup-row setup-count">
-          <span className="setup-rowlabel">{SETUP.players}</span>
-          <div className="setup-group">
-            {[2, 3, 4].map((n) => (
-              <button
-                key={n}
-                type="button"
-                className={n === count ? 'setup-pill setup-pill-on' : 'setup-pill'}
-                aria-pressed={n === count}
-                onClick={() => changeCount(n)}
-              >
-                {n}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* One row per seat: type toggle + colour swatches */}
-        <div className="setup-seats">
-          {colors.map((c, seat) => (
-            <div className="setup-row setup-seat" key={seat}>
-              <button
-                type="button"
-                className="setup-pill setup-type"
-                onClick={() => toggleType(seat)}
-                aria-label={`${SETUP.seat(seat + 1)} — ${humans[seat] ? SETUP.human : SETUP.ai}`}
-              >
-                {humans[seat] ? SETUP.human : SETUP.ai}
-              </button>
-              <div className="setup-group setup-swatches">
-                {PLAYER_COLORS.map((pc) => (
-                  <button
-                    key={pc}
-                    type="button"
-                    className={pc === c ? 'setup-swatch setup-swatch-on' : 'setup-swatch'}
-                    style={{ '--swatch': PLAYER_HEX[pc] } as CSSProperties}
-                    aria-label={pc}
-                    aria-pressed={pc === c}
-                    onClick={() => pickColor(seat, pc)}
-                  />
-                ))}
-              </div>
-            </div>
+      {/* Player count */}
+      <div className="setup-row setup-count">
+        <span className="setup-rowlabel">{SETUP.players}</span>
+        <div className="setup-group">
+          {[2, 3, 4].map((n) => (
+            <button
+              key={n}
+              type="button"
+              className={n === count ? 'setup-pill setup-pill-on' : 'setup-pill'}
+              aria-pressed={n === count}
+              onClick={() => changeCount(n)}
+            >
+              {n}
+            </button>
           ))}
         </div>
+      </div>
 
-        {/* Bottom bar: nothing takes effect until Start game */}
-        <div className="setup-actions">
-          <button type="button" className="setup-pill" onClick={onCancel}>
-            {SETUP.cancel}
-          </button>
-          <button type="button" className="setup-pill setup-pill-go" onClick={start}>
-            {SETUP.start}
-          </button>
-        </div>
+      {/* One row per seat: type toggle + colour swatches */}
+      <div className="setup-seats">
+        {colors.map((c, seat) => (
+          <div className="setup-row setup-seat" key={seat}>
+            <button
+              type="button"
+              className="setup-pill setup-type"
+              onClick={() => toggleType(seat)}
+              aria-label={`${SETUP.seat(seat + 1)} — ${humans[seat] ? SETUP.human : SETUP.ai}`}
+            >
+              {humans[seat] ? SETUP.human : SETUP.ai}
+            </button>
+            <div className="setup-group setup-swatches">
+              {PLAYER_COLORS.map((pc) => (
+                <button
+                  key={pc}
+                  type="button"
+                  className={pc === c ? 'setup-swatch setup-swatch-on' : 'setup-swatch'}
+                  style={{ '--swatch': PLAYER_HEX[pc] } as CSSProperties}
+                  aria-label={pc}
+                  aria-pressed={pc === c}
+                  onClick={() => pickColor(seat, pc)}
+                />
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Bottom bar: nothing takes effect until Start game */}
+      <div className="setup-actions">
+        <button type="button" className="setup-pill" onClick={onCancel}>
+          {SETUP.cancel}
+        </button>
+        <button type="button" className="setup-pill setup-pill-go" onClick={start}>
+          {SETUP.start}
+        </button>
       </div>
     </div>
   )

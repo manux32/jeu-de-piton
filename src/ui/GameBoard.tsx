@@ -29,9 +29,6 @@ import {
   CTRL_H,
   CTRL_INSET,
   DIE_SIZE,
-  SETUP_SCALE,
-  SETUP_W,
-  SETUP_H,
   WIN_PANEL_BG,
   WIN_TEXT_SIZE,
   NOTICE_TEXT_SIZE,
@@ -95,11 +92,12 @@ interface Props {
 // units — see DieFace.) The corner chrome (title, New Game) is centred
 // horizontally on its corner's nest cluster (see nestX in the body) and
 // vertically inset from the board edge by CTRL_INSET. New Game (width
-// CTRL_W_CLOSED) opens the setup window — the over-board panel (count, per-seat
-// human/AI + colour) in NewGameModal, scaled on by SETUP_SCALE (its own
-// px-then-scale chrome; see that file + the modal block). An optional Dev toggle
-// (the `devButton` slot) sits right of it, widening the cluster box to keep the
-// pair centred on the nest.
+// CTRL_W_CLOSED) opens the setup window (count, per-seat human/AI + colour) in
+// NewGameModal — which, like the win popup, renders as a plain DOM overlay OVER
+// the board, NOT inside this SVG (iOS Safari mis-centres foreignObject content;
+// see cross-platform-ui.md + the overlay blocks at the end of the return). An
+// optional Dev toggle (the `devButton` slot) sits right of it, widening the
+// cluster box to keep the pair centred on the nest.
 //
 // Every size knob this file draws with — title, chrome, die, the move rings, and
 // the notices — lives in theme.ts (GEOMETRY).
@@ -238,6 +236,7 @@ export function GameBoard({
   }
 
   return (
+    <>
     <svg
       className="game-board"
       viewBox={`0 0 ${layout.extent} ${layout.extent}`}
@@ -455,76 +454,52 @@ export function GameBoard({
         })}
       </g>
 
-      {/* Win popup — painted last so it sits on top of everything. A content-
-          sized panel centred over the board (the full-board foreignObject is just
-          a centring frame; it's click-through, so the New Game button behind it
-          stays live). Tap the panel to dismiss and inspect the final board. */}
-      {showWin && state.winner != null && (
-        <foreignObject x={0} y={0} width={layout.extent} height={layout.extent}>
-          {/* Explicit board-unit size, not width/height:100% — iOS Safari fails
-              to resolve percentages against a foreignObject, collapsing the
-              centring frame to ~0 so the panel renders tiny in the top-left
-              corner (the iPad win-popup bug). Inside a foreignObject 1 CSS px ==
-              1 board unit, so layout.extent px exactly fills the frame. */}
-          <div
-            className="win-overlay"
-            style={{ width: layout.extent, height: layout.extent }}
-          >
-            <button
-              type="button"
-              className="win-panel"
-              onClick={() => setDismissedWin(state)}
-              style={
-                {
-                  '--win-color': PLAYER_HEX[state.winner],
-                  '--win-bg': WIN_PANEL_BG,
-                  fontSize: WIN_TEXT_SIZE,
-                } as CSSProperties
-              }
-            >
-              <span>{WIN.banner(state.winner)}</span>
-              <span className="win-hint">{WIN.hint}</span>
-            </button>
-          </div>
-        </foreignObject>
-      )}
-
-      {/* New Game setup window — painted last (above the win popup too, so you can
-          start a fresh game from the win screen). A full-board scrim rect blocks
-          play behind it, then the panel: built as HTML at natural px and scaled
-          onto the board by SETUP_SCALE (not authored in board units — a 1px
-          border there would clamp to a whole square), centred by offsetting the
-          scaled frame. Cancel/Start both close it; only Start applies the draft. */}
-      {setupOpen && (
-        <>
-          <rect
-            className="setup-scrim"
-            x={0}
-            y={0}
-            width={layout.extent}
-            height={layout.extent}
-          />
-          <g
-            transform={`translate(${(layout.extent - SETUP_W * SETUP_SCALE) / 2}, ${
-              (layout.extent - SETUP_H * SETUP_SCALE) / 2
-            }) scale(${SETUP_SCALE})`}
-          >
-            <foreignObject x={0} y={0} width={SETUP_W} height={SETUP_H}>
-              <NewGameModal
-                colors={state.players.map((p) => p.color)}
-                humanSeats={humanSeats}
-                frameW={SETUP_W}
-                frameH={SETUP_H}
-                onCancel={() => setSetupOpen(false)}
-                onStart={(setup) => {
-                  onNewGame(setup)
-                  setSetupOpen(false)
-                }}
-              />
-            </foreignObject>
-          </g>
-        </>
-      )}
     </svg>
+
+    {/* Win popup + New Game window are plain DOM overlays layered OVER the board,
+        not HTML inside the SVG — iOS Safari mis-centres foreignObject content (see
+        cross-platform-ui.md). Each is a viewport-fixed, flex-centred layer; their
+        open state (dismissedWin / setupOpen) still lives here in GameBoard. */}
+
+    {/* Win popup — a content-sized panel announcing the winner. The overlay is
+        click-through, so the New Game button on the board behind it stays live;
+        tap the panel to dismiss and inspect the final board. */}
+    {showWin && state.winner != null && (
+      <div className="win-overlay">
+        <button
+          type="button"
+          className="win-panel"
+          onClick={() => setDismissedWin(state)}
+          style={
+            {
+              '--win-color': PLAYER_HEX[state.winner],
+              '--win-bg': WIN_PANEL_BG,
+              fontSize: `${WIN_TEXT_SIZE}vmin`,
+            } as CSSProperties
+          }
+        >
+          <span>{WIN.banner(state.winner)}</span>
+          <span className="win-hint">{WIN.hint}</span>
+        </button>
+      </div>
+    )}
+
+    {/* New Game setup window — its scrim overlay sits above the win popup, so you
+        can start a fresh game from the win screen. Cancel/Start both close it;
+        only Start applies the draft. */}
+    {setupOpen && (
+      <div className="setup-overlay">
+        <NewGameModal
+          colors={state.players.map((p) => p.color)}
+          humanSeats={humanSeats}
+          onCancel={() => setSetupOpen(false)}
+          onStart={(setup) => {
+            onNewGame(setup)
+            setSetupOpen(false)
+          }}
+        />
+      </div>
+    )}
+    </>
   )
 }
