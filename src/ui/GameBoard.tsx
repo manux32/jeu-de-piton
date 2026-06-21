@@ -88,8 +88,9 @@ interface Props {
 // in viewBox units. (The die is the exception: native SVG drawn directly in board
 // units — see DieFace.) The corner chrome (title, Options) is centred
 // horizontally on its corner's nest cluster (see nestX in the body) and
-// vertically inset from the board edge by CTRL_Y. The single Options gear
-// button (a square CTRL_W_CLOSED × CTRL_H) is the one way into the game's options:
+// vertically inset from the board edge by CTRL_Y (and nudged by CTRL_X). The
+// single Options gear button (a square CTRL_SIZE px) is the one way into the
+// game's options:
 // it opens OptionsMenu — a plain DOM overlay OVER the board (NOT inside this SVG;
 // iOS Safari mis-centres foreignObject content — see cross-platform-ui.md + the
 // overlay blocks at the end of the return) — whose rows open the New Game setup

@@ -24,7 +24,8 @@
 ## Where we are
 A **playable, polished** cross-and-circle race game — hot-seat **plus AI
 opponents** — with **all persistent chrome rendered on the board SVG**, no HUD: the
-title, the Options gear button, the centre die over HOME, per-nest notices, and a
+title — a small **"Pitons" logo wordmark** (the "i" is a pawn, the "o" a die) — the
+Options gear button, the centre die over HOME, per-nest notices, and a
 whose-turn corner wash. (The full-board modals — the win popup, the New Game
 window, and the Options menu — sit *over* the board as DOM overlays, not inside the
 SVG, so they centre reliably on iOS; each is sized by one `*_WINDOW_SIZE` knob.) The
@@ -96,6 +97,18 @@ the candidate list below, in no particular order:
   look via `OPTIONS_WINDOW_SIZE` + the `options-*` styles; the gear button reuses the
   `CTRL_*` knobs. Future options (e.g. a ruleset picker, sound/animation toggles)
   drop in as one more row + a label in `strings.OPTIONS`.
+- **Reorganize `theme.ts` by visual element.** Today the file is grouped **by knob
+  type** at the top level — one big `COLOURS` section, one `MOTION`, one `GEOMETRY` —
+  so an element's colour sits far from its size/position (worst case: `TITLE_FILL` is
+  up in `COLOURS` while `TITLE_SIZE/X/Y` are down in `GEOMETRY`). The user prefers
+  grouping **by visual element**: one block per element (Title, Gear button, Die,
+  Squares, Nests, Notices, …) holding that element's colour + size + position +
+  motion together. (The gear button is already element-grouped — use it as the
+  template.) Keep a small **"Board-wide / shared"** section at the top for the few
+  knobs no single element owns (`BOARD_BG`, `PLAYER_HEX`, the `tint()` helper). It's
+  a big but **purely mechanical** pass (~400 lines, cut-and-paste of existing values,
+  no behaviour change) — best done as its own focused session. Principle behind it:
+  the `knob-design-user-intent` memory.
 - **Smarter AI strategy.** The chosen near-term path is to **grow `greedyStrategy`
   itself in baby steps** — tweak the priority ladder and let each tier weigh more
   factors — playtesting between changes, rather than jumping straight to a wholesale

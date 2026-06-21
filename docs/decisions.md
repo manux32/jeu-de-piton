@@ -10,6 +10,28 @@
 > [rules-and-lineage.md](rules-and-lineage.md), [board-model.md](board-model.md)).
 > Don't duplicate git history — capture reasoning a commit message wouldn't.
 
+- **2026-06-21** — **The board title became a "Pitons" logo wordmark; its
+  positioning knobs were cut to plain X/Y/size.** Renamed the title from "Jeu de
+  piton" to **"Pitons"** and turned it from one `<text>` into a small logo
+  (`BoardTitle.tsx`): the **"i" is a side-view pawn** (a *piton* — the game's own
+  piece) and the **"o" is a five-pip die** (its other star); P/t/n/s stay heading-
+  font letters so it still reads at a glance. *Non-obvious choices:* (1) **native SVG
+  in board units, no `foreignObject`** — the old title was already native `<text>`,
+  and a wordmark of shapes scales + behaves on iOS where foreignObject mis-centres
+  (see [cross-platform-ui.md](cross-platform-ui.md)). (2) **Deterministic cell
+  layout, not measured text** — each glyph gets a fixed cell width (`TITLE_GLYPHS`,
+  in ems) and is centred in it, so nothing depends on `getComputedTextLength` (no
+  reflow flash); glyphs are centred so a narrow one only gains side-bearing, never
+  overlaps. (3) **Icon fills reuse `--title-fill`** so the whole mark is one colour;
+  the die's pips punch through in `--board-bg` to read as holes. (4) **Knob
+  philosophy, at the user's steer:** position/geometry knobs are kept to **X / Y /
+  size** only — `TITLE_BASELINE_RATIO` (font-metric plumbing) was folded into the
+  component as a `CAP_RATIO` constant, and `TITLE_FONT_SIZE`→`TITLE_SIZE`,
+  `TITLE_TOP`→`TITLE_Y`, plus a new `TITLE_X` nudge. The **Options gear** got the
+  same X/Y treatment (`CTRL_INSET`→`CTRL_Y`, new `CTRL_X`). This seeded a backlog
+  task to reorganize all of `theme.ts` **by visual element** rather than by knob
+  type (the user's standing preference; see STATUS + the `knob-design-user-intent`
+  memory).
 - **2026-06-20** — **Options gear menu became the single entry to game options;
   `forceNextTurn` removed entirely.** Replaced the two board pills (New game + Dev)
   with **one gear button** that opens an **Options window** (`OptionsMenu`), whose
