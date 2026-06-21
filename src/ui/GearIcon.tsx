@@ -7,6 +7,7 @@
  * The silhouette is an N-tooth polygon (alternating tip/valley radii) with a
  * round hole punched in the hub via the `evenodd` fill rule.
  */
+import type { CSSProperties } from 'react'
 
 const CX = 12
 const CY = 12
@@ -39,9 +40,15 @@ const HOLE =
 
 const GEAR_PATH = `${gearOutline()} ${HOLE}`
 
-export function GearIcon({ className }: { className?: string }) {
+export function GearIcon({
+  className,
+  style,
+}: {
+  className?: string
+  style?: CSSProperties
+}) {
   return (
-    <svg className={className} viewBox="0 0 24 24" aria-hidden focusable="false">
+    <svg className={className} style={style} viewBox="0 0 24 24" aria-hidden focusable="false">
       <path d={GEAR_PATH} fill="currentColor" fillRule="evenodd" />
     </svg>
   )

@@ -354,12 +354,15 @@ export const SETUP_WINDOW_SIZE = 3.5    // OVERALL size of the New Game window, 
 //    panel's layout is all `em` off it in index.css. Backdrop: OPTIONS_PANEL_BG.
 export const OPTIONS_WINDOW_SIZE = 3.5  // OVERALL size of the Options window, in vmin
 
-// ── Options button (the gear on the board — built as HTML at [px] sizes, then
-//    shrunk onto the board) ─ CTRL_SCALE is the shrink factor (pixels → squares);
-//    INSET is how far down from the top it sits. This sizes the single Options
-//    gear button (which opens the Options window); the window + notices have their
-//    own knobs. CTRL_W_CLOSED/CTRL_H are the gear button's px box.
-export const CTRL_SCALE = 0.019      // shrink factor: button pixels → board squares
-export const CTRL_W_CLOSED = 52      // [px] gear button width (square — icon only)
-export const CTRL_H = 52             // [px] gear button height
+// ── Options gear button (the single button on the board — built as HTML at [px]
+//    size, then shrunk onto the board with CTRL_SCALE so its thin border stays
+//    crisp). A square, icon-only button. The knobs map to what you'd want to
+//    tweak: overall button size, how much of it the gear fills (the rest is
+//    padding), the gear's colour, and the outline colour. INSET is how far below
+//    the top edge it sits. (The Options *window* has its own OPTIONS_WINDOW_SIZE.)
+export const CTRL_SCALE = 0.019      // shrink factor: button px → board squares (keeps the thin border crisp)
+export const CTRL_SIZE = 44          // [px] overall button size (square)
 export const CTRL_INSET = 0.4        // distance down from the top edge
+export const GEAR_SHARE = 0.66       // [share 0–1] how much of the button the gear fills (bigger = less padding around it)
+export const GEAR_COLOR = '#6b6570'  // the gear's colour (darker = more ink; the button is white)
+export const CTRL_BORDER_COLOR = '#a9a3b1' // the button's outline colour (darker = more visible against the board)

@@ -27,9 +27,11 @@ import {
   PLAYER_HEX,
   boardThemeVars,
   CTRL_SCALE,
-  CTRL_W_CLOSED,
-  CTRL_H,
+  CTRL_SIZE,
   CTRL_INSET,
+  GEAR_SHARE,
+  GEAR_COLOR,
+  CTRL_BORDER_COLOR,
   DIE_SIZE,
   WIN_PANEL_BG,
   WIN_WINDOW_SIZE,
@@ -133,8 +135,8 @@ export function GameBoard({
   // game until the player presses "Start game" in the New Game window.
   const [optionsOpen, setOptionsOpen] = useState(false)
   const [setupOpen, setSetupOpen] = useState(false)
-  // The Options gear is a single square button, so its box is just CTRL_W_CLOSED.
-  const ctrlW = CTRL_W_CLOSED
+  // The Options gear is a single square button, so its box is just CTRL_SIZE.
+  const ctrlW = CTRL_SIZE
 
   // Each corner's chrome centres horizontally on that corner's nest cluster,
   // read straight from the layout (no re-derived geometry). Corner→nest mapping
@@ -262,7 +264,7 @@ export function GameBoard({
           rendered at natural px and scaled into board units so it reuses .pill
           styling and stays accessible. */}
       <g transform={`translate(${ctrlX}, ${CTRL_INSET}) scale(${CTRL_SCALE})`}>
-        <foreignObject x={0} y={0} width={ctrlW} height={CTRL_H}>
+        <foreignObject x={0} y={0} width={ctrlW} height={CTRL_SIZE}>
           <div className="board-controls">
             <button
               type="button"
@@ -272,8 +274,22 @@ export function GameBoard({
               aria-label={OPTIONS.button}
               title={OPTIONS.button}
               onClick={() => setOptionsOpen(true)}
+              // Size + look from theme knobs (the button is a square CTRL_SIZE px;
+              // the gear takes GEAR_SHARE of that, the rest is padding). The gear
+              // inherits `color` via currentColor; the border reads --ctrl-border.
+              style={
+                {
+                  width: `${CTRL_SIZE}px`,
+                  height: `${CTRL_SIZE}px`,
+                  color: GEAR_COLOR,
+                  '--ctrl-border': CTRL_BORDER_COLOR,
+                } as CSSProperties
+              }
             >
-              <GearIcon className="pill-gear" />
+              <GearIcon
+                className="pill-gear"
+                style={{ width: `${CTRL_SIZE * GEAR_SHARE}px`, height: `${CTRL_SIZE * GEAR_SHARE}px` }}
+              />
             </button>
           </div>
         </foreignObject>

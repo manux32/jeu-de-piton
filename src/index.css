@@ -209,7 +209,9 @@ code {
 .board-controls .pill {
   background: #fff;
   color: #08060d;
-  border-color: #d9d6dd;
+  /* Outline colour from the CTRL_BORDER_COLOR knob (set inline on the button);
+     the literal is just a fallback. */
+  border-color: var(--ctrl-border, #d9d6dd);
 }
 .board-controls .pill:hover {
   border-color: var(--accent-border);
@@ -220,23 +222,20 @@ code {
   color: #08060d;
 }
 /* The Options button is icon-only (a gear), so it's a square pill with the icon
-   centred and no text padding. Sizes are explicit px (NOT %) because this lives
-   inside the board's foreignObject, where iOS Safari mishandles percentage sizing
-   — see cross-platform-ui.md. The gear inherits the pill's colour via
-   currentColor. */
+   centred and no text padding. Its size (button + gear) is set inline from the
+   theme knobs (CTRL_SIZE / GEAR_SHARE) in explicit px — NOT %, because this lives
+   inside the board's foreignObject where iOS Safari mishandles percentage sizing
+   (see cross-platform-ui.md). The gear inherits the button's colour via
+   currentColor (set inline from GEAR_COLOR). */
 .pill-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  width: 52px;
-  height: 52px;
   min-width: 0;
   padding: 0;
 }
 .pill-gear {
-  width: 28px;
-  height: 28px;
   display: block;
 }
 
