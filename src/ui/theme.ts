@@ -302,8 +302,8 @@ export const DIE_PIP_STEP = 0.26     // [share] spacing of the pips from centre
 export const DIE_PIP_R = 0.085       // [share] pip radius
 export const DIE_CORNER_RX = 0.18    // [share] rounded corners
 export const DIE_STROKE_W = 0.04     // [share] border thickness
-export const DIE_PROMPT_TEXT = 0.25       // [share] size of the "Roll" prompt text shown on the die when it's a player's turn to roll
-export const DIE_PROMPT_OFFSET_X = 0      // [share] optical nudge of the prompt text sideways (+ = right). 0 = pure geometric centring (textAnchor=middle); only set this if a font's ink looks off-centre in its advance width — but any nudge is font-specific and won't match across PC/mobile.
+export const DIE_PROMPT_TEXT = 0.30       // [share] size of the "Roll" prompt text shown on the die when it's a player's turn to roll
+export const DIE_PROMPT_OFFSET_X = 0      // [share] optical nudge of the prompt label sideways (+ = right). 0 = the baked glyph's bbox centre sits on the die centre (see DieFace/glyphs.ts); only set this for a deliberate optical offset.
 
 // ── Move rings (shown on every square you can move to, after you roll) ──────
 // Three sizes, by what the move is. R = how wide the ring · STROKE_W = how thick.
