@@ -71,14 +71,15 @@ the candidate list below, in no particular order:
 - **Rule-variant layer.** The cabin ruleset already ships as a `Ruleset` and the
   engine is variant-agnostic, so this is mostly *proving* a second variant (e.g.
   canonical Parcheesi) drops in with **no UI change** — likely a ruleset picker
-  beside the player-count pills in New Game. *Colour follow-on (mostly shipped):*
-  the per-seat colour picker + extra colours now ship (orange/purple added to the
-  `PlayerColor` union + the `ALL_PLAYER_COLORS` palette). **Remaining: offer `black`
-  + `white`** — each currently collides with a near-its-own-colour board element
-  (black on the dark safe squares; white on the near-white nest holes + die face),
-  so each needs a small render tweak first (e.g. a contrasting outline for black; a
-  non-white nest-hole/die treatment, or outline, for white) before adding it to the
-  union + palette.
+  beside the player-count pills in New Game.
+- **More player colours (black + white).** The per-seat colour picker + extra
+  colours already ship (orange/purple added to the `PlayerColor` union + the
+  `ALL_PLAYER_COLORS` palette). `black` and `white` are the two held back: each
+  collides with a near-its-own-colour board element (black on the dark safe squares;
+  white on the near-white nest holes + die face), so each needs a small **render
+  tweak** first (e.g. a contrasting outline for black; a non-white nest-hole/die
+  treatment, or outline, for white) before adding it to the union + palette. Purely
+  a rendering/look task — nothing to do with rules.
 - **Finish the knob-set audit.** Squares + notices were audited; the **die, New
   Game button, and start arrows** remain — refine their `theme.ts` knobs as needed
   (the `knob-design-user-intent` memory holds the principle). Not blocking.
