@@ -380,8 +380,8 @@ export const SETUP_WINDOW_SIZE = 3.5    // OVERALL size of the New Game window, 
 //  - SETUP_SWATCH_SIZE: the pill shown ON the colour-picker button (the closed
 //    widget) — the colour currently chosen for that seat.
 //  - SETUP_PALETTE_SWATCH_SIZE: the pills in the OPEN palette you pick from.
-export const SETUP_SWATCH_SIZE = 1.2          // chosen-colour pill on the picker, in em
-export const SETUP_PALETTE_SWATCH_SIZE = 1.2  // pills in the open palette, in em
+export const SETUP_SWATCH_SIZE = 1.3          // chosen-colour pill on the picker, in em
+export const SETUP_PALETTE_SWATCH_SIZE = 1.3  // pills in the open palette, in em
 
 // ── Options menu window — same DOM-overlay pattern + sizing as the New Game
 //    window (see cross-platform-ui.md). One overall-size knob in [vmin]; the
