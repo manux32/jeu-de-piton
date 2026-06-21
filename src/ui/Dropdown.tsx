@@ -28,6 +28,9 @@ interface Props<T extends string> {
   onChange: (value: T) => void
   /** Accessible label for the trigger (e.g. "Player 1 colour"). */
   ariaLabel: string
+  /** Extra class on the root, so a caller can size/place the widget (e.g. the
+   *  colour picker stays as narrow as its swatch). */
+  className?: string
   /** Extra class on the popover, so a caller can lay the options out as a
    *  wrapping swatch grid (colours) instead of the default vertical list. */
   menuClassName?: string
@@ -38,6 +41,7 @@ export function Dropdown<T extends string>({
   options,
   onChange,
   ariaLabel,
+  className,
   menuClassName,
 }: Props<T>) {
   const [open, setOpen] = useState(false)
@@ -62,7 +66,7 @@ export function Dropdown<T extends string>({
   }, [open])
 
   return (
-    <div className="dropdown" ref={rootRef}>
+    <div className={className ? `dropdown ${className}` : 'dropdown'} ref={rootRef}>
       <button
         type="button"
         className="dropdown-trigger"

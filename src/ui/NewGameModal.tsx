@@ -16,7 +16,7 @@
 import { useState, type CSSProperties } from 'react'
 import { ALL_PLAYER_COLORS, PLAYER_COLORS, type PlayerColor } from '../engine'
 import { STRATEGY_IDS, type StrategyId } from '../ai/strategy'
-import { PLAYER_HEX, SETUP_PANEL_BG, SETUP_WINDOW_SIZE } from './theme'
+import { PLAYER_HEX, SETUP_PANEL_BG, SETUP_SWATCH_SIZE, SETUP_WINDOW_SIZE } from './theme'
 import { SETUP } from './strings'
 import { Dropdown } from './Dropdown'
 
@@ -124,7 +124,11 @@ export function NewGameModal({
       // (see .setup-panel in index.css). The board is ~100 vmin, so the window
       // keeps a stable fraction of the board across screens.
       style={
-        { '--setup-bg': SETUP_PANEL_BG, fontSize: `${SETUP_WINDOW_SIZE}vmin` } as CSSProperties
+        {
+          '--setup-bg': SETUP_PANEL_BG,
+          '--setup-swatch-size': `${SETUP_SWATCH_SIZE}em`,
+          fontSize: `${SETUP_WINDOW_SIZE}vmin`,
+        } as CSSProperties
       }
     >
       <div className="setup-title">{SETUP.title}</div>
@@ -169,6 +173,7 @@ export function NewGameModal({
               options={COLOR_OPTIONS}
               onChange={(color) => pickColor(seat, color)}
               ariaLabel={SETUP.colorPicker(seat + 1)}
+              className="setup-pick-color"
               menuClassName="dropdown-menu-swatches"
             />
             {!humans[seat] && (
@@ -177,6 +182,7 @@ export function NewGameModal({
                 options={STRATEGY_OPTIONS}
                 onChange={(id) => pickStrategy(seat, id)}
                 ariaLabel={SETUP.strategyPicker(seat + 1)}
+                className="setup-pick-strategy"
               />
             )}
           </div>

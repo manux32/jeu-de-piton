@@ -470,12 +470,18 @@ code {
   align-items: center;
   gap: 0.53em;
 }
-/* All three controls fill their column, so Human/AI are identical width and the
-   pickers read as equal, aligned blocks. */
+/* The type toggle and the strategy picker fill their (fixed) columns, so
+   Human/AI are identical width and the pickers read as aligned blocks. The
+   colour picker is the exception: it stays as narrow as its circle + caret and
+   sits at the left of its (flexing) column, so it lines up across rows without
+   the empty width a single circle doesn't need. */
 .setup-type,
-.setup-seat .dropdown {
+.setup-pick-strategy {
   width: 100%;
   min-width: 0;
+}
+.setup-pick-color {
+  justify-self: start;
 }
 
 /* A colour swatch — a filled circle. Used both as a dropdown trigger's current
@@ -537,12 +543,21 @@ code {
   border: 0.067em solid rgba(255, 255, 255, 0.18);
   box-shadow: 0 0.3em 1em rgba(0, 0, 0, 0.5);
 }
-/* Colour variant: lay the swatches out as a compact wrapping grid (a palette),
-   not a tall single column. */
+/* Colour variant: lay the swatches out as a 2-wide palette grid (not a tall
+   single column), sized to the swatches so it stays tight whatever their size.
+   Two columns keep the popover narrow enough to clear the panel edges even with
+   big pills (it's anchored under the narrow colour trigger). */
 .dropdown-menu-swatches {
-  flex-direction: row;
-  flex-wrap: wrap;
-  width: 8.5em;
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  gap: 0.3em;
+  width: auto;
+}
+/* The pickable colour pills — sized by the SETUP_SWATCH_SIZE knob, independent of
+   the small swatch shown in the closed picker. */
+.dropdown-menu-swatches .swatch {
+  width: var(--setup-swatch-size, 3.4em);
+  height: var(--setup-swatch-size, 3.4em);
 }
 .dropdown-option {
   display: flex;
