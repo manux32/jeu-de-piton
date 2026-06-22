@@ -178,6 +178,11 @@ export const PULSE_MAX = 0.9
  * die, and `AI_MOVE_DELAY_MS` after the roll settles before moving a piton —
  * "thinking" beats so a human can follow what the AI is doing. Raise them to slow
  * an AI-vs-AI game down to a watchable pace.
+ *
+ * These are the *defaults*. The timer hooks don't read them directly — they read
+ * a live, session-only copy (`src/ui/timing.ts`) that the Dev tools panel can
+ * retune on the fly (incl. a master multiplier). Edit here to change the baked-in
+ * rhythm; reload reseeds the live store from these.
  */
 export const SPIN_MS = 500
 export const SPIN_TICK_MS = 50

@@ -154,7 +154,8 @@ the candidate list below, in no particular order:
 - **Dev scenario panel** now ships in **every** build (incl. the deployed PWA) so
   mobile/iPad issues can be driven from scenarios — opened from the **Dev** button on
   the board, right of New Game; panel chunk stays lazy. Lets you drop into doctored
-  board states to validate UI fixes — how it works → [dev-tooling.md](dev-tooling.md).
+  board states to validate UI fixes, and **live-tune the motion timings** (die
+  spin/hold, AI pacing) via a master multiplier — how it works → [dev-tooling.md](dev-tooling.md).
   (A proper on/off gate is a later nicety; for now it's always on, incl. publicly.)
 - Eyeball a render **without** the dev server via a throwaway Vitest →
   `references/` SVG → `scripts/render-board.mjs` (details in [dev-tooling.md](dev-tooling.md)).

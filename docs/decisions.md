@@ -10,6 +10,21 @@
 > [rules-and-lineage.md](rules-and-lineage.md), [board-model.md](board-model.md)).
 > Don't duplicate git history — capture reasoning a commit message wouldn't.
 
+- **2026-06-21** — **The `_MS` motion timings became live-tunable from the Dev
+  panel, via a runtime store seeded from theme.ts.** *Non-obvious choices:* (1)
+  **A separate live store (`src/ui/timing.ts`), not React context or mutated
+  consts.** The durations are `export const`s imported into the timer hooks, so they
+  can't be reassigned at runtime; rather than thread context through, the hooks now
+  read through getters on a module-level store (immutable snapshots + a tiny
+  `useSyncExternalStore` for the editor). theme.ts stays the single source of truth
+  for the *defaults* — the store reseeds from it on every reload, so edits are
+  deliberately session-only (a dev convenience, not a saved setting). A tweak lands
+  on the **next** roll/turn (getters are read at schedule time), which is the wanted
+  behaviour. (2) **A master multiplier scales everything *except* `SPIN_TICK_MS`.**
+  The tick is the spin's *refresh rate*, not a duration to stretch — keeping it
+  fixed means the die animates smoothly however long the overall spin is scaled to;
+  multiplier 0 ⇒ zero delay (instant play). (3) The tweaked theme defaults were
+  rolled in at the same time (spin/hold 1000→500, AI delays 600→500).
 - **2026-06-21** — **New Game gained a per-AI-seat difficulty picker and a
   dropdown colour picker; two new player colours shipped, two stay deferred.**
   Each AI seat now picks its own brain (**Easy** = `randomStrategy`, **Hard** =
