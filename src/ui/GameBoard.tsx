@@ -17,6 +17,7 @@ import type { GameState, Move } from '../engine'
 import { buildLayout, destinationCell, cellMid, cellStart } from './layout'
 import { Board } from './Board'
 import { Pitons } from './Pitons'
+import { Trajectories } from './Trajectories'
 import { DieFace } from './DieFace'
 import { GearIcon } from './GearIcon'
 import { BoardTitle } from './BoardTitle'
@@ -397,6 +398,11 @@ export function GameBoard({
           </g>
         )
       })}
+
+      {/* Dashed move-trajectory lines (live preview + persisted history) — drawn
+          UNDER the pitons/rings/die as a background guide. Non-interactive; gated
+          by the two TRAJECTORY bools in theme.ts. */}
+      <Trajectories state={state} layout={layout} moves={moves} log={log} />
 
       <Pitons state={state} layout={layout} moves={moves} onPick={onPick} />
 

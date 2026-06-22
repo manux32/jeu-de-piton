@@ -19,8 +19,16 @@ to the normal load. *(A proper on/off gate is a later nicety; for now it's alway
 publicly — pure client-side state editing, no security surface.)* Engine stays
 untouched —
 scenarios dispatch a `load` action ([`useGame.ts`](../src/ui/useGame.ts)) carrying
-a full `GameView`. Four pieces:
+a full `GameView`. Five pieces:
 
+- **General** ([`GeneralEditor.tsx`](../src/ui/dev/GeneralEditor.tsx)) — at the top
+  of the panel; live on/off checkboxes for the two move-trajectory features (the
+  movable-piton preview lines and the persisted previous-move lines). Same store
+  pattern as the timing editor: theme.ts owns the defaults
+  (`SHOW_MOVABLE_TRAJECTORIES` / `PERSIST_MOVE_TRAJECTORIES`), the board's
+  `<Trajectories>` layer reads the live values through
+  [`trajectorySettings.ts`](../src/ui/trajectorySettings.ts), edits are
+  session-only. The lines' *look* (stroke/dash/opacity/offset) stays in theme.ts.
 - **Scenario picker** — scenarios are one file each under
   [`scenarios/`](../src/ui/dev/scenarios/), auto-discovered via `import.meta.glob`
   ([`registry.ts`](../src/ui/dev/registry.ts)); `DevScenario` + `place()` in

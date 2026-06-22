@@ -48,7 +48,14 @@ again: a stack of rows, one per sub-turn, each showing the die rolled and what i
 did — moves are described in words (left the nest, reached the home lane, got one
 home, reached a safe square, left the start square, a plain move, plus captures /
 extra rolls / forfeits / the streak penalty / the win). So a 6-streak shows
-several rows and, before you roll, you can read everything everyone did since. All
+several rows and, before you roll, you can read everything everyone did since.
+**Move trajectories** can be drawn as dashed, track-following lines in each piton's
+colour: a live preview from every movable piton to where it would land, and a
+persisted history of the moves played since your last turn (a dot marks each
+origin) that clears when your turn returns, like the notices. Each seat rides its
+own parallel lane so overlapping routes don't draw on top of each other. The two
+features are independently toggleable — theme defaults, live-switchable in the Dev
+panel's General section. All
 look-and-feel is knob-driven from [theme.ts](../src/ui/theme.ts) and all UI copy
 from [strings.ts](../src/ui/strings.ts). Tests + build + lint are green (`npm test`
 for the count) and `src/ui/` stays rules-free.
@@ -154,8 +161,9 @@ the candidate list below, in no particular order:
 - **Dev scenario panel** now ships in **every** build (incl. the deployed PWA) so
   mobile/iPad issues can be driven from scenarios — opened from the **Dev** button on
   the board, right of New Game; panel chunk stays lazy. Lets you drop into doctored
-  board states to validate UI fixes, and **live-tune the motion timings** (die
-  spin/hold, AI pacing) via a master multiplier — how it works → [dev-tooling.md](dev-tooling.md).
+  board states to validate UI fixes, **live-tune the motion timings** (die
+  spin/hold, AI pacing) via a master multiplier, and **toggle the move-trajectory
+  features** (a **General** section at the top) — how it works → [dev-tooling.md](dev-tooling.md).
   (A proper on/off gate is a later nicety; for now it's always on, incl. publicly.)
 - Eyeball a render **without** the dev server via a throwaway Vitest →
   `references/` SVG → `scripts/render-board.mjs` (details in [dev-tooling.md](dev-tooling.md)).

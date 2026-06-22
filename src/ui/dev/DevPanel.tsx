@@ -10,6 +10,7 @@ import { useState } from 'react'
 import type { GameView } from '../useGame'
 import { loadScenario, type DevScenario } from './scenario'
 import { StateEditor } from './StateEditor'
+import { GeneralEditor } from './GeneralEditor'
 import { TimingEditor } from './TimingEditor'
 import { SaveScenario } from './SaveScenario'
 
@@ -37,6 +38,8 @@ export function DevPanel({ view, scenarios, onLoad, onClose }: Props) {
           ✕
         </button>
       </div>
+
+      <GeneralEditor />
 
       <TimingEditor />
 

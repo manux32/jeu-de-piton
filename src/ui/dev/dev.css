@@ -53,6 +53,19 @@
   gap: 8px;
 }
 
+/* General section: a checkbox + its label on one clickable row. */
+.dev-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--text-h);
+  cursor: pointer;
+}
+.dev-check input {
+  cursor: pointer;
+}
+
 .dev-select {
   font: inherit;
   font-size: 15px;

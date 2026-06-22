@@ -35,6 +35,7 @@ import {
   JEU_DE_PITON,
   type GameState,
   type Move,
+  type PitonPosition,
   type PlayerColor,
 } from '../engine'
 import { NOTICE, joinNotice, type Notice } from './strings'
@@ -46,6 +47,13 @@ export interface TurnEntry {
   /** The one-line outcome. A list of text runs so part of it (e.g. a captured
    *  colour's name) can be tinted — see Notice. */
   notice: Notice
+  /**
+   * The piece move this sub-turn played, if any — purely so the board can draw a
+   * persisted trajectory line for it (see Trajectories). NOT shown in the nest
+   * notice (which reads only `die`/`notice`). Absent for sub-turns with no piece
+   * move: a forfeit, an unplayable bonus 6, or the streak penalty.
+   */
+  move?: { from: PitonPosition; to: PitonPosition }
 }
 
 export interface GameView {
@@ -181,7 +189,10 @@ function reducer(view: GameView, action: GameAction): GameView {
       const logged: GameView = {
         ...view,
         game: next,
-        log: setAt(view.log, mover, [...view.log[mover], { die, notice: joinNotice(parts) }]),
+        log: setAt(view.log, mover, [
+          ...view.log[mover],
+          { die, notice: joinNotice(parts), move: { from: action.move.from, to: action.move.to } },
+        ]),
       }
       // Game over: play has stopped, so no handover — the win line stays put and
       // every seat keeps its log behind the popup. Otherwise hand over if the

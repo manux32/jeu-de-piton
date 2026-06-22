@@ -10,6 +10,29 @@
 > [rules-and-lineage.md](rules-and-lineage.md), [board-model.md](board-model.md)).
 > Don't duplicate git history — capture reasoning a commit message wouldn't.
 
+- **2026-06-22** — **Move trajectories: dashed, track-following lines from a
+  piton's origin to its destination — a live "where can I go" preview and a
+  persisted record of previous moves.** *Non-obvious choices:* (1) **Lines follow
+  the track, reusing the engine's own progress model.** Rather than straight chords
+  (which cut across the board interior and through HOME), the UI walks the route
+  square-by-square via the engine's pure `progressOf`/`positionAt`
+  ([`board.ts`](../src/engine/board.ts)) and maps each step to a screen cell — so
+  the engine stays geometry-free and the UI just renders a known from→to. (2)
+  **Per-seat *perpendicular lane* offset, not a fixed nudge.** A first cut nudged
+  each seat's whole line by a constant diagonal; that gives only two distinct
+  values per axis, so on-screen *horizontal* lines collapsed onto each other. The
+  fix offsets each line perpendicular to its own direction by a distinct per-seat
+  lane (mitre-joined so it stays continuous through the 90° corners), spread
+  symmetrically about the true path — every seat gets its own track whatever the
+  direction. (3) **History rides the turn log.** The persisted lines reuse the
+  per-seat turn log's "pinned until your turn comes round, then wiped" lifecycle —
+  an optional `move:{from,to}` was added to `TurnEntry` ([`useGame.ts`](../src/ui/useGame.ts))
+  purely as geometry; it is **not** shown in the nest notice (the notice render
+  reads only `die`/`notice`), keeping the notices clean. (4) **Two features,
+  each a live toggle via a second runtime store** ([`trajectorySettings.ts`](../src/ui/trajectorySettings.ts)),
+  mirroring the timing store; the look knobs stay plain theme.ts consts. (5)
+  **Native SVG (`<polyline>`/`<circle>`), no `foreignObject`,** so it renders
+  identically on iOS Safari (see [cross-platform-ui.md](cross-platform-ui.md)).
 - **2026-06-21** — **The `_MS` motion timings became live-tunable from the Dev
   panel, via a runtime store seeded from theme.ts.** *Non-obvious choices:* (1)
   **A separate live store (`src/ui/timing.ts`), not React context or mutated

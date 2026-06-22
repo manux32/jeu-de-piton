@@ -325,6 +325,27 @@ export const CAPTURE_TARGET_STROKE_W = 0.1
 export const HOME_TARGET_R = 2.2         // reaching HOME to finish — biggest, the prize
 export const HOME_TARGET_STROKE_W = 0.12
 
+// ── Move trajectories (dashed colour lines piton-origin → destination) ──────
+// Two features, each a separate on/off:
+//   • SHOW_MOVABLE_TRAJECTORIES — while it's a player's turn to move, draw a line
+//     from every movable piton to where it would land, so you can see at a glance
+//     which piton can go where (alongside the move rings).
+//   • PERSIST_MOVE_TRAJECTORIES — keep the lines of moves already played this
+//     round on the board (like the nest notices), in each mover's colour, until
+//     that seat's turn comes round again. A small dot marks each move's origin.
+// A line FOLLOWS the track and turns with it; each player's lines are nudged a
+// touch off each other (TRAJECTORY_PLAYER_OFFSET) so two pitons crossing the same
+// square don't draw on top of one another.
+export const SHOW_MOVABLE_TRAJECTORIES = true   // feature 1: lines for the pieces you can move now
+export const PERSIST_MOVE_TRAJECTORIES = true   // feature 2: keep previous players' move lines on the board
+export const TRAJECTORY_STROKE_W = 0.07         // line thickness, in squares
+export const TRAJECTORY_DASH = 0.22             // dash length, in squares
+export const TRAJECTORY_GAP = 0.16              // gap between dashes, in squares
+export const TRAJECTORY_OPACITY = 0.85          // master see-through of ALL lines/dots (1 = solid, 0 = invisible)
+export const TRAJECTORY_HISTORY_OPACITY = 0.6   // extra dimming of persisted lines vs the live preview ([share] of the master above)
+export const TRAJECTORY_PLAYER_OFFSET = 0.12    // how far each player's line is nudged off the others, in squares
+export const TRAJECTORY_DOT_R = 0.13            // radius of the dot marking a move's origin, in squares
+
 // ── The "Pitons" title wordmark on the board ─────────────────────────────────
 // The title is a small logo, not plain text: it still reads "Pitons", but the
 // two thematic letters are swapped for icons drawn in board units — the "i"
