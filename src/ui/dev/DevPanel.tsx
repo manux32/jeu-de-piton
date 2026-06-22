@@ -38,6 +38,8 @@ export function DevPanel({ view, scenarios, onLoad, onClose }: Props) {
         </button>
       </div>
 
+      <TimingEditor />
+
       <section className="dev-section">
         <label className="dev-label" htmlFor="dev-scenario">
           Scenario
@@ -68,7 +70,6 @@ export function DevPanel({ view, scenarios, onLoad, onClose }: Props) {
       </section>
 
       <StateEditor view={view} onChange={onLoad} />
-      <TimingEditor />
       <SaveScenario view={view} />
     </aside>
   )
