@@ -36,13 +36,19 @@ export function StatsModal({ state, stats, onClose }: Props) {
     state.players[i].pitons.filter((p) => p.position.kind === 'finished').length
   const total = state.ruleset.pitonsPerPlayer
 
-  // Players are columns, ranked most pitons home → least; ties keep seating order
-  // (sort is stable). This is the "winner first" ordering the user asked for.
-  const order = state.players.map((_, i) => i).sort((a, b) => pitonsHome(b) - pitonsHome(a))
-
   const capturesTotal = (s: PlayerStats) => s.regularCaptures + s.startCaptures
   const lossesTotal = (s: PlayerStats) =>
     s.lostToCapture + s.lostOnEnemyStart + s.lostToThreeSixes
+
+  // Players are columns, ranked most pitons home → least, then most captures →
+  // least as the tie-breaker; any further tie keeps seating order (sort is
+  // stable). This is the "winner first" ordering the user asked for.
+  const order = state.players
+    .map((_, i) => i)
+    .sort(
+      (a, b) =>
+        pitonsHome(b) - pitonsHome(a) || capturesTotal(stats[b]) - capturesTotal(stats[a]),
+    )
 
   // The rows, top to bottom. The two `section` rows carry the running total of
   // the `sub` rows beneath them, so the breakdown reads at a glance.

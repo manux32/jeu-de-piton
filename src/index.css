@@ -707,7 +707,7 @@ code {
   display: flex;
   flex-direction: column;
   gap: 0.73em;
-  width: min(26em, 94vmin);
+  width: min(29em, 94vmin);
   box-sizing: border-box;
   padding: 1.07em 1.5em 0.93em;
   border-radius: 0.8em;
@@ -743,14 +743,15 @@ code {
 /* The top-left corner cell is empty, but in a fixed layout its width sets the
    whole label column's width — wide enough for "On enemy's start" etc. */
 .stats-corner {
-  width: 9em;
+  width: 8.5em;
 }
-/* Player column headers — each tinted its own colour (set inline). Right-aligned
-   to sit over their number columns. */
+/* Player column headers — each tinted its own colour (set inline). Centred in
+   their equal-width columns (not right-aligned) so the spacing between names is
+   even; the horizontal padding keeps adjacent names off each other. */
 .stats-player {
-  text-align: right;
+  text-align: center;
   font-weight: 800;
-  padding: 0.2em 0.4em 0.47em;
+  padding: 0.2em 0.55em 0.47em;
   white-space: nowrap;
 }
 .stats-label {
@@ -760,12 +761,13 @@ code {
   padding: 0.2em 0.4em;
 }
 .stats-cell {
-  text-align: right;
+  /* Centred under the centred headers, in equal columns, for symmetric spacing. */
+  text-align: center;
   font-variant-numeric: tabular-nums;
   /* Keep "n / 4" (and every count) on one line — the default normal wrapping was
      breaking "3 / 4" across two lines in a narrow column. */
   white-space: nowrap;
-  padding: 0.2em 0.4em;
+  padding: 0.2em 0.55em;
 }
 /* A section total (Captures / Pitons lost) — fenced off above with a hairline and
    set in full strength + weight; its detail rows sit indented beneath it. */
