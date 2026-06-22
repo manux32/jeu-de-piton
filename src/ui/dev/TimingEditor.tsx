@@ -25,7 +25,7 @@ import {
 // scaled ones first; SPIN_TICK_MS is shown last, flagged as multiplier-exempt.
 const SCALED: { key: keyof TimingBase; label: string }[] = [
   { key: 'SPIN_MS', label: 'Spin duration' },
-  { key: 'HOLD_MS', label: 'Result hold' },
+  { key: 'HOLD_MS', label: 'No-move hold' },
   { key: 'AI_ROLL_DELAY_MS', label: 'AI roll delay' },
   { key: 'AI_MOVE_DELAY_MS', label: 'AI move delay' },
 ]
