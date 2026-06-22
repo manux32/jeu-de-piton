@@ -23,7 +23,9 @@ rule sets matter.
 - **Swappable rule sets**: ship the **cabin variant (jeu de piton)** first — the
   game we actually play and, with a single die, the simpler core to build.
   Canonical Parcheesi (two dice, combine/split) stays a possible future variant;
-  the engine is built variant-agnostic so adding it costs no UI change.
+  the engine is variant-agnostic for *single-die* variants, so those add cheaply —
+  but canonical's two dice is a structural turn-model change, not config. Full
+  scope → [rule-variants.md](rule-variants.md).
 
 - **Basic AI opponents** (shipped 2026-06-19): seats not controlled by a human play
   themselves via a swappable strategy. Kept as a *third pure layer* — see below.
@@ -59,9 +61,11 @@ decision.
 
 A **variant** is just a `Ruleset` config object fed to the engine (player count,
 pitons each, which rolls enter, capture rules, safe squares, extra-turn-on-N, …).
-The cabin rules are variant #1; canonical Parcheesi could be variant #2 — **no UI
-changes needed to add a variant.** That's the payoff. Rule variants are config
-objects, **not code branches**.
+The cabin rules are variant #1; a *single-die* variant adds with **no UI change** —
+that's the payoff, and rule variants are config objects, **not code branches**.
+The exception is anything that changes the *turn shape*: canonical Parcheesi's two
+dice need engine + UI work (the `diceCount` knob is not yet wired). Scope +
+the variant landscape → [rule-variants.md](rule-variants.md).
 
 ### The AI: a third pure layer
 AI opponents sit in **`src/ai/`** — a third pure layer beside engine and UI, no
