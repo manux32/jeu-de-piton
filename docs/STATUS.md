@@ -81,10 +81,12 @@ so decide with the user at the start of each session. This section names a
 *specific* next task **only** when we've explicitly agreed one; otherwise it's just
 the candidate list below, in no particular order:
 
-- **Rule-variant layer.** The cabin ruleset already ships as a `Ruleset` and the
-  engine is variant-agnostic, so this is mostly *proving* a second variant (e.g.
-  canonical Parcheesi) drops in with **no UI change** — likely a ruleset picker
-  beside the player-count pills in New Game.
+- **Rule-variant layer.** The cabin ruleset ships as a `Ruleset` and the engine
+  is variant-agnostic *for single-die variants* (Ludo etc.) — those are close to a
+  config-only drop-in (+ a ruleset picker in New Game, + board art if the geometry
+  differs). **Canonical Parcheesi is the exception**: it needs two dice, which the
+  turn engine doesn't model, making it a multi-session structural task, not a
+  drop-in. Full scope + the variant landscape → [rule-variants.md](rule-variants.md).
 - **More player colours (black + white).** The per-seat colour picker + extra
   colours already ship (orange/purple added to the `PlayerColor` union + the
   `ALL_PLAYER_COLORS` palette). `black` and `white` are the two held back: each
