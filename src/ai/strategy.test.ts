@@ -149,7 +149,7 @@ describe('greedyStrategy — priority ladder', () => {
   it('deprioritises FINISHING FROM THE LANE below rushing a track piton to safety', () => {
     // red-0 in the home lane (step 6) finishes on a 1; red-1 at track 63 instead
     // enters the lane. The lane piton is already safe, so getting red-1 off the
-    // exposed ring (tier 1) outranks the finish (tier 7) — the FINISH split.
+    // exposed ring (tier 1) outranks the lane move / finish (tier 7).
     let s = place(createGame(JEU_DE_PITON), 'red-0', { kind: 'lane', step: 6 })
     s = place(s, 'red-1', { kind: 'track', square: 63 })
     const moves = legalMoves(s, 1)
@@ -157,6 +157,55 @@ describe('greedyStrategy — priority ladder', () => {
     const chosen = greedyStrategy(s, moves)
     expect(chosen.pitonId).toBe('red-1')
     expect(chosen.to).toEqual({ kind: 'lane', step: 0 })
+  })
+
+  it('UN-CLOGS THE HOME LANE — advances a lane piton (not just finishing) over the leader', () => {
+    // red-0 sits in the lane at step 2; a 3 walks it to step 5 (no finish). red-1
+    // is the track leader at 40. Advancing the safe lane piton to clear the lane
+    // (tier 7) outranks moving the more-advanced track leader (tier 9).
+    let s = place(createGame(JEU_DE_PITON), 'red-0', { kind: 'lane', step: 2 })
+    s = place(s, 'red-1', { kind: 'track', square: 40 })
+    const moves = legalMoves(s, 3)
+    expect(moves.some((m) => m.to.kind === 'finished')).toBe(false) // guard: not a finish
+    const chosen = greedyStrategy(s, moves)
+    expect(chosen.pitonId).toBe('red-0')
+    expect(chosen.to).toEqual({ kind: 'lane', step: 5 })
+  })
+
+  it('keeps UN-CLOGGING THE LANE above dodging a capture threat', () => {
+    // red-1 on the track at 10 is chased by blue-0 at 7 (a 3 lands blue on 10) and
+    // could dodge to 13; but red-0 has a lane move (step 2 → 5). The lane tier (7)
+    // fires first, so the lane piton moves and the endangered track piton is left.
+    let s = place(createGame(JEU_DE_PITON), 'red-0', { kind: 'lane', step: 2 })
+    s = place(s, 'red-1', { kind: 'track', square: 10 })
+    s = place(s, 'blue-0', { kind: 'track', square: 7 })
+    const chosen = greedyStrategy(s, legalMoves(s, 3))
+    expect(chosen.pitonId).toBe('red-0')
+  })
+
+  it('DODGES A CAPTURE — escapes a chased piton to a threat-free square', () => {
+    // red-0 at 10 is capturable next turn by blue-0 at 7 (blue + 3 → 10). A 3 walks
+    // red-0 to 13, which no rival can reach (blue would need a 6-step, which the die
+    // never gives). red-1 (leader at 40) isn't threatened, so the dodge picks red-0.
+    let s = place(createGame(JEU_DE_PITON), 'red-0', { kind: 'track', square: 10 })
+    s = place(s, 'red-1', { kind: 'track', square: 40 })
+    s = place(s, 'blue-0', { kind: 'track', square: 7 })
+    const moves = legalMoves(s, 3)
+    expect(moves.some((m) => m.captures != null)).toBe(false) // guard: no capture tier
+    const chosen = greedyStrategy(s, moves)
+    expect(chosen.pitonId).toBe('red-0')
+    expect(chosen.to).toEqual({ kind: 'track', square: 13 })
+  })
+
+  it('does NOT dodge when the move stays within capture range — falls back to the leader', () => {
+    // red-0 at 20 is chased by blue-0 at 18 (two behind): blue + 2 → 20 now, and
+    // blue + 5 → 23 after the move — so walking red-0 to 23 on a 3 escapes nothing.
+    // With no real escape the AI falls through to advancing the leader (red-1 at 40).
+    let s = place(createGame(JEU_DE_PITON), 'red-0', { kind: 'track', square: 20 })
+    s = place(s, 'red-1', { kind: 'track', square: 40 })
+    s = place(s, 'blue-0', { kind: 'track', square: 18 })
+    const chosen = greedyStrategy(s, legalMoves(s, 3))
+    expect(chosen.pitonId).toBe('red-1')
   })
 
   it('always returns one of the supplied legal moves', () => {

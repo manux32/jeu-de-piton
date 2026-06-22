@@ -20,7 +20,13 @@
  * search-based AI is just another function of the same shape — no caller changes.
  */
 
-import { progressOf, type GameState, type Move } from '../engine'
+import {
+  legalMoves,
+  progressOf,
+  type GameState,
+  type Move,
+  type PitonPosition,
+} from '../engine'
 
 /**
  * An AI policy: pick one move from the engine-supplied legal list. `moves` is
@@ -49,6 +55,49 @@ function mostAdvanced(state: GameState, moves: Move[]): Move {
   )
 }
 
+/** A copy of `state` with one piton relocated — for hypothetical look-ahead. */
+function withPitonAt(
+  state: GameState,
+  pitonId: string,
+  to: PitonPosition,
+): GameState {
+  return {
+    ...state,
+    players: state.players.map((pl) => ({
+      ...pl,
+      pitons: pl.pitons.map((p) => (p.id === pitonId ? { ...p, position: to } : p)),
+    })),
+  }
+}
+
+/**
+ * Could any rival capture the piton `pitonId` (at wherever it sits in `state`) on
+ * their very next single roll? Asked by stepping into each other seat and running
+ * the engine's own `legalMoves` for all six die faces, then looking for a move
+ * that lands on this piton. Delegating to `legalMoves` (rather than re-deriving
+ * the chase by hand) means every real rule is honoured for free: passing/blocking
+ * (a piton screened by a blocker in the chase lane is NOT a threat), safe-square
+ * immunity, the home-lane turn-off (a rival about to leave the ring can't reach
+ * it), and even the start-square capture (a rival popping out of its nest onto its
+ * own start to grab a piton parked there). The six faces span a rival's whole
+ * reach — 1–5, plus a 6's twelve. `ownerSeat` is excluded since a piton is never
+ * a threat to itself.
+ */
+function capturableNextRoll(
+  state: GameState,
+  ownerSeat: number,
+  pitonId: string,
+): boolean {
+  for (let seat = 0; seat < state.players.length; seat++) {
+    if (seat === ownerSeat) continue
+    const rivalView = { ...state, turn: seat }
+    for (let roll = 1; roll <= 6; roll++) {
+      if (legalMoves(rivalView, roll).some((m) => m.captures === pitonId)) return true
+    }
+  }
+  return false
+}
+
 /**
  * The shipped first brain — a fixed priority ladder, no lookahead:
  *
@@ -62,19 +111,27 @@ function mostAdvanced(state: GameState, moves: Move[]): Move {
  *   5. VACATE THE START SQUARE — move our piton off our own entry square so a
  *      nested piton can come out next turn; only while the nest isn't empty.
  *   6. REACH A SAFE SQUARE — land on a marked square, immune from capture.
- *   7. FINISH FROM THE LANE — a piton already safe in its home lane lands HOME;
- *      low urgency since it can't be captured where it sits.
- *   8. otherwise ADVANCE THE LEADER — move the furthest-along piton.
+ *   7. UN-CLOG THE HOME LANE — advance any piton already in the home lane (safe
+ *      where it sits, so this is free progress that also clears the lane for
+ *      pitons still to come). Most-advanced first, so a piton that can land HOME
+ *      is preferred.
+ *   8. DODGE A CAPTURE — a one-ply lookahead. Among the track pitons (leader
+ *      first), if one is *currently* capturable by some rival next turn AND its
+ *      single move this roll lands it on a square no rival can then reach, play
+ *      that escape. Skips a piton that can't get clear (moving wouldn't help).
+ *   9. otherwise ADVANCE THE LEADER — move the furthest-along piton.
  *
- * Cutting across every tier is one avoidance: never land on a *dangerous* start
- * square (an opponent's start whose owner still has a nested piton) when a move
- * that doesn't is available in the same tier — the mirror of tier 2 on the
- * landing side.
+ * Cutting across the predicate tiers (1–7) is one avoidance: never land on a
+ * *dangerous* start square (an opponent's start whose owner still has a nested
+ * piton) when a move that doesn't is available in the same tier — the mirror of
+ * tier 2 on the landing side. Tier 8 needs no such guard: a dangerous-start
+ * landing is, by definition, capturable next turn (the owner exits onto it), so
+ * `capturableNextRoll` already rejects it as a non-escape.
  *
- * It walks the tiers top-down and plays the first that has any candidate; within
+ * It walks tiers 1–7 top-down and plays the first that has any candidate; within
  * a tier it drops dangerous-start landings (unless that would leave none), then
- * picks the most-advanced piton, so even ties are deterministic (and the final
- * tier is just that tie-break applied to every remaining move). Good enough to
+ * picks the most-advanced piton, so even ties are deterministic. If none match it
+ * tries the dodge (8), then falls back to advancing the leader (9). Good enough to
  * feel non-broken; deliberately not clever — a smarter Strategy replaces it
  * wholesale later, this file untouched.
  */
@@ -106,8 +163,7 @@ export const greedyStrategy: Strategy = (state, moves) => {
     (m) =>
       hasNestPiton && m.from.kind === 'track' && m.from.square === entryIndex,
     (m) => m.to.kind === 'track' && safeSquares.includes(m.to.square),
-    (m) => m.to.kind === 'finished' && m.from.kind === 'lane',
-    () => true,
+    (m) => m.from.kind === 'lane',
   ]
   for (const tier of tiers) {
     const candidates = moves.filter(tier)
@@ -116,9 +172,21 @@ export const greedyStrategy: Strategy = (state, moves) => {
     const safe = candidates.filter((m) => !landsOnDangerousStart(m))
     return mostAdvanced(state, safe.length > 0 ? safe : candidates)
   }
-  // Unreachable: the final tier matches every move, so `moves` non-empty ⇒ a
-  // return above. Kept as a total-function guard.
-  return moves[0]
+
+  // Tier 8 — DODGE A CAPTURE. Past the predicate tiers, every remaining move is a
+  // track→track step (nest/lane/safety/capture cases all already returned). Take
+  // the most-advanced piton first; if it's capturable next turn and its one move
+  // this roll lands it where no rival can reach, escape there.
+  for (const move of [...moves].sort((a, b) => fromProgress(state, b) - fromProgress(state, a))) {
+    if (move.from.kind !== 'track') continue // defensive; all are track here
+    if (!capturableNextRoll(state, state.turn, move.pitonId)) continue
+    const after = withPitonAt(state, move.pitonId, move.to)
+    if (!capturableNextRoll(after, state.turn, move.pitonId)) return move
+  }
+
+  // Tier 9 — ADVANCE THE LEADER (the default). Same dangerous-start avoidance.
+  const safe = moves.filter((m) => !landsOnDangerousStart(m))
+  return mostAdvanced(state, safe.length > 0 ? safe : moves)
 }
 
 /**

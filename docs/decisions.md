@@ -10,6 +10,26 @@
 > [rules-and-lineage.md](rules-and-lineage.md), [board-model.md](board-model.md)).
 > Don't duplicate git history — capture reasoning a commit message wouldn't.
 
+- **2026-06-22** — **greedyStrategy's tail got two smarter tiers: un-clog the home
+  lane, then a one-ply *dodge a capture*.** The old final pair (finish-from-lane →
+  advance-leader) became: (7) **un-clog the home lane** — advance *any* lane piton,
+  most-advanced first (this broadens the old finish-from-lane tier, which it
+  subsumes); (8) **dodge a capture**; (9) advance-leader fallback. *Why un-clog
+  over dodge (the designer's call):* a lane piton is already capture-immune, so the
+  move is free progress that also clears the lane for pitons still to come; a
+  capture is only a *potential* (RNG-gated) threat, so it's the lower priority.
+  *How dodge works:* among track pitons (leader first), if one is capturable next
+  turn **and** its single move this roll lands where no rival can then reach, play
+  that escape; else fall to the leader. *Non-obvious choice:* "capturable next
+  turn" is answered by stepping into each rival seat and running the engine's own
+  `legalMoves` for all six faces ([`strategy.ts`](../src/ai/strategy.ts)
+  `capturableNextRoll`) rather than re-deriving the chase by hand — so passing/
+  blocking (a screened chaser is **not** a threat, per the designer's request),
+  safe-square immunity, the home-lane turn-off, and even the start-square capture
+  all fall out for free, and a dangerous-start landing self-rejects (the owner
+  captures it on entry) without a separate guard. A rival's reach is the six single
+  rolls {1–5, and a 6's twelve}; multi-roll 6-streak chains are deliberately
+  ignored. Still a flat ladder — the real upgrade stays a future search `Strategy`.
 - **2026-06-22** — **Move trajectories: dashed, track-following lines from a
   piton's origin to its destination — a live "where can I go" preview and a
   persisted record of previous moves.** *Non-obvious choices:* (1) **Lines follow

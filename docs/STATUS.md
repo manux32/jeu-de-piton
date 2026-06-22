@@ -141,8 +141,9 @@ the candidate list below, in no particular order:
 - **Smarter AI strategy.** The chosen near-term path is to **grow `greedyStrategy`
   itself in baby steps** — tweak the priority ladder and let each tier weigh more
   factors — playtesting between changes, rather than jumping straight to a wholesale
-  replacement. (Latest step: the ladder now reasons about the start-square capture
-  trap — see [decisions.md](decisions.md).) A richer rung might fold in blocking, or
+  replacement. (Latest step: a one-ply *dodge a capture* tier plus an un-clog-the-lane
+  tier — the ladder now does shallow lookahead via the engine's own `legalMoves`; see
+  [decisions.md](decisions.md).) A richer rung might fold in blocking, or
   racing the leader more deliberately; a fundamentally different brain (e.g. shallow
   lookahead) is still a clean drop-in later via the swappable-policy seam
   (`src/ai/strategy.ts`), no engine/UI change — and that seam is now player-facing:
