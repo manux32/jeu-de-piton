@@ -110,7 +110,10 @@ function capturableNextRoll(
  *   4. LEAVE THE NEST — get another piton into play.
  *   5. VACATE THE START SQUARE — move our piton off our own entry square so a
  *      nested piton can come out next turn; only while the nest isn't empty.
- *   6. REACH A SAFE SQUARE — land on a marked square, immune from capture.
+ *   6. REACH A SAFE SQUARE — land on a marked square, immune from capture. A
+ *      *dangerous* start (an opponent's start whose owner still nests a piton) is
+ *      marked safe yet isn't — the owner can pop out onto it and capture — so it
+ *      does NOT qualify here; such a move falls through to a later tier.
  *   7. UN-CLOG THE HOME LANE — advance any piton already in the home lane (safe
  *      where it sits, so this is free progress that also clears the lane for
  *      pitons still to come). Most-advanced first, so a piton that can land HOME
@@ -121,11 +124,14 @@ function capturableNextRoll(
  *      that escape. Skips a piton that can't get clear (moving wouldn't help).
  *   9. otherwise ADVANCE THE LEADER — move the furthest-along piton.
  *
- * Cutting across the predicate tiers (1–7) is one avoidance: never land on a
- * *dangerous* start square (an opponent's start whose owner still has a nested
- * piton) when a move that doesn't is available in the same tier — the mirror of
- * tier 2 on the landing side. Tier 8 needs no such guard: a dangerous-start
- * landing is, by definition, capturable next turn (the owner exits onto it), so
+ * Cutting across the predicate tiers (1–7) is one *soft* avoidance: prefer not to
+ * land on a *dangerous* start square (an opponent's start whose owner still has a
+ * nested piton), but take one if a tier offers nothing else — the mirror of tier 2
+ * on the landing side. The exception is tier 6, where the avoidance is *hard*: a
+ * dangerous start is marked safe yet is the one square a "reach safety" move must
+ * never pick, so it's excluded from the tier outright rather than merely
+ * deprioritised. Tier 8 needs no guard: a dangerous-start landing is, by
+ * definition, capturable next turn (the owner exits onto it), so
  * `capturableNextRoll` already rejects it as a non-escape.
  *
  * It walks tiers 1–7 top-down and plays the first that has any candidate; within
@@ -162,7 +168,10 @@ export const greedyStrategy: Strategy = (state, moves) => {
     (m) => m.from.kind === 'nest',
     (m) =>
       hasNestPiton && m.from.kind === 'track' && m.from.square === entryIndex,
-    (m) => m.to.kind === 'track' && safeSquares.includes(m.to.square),
+    (m) =>
+      m.to.kind === 'track' &&
+      safeSquares.includes(m.to.square) &&
+      !landsOnDangerousStart(m),
     (m) => m.from.kind === 'lane',
   ]
   for (const tier of tiers) {

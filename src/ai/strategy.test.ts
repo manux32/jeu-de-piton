@@ -146,6 +146,21 @@ describe('greedyStrategy — priority ladder', () => {
     expect(chosen.to).toEqual({ kind: 'track', square: 7 })
   })
 
+  it('does NOT treat a dangerous start as a safe square, even when it is the only one reachable', () => {
+    // red-0 at 33 + 1 lands on square 34 — a marked safe square, but it's yellow's
+    // start and yellow is still nested, so yellow can pop out onto it and capture.
+    // It's the ONLY safe-square landing on a 1 (red-1 at 30 → 31 isn't safe). Tier 6
+    // must skip it rather than parking there; the AI falls through to advancing the
+    // leader, which also shuns the trap — so red-1 moves instead.
+    let s = place(createGame(JEU_DE_PITON), 'red-0', { kind: 'track', square: 33 })
+    s = place(s, 'red-1', { kind: 'track', square: 30 })
+    const moves = legalMoves(s, 1)
+    expect(moves.some((m) => m.to.kind === 'track' && m.to.square === 34)).toBe(true) // guard the setup
+    const chosen = greedyStrategy(s, moves)
+    expect(chosen.pitonId).toBe('red-1')
+    expect(chosen.to).toEqual({ kind: 'track', square: 31 })
+  })
+
   it('deprioritises FINISHING FROM THE LANE below rushing a track piton to safety', () => {
     // red-0 in the home lane (step 6) finishes on a 1; red-1 at track 63 instead
     // enters the lane. The lane piton is already safe, so getting red-1 off the
