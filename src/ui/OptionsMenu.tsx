@@ -16,13 +16,15 @@ import { OPTIONS } from './strings'
 interface Props {
   /** Open the New Game setup window (closes this menu first). */
   onNewGame: () => void
+  /** Open the Game stats window (closes this menu first). */
+  onStats: () => void
   /** Open the Dev tools panel (closes this menu first). */
   onDev: () => void
   /** Dismiss the menu with no change. */
   onClose: () => void
 }
 
-export function OptionsMenu({ onNewGame, onDev, onClose }: Props) {
+export function OptionsMenu({ onNewGame, onStats, onDev, onClose }: Props) {
   return (
     <div
       className="options-panel"
@@ -38,6 +40,9 @@ export function OptionsMenu({ onNewGame, onDev, onClose }: Props) {
       <div className="options-items">
         <button type="button" className="options-item" onClick={onNewGame}>
           {OPTIONS.newGame}
+        </button>
+        <button type="button" className="options-item" onClick={onStats}>
+          {OPTIONS.stats}
         </button>
         <button type="button" className="options-item" onClick={onDev}>
           {OPTIONS.dev}

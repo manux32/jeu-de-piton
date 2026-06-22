@@ -18,7 +18,7 @@
  * Safe squares {0,7,12,17,24,29,34,41,46,51,58,63}.
  */
 import type { GameState, PitonPosition } from '../../engine'
-import type { GameView } from '../useGame'
+import { emptyStats, type GameView } from '../useGame'
 
 export interface DevScenario {
   /** Stable slug, also the filename stem. */
@@ -45,7 +45,7 @@ export interface DevScenario {
  */
 export function loadScenario(s: DevScenario): GameView {
   const { game } = s.build()
-  return { game, log: game.players.map(() => []) }
+  return { game, log: game.players.map(() => []), stats: game.players.map(() => emptyStats()) }
 }
 
 /** Immutably override a few pitons' positions on a freshly-built game. */

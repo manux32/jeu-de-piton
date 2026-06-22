@@ -119,6 +119,10 @@ export const SETUP_PANEL_BG = 'rgba(20, 18, 28, 0.94)'
  *  Game window so the two read as one family. */
 export const OPTIONS_PANEL_BG = 'rgba(20, 18, 28, 0.94)'
 
+/** Backdrop of the Game stats window — same family as the Options/New Game
+ *  windows. */
+export const STATS_PANEL_BG = 'rgba(20, 18, 28, 0.94)'
+
 // ── How strongly a player's colour shows through ────────────────────────────
 // These are see-through amounts (0 = invisible, 1 = solid), not sizes.
 /** Home-lane fill: the player's colour at a soft wash so the white shows through. */
@@ -413,6 +417,13 @@ export const SETUP_PALETTE_SWATCH_SIZE = 1.3  // pills in the open palette, in e
 //    window (see cross-platform-ui.md). One overall-size knob in [vmin]; the
 //    panel's layout is all `em` off it in index.css. Backdrop: OPTIONS_PANEL_BG.
 export const OPTIONS_WINDOW_SIZE = 3.5  // OVERALL size of the Options window, in vmin
+
+// ── Game stats window — same DOM-overlay pattern + sizing as the Options window
+//    (see cross-platform-ui.md). One overall-size knob in [vmin]; the panel's
+//    layout (a per-player table) is all `em` off it in index.css. Smaller than the
+//    Options window since it packs a denser table of numbers. Backdrop:
+//    STATS_PANEL_BG.
+export const STATS_WINDOW_SIZE = 2.6   // OVERALL size of the Game stats window, in vmin
 
 // ── Options gear button (the single button on the board — built as HTML at [px]
 //    size, then shrunk onto the board with CTRL_SCALE so its thin border stays

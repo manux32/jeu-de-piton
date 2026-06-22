@@ -50,8 +50,34 @@ export const OPTIONS = {
   title: 'Options',
   /** The menu rows, each opening its sub-window. */
   newGame: 'New game',
+  stats: 'Game stats',
   dev: 'Dev tools',
   /** Bottom-bar button that dismisses the Options window with no change. */
+  close: 'Close',
+} as const
+
+/** Copy for the Game stats window — a per-player scoreboard, opened from the win
+ *  popup or the Options menu. Players are columns (ordered most pitons home →
+ *  least); these label the rows. Totals are derived in the UI, not stored. */
+export const STATS = {
+  /** The window's heading. */
+  title: 'Game stats',
+  /** Column header for one seat — its capitalized colour name ("Red"). */
+  player: (color: string) => `${color.charAt(0).toUpperCase()}${color.slice(1)}`,
+  /** Row: how many of this seat's pitons reached HOME (shown as "n / total"). */
+  pitonsHome: 'Pitons home',
+  /** Section + its two sub-rows: captures this seat MADE. */
+  captures: 'Captures',
+  capturesRegular: 'Regular',
+  capturesStart: 'On start square',
+  /** Section + its three sub-rows: this seat's pitons sent back. */
+  losses: 'Pitons lost',
+  lostToCapture: 'Captured',
+  lostOnEnemyStart: "On enemy's start",
+  lostToThreeSixes: 'Triple-6 penalty',
+  /** Row: total 6s this seat rolled. */
+  sixes: '6s rolled',
+  /** Bottom-bar button that closes the window. */
   close: 'Close',
 } as const
 

@@ -344,6 +344,26 @@ code {
   white-space: nowrap;
   animation: win-pop 0.32s cubic-bezier(0.2, 1.2, 0.3, 1) both;
 }
+/* "Game stats" button on the win panel — opens the stats window without
+   dismissing the popup (its click is stopped from bubbling to the panel). Sized in
+   em so it scales with the headline; a quiet outlined pill in the winner's hue. */
+.win-stats {
+  font: inherit;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  margin: 0.1em 0 0;
+  font-size: 0.34em;
+  font-weight: 700;
+  padding: 0.55em 1.1em;
+  color: var(--win-color, #fff);
+  border: 0.12em solid var(--win-color, #fff);
+  border-radius: 999px;
+  background: transparent;
+}
+.win-stats:hover {
+  background: color-mix(in srgb, var(--win-color, #fff) 18%, transparent);
+}
 /* The quiet "tap to dismiss" hint under the headline — half size, dimmed. */
 .win-hint {
   font-size: 0.32em;
@@ -664,6 +684,96 @@ code {
   background: rgba(170, 59, 255, 0.18);
 }
 .options-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Game stats window — same DOM-overlay family as the Options/New Game windows (a
+   plain fixed layer over the viewport, NOT in the board SVG — see
+   cross-platform-ui.md). The overlay doubles as the scrim; the panel's base
+   font-size is set inline from STATS_WINDOW_SIZE (vmin) and every dimension below
+   is em off it, so that one knob scales the whole window. Sits at the same
+   z-index as the New Game/Options windows; it can open over the win popup. */
+.stats-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(8, 6, 13, 0.32);
+}
+.stats-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.73em;
+  width: min(24em, 92vmin);
+  box-sizing: border-box;
+  padding: 1.07em 1.2em 0.93em;
+  border-radius: 0.8em;
+  background: var(--stats-bg, rgba(20, 18, 28, 0.94));
+  color: #f3f1f6;
+  font-family: var(--heading);
+  line-height: 1.15;
+  box-shadow: 0 0.4em 1.87em rgba(0, 0, 0, 0.5);
+  animation: win-pop 0.28s cubic-bezier(0.2, 1.2, 0.3, 1) both;
+}
+.stats-panel button {
+  font: inherit;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  margin: 0;
+}
+.stats-title {
+  font-size: 1.27em;
+  font-weight: 800;
+  text-align: center;
+}
+/* The scoreboard: row labels down the left, one player per column. */
+.stats-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+/* Player column headers — each tinted its own colour (set inline). Right-aligned
+   to sit over their number columns; the top-left corner cell stays blank. */
+.stats-player {
+  text-align: right;
+  font-weight: 800;
+  padding: 0.2em 0.4em 0.47em;
+  white-space: nowrap;
+}
+.stats-label {
+  text-align: left;
+  font-weight: 600;
+  opacity: 0.85;
+  padding: 0.2em 0.4em;
+  white-space: nowrap;
+}
+.stats-cell {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  padding: 0.2em 0.4em;
+}
+/* A section total (Captures / Pitons lost) — fenced off above with a hairline and
+   set in full strength + weight; its detail rows sit indented beneath it. */
+.stats-row-section > .stats-label,
+.stats-row-section > .stats-cell {
+  font-weight: 800;
+  opacity: 1;
+  border-top: 0.067em solid rgba(255, 255, 255, 0.14);
+  padding-top: 0.4em;
+}
+/* The indented detail rows under a section — quieter and nudged right. */
+.stats-row-sub > .stats-label {
+  padding-left: 1.2em;
+  font-weight: 500;
+  opacity: 0.7;
+}
+.stats-row-sub > .stats-cell {
+  opacity: 0.85;
+}
+.stats-actions {
   display: flex;
   justify-content: flex-end;
 }

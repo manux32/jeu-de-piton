@@ -23,9 +23,10 @@ import { GearIcon } from './GearIcon'
 import { BoardTitle } from './BoardTitle'
 import { PROMPT, WIN, OPTIONS, type Notice } from './strings'
 import { GLYPHS, type Glyph } from './glyphs'
-import type { TurnEntry } from './useGame'
+import type { TurnEntry, PlayerStats } from './useGame'
 import { NewGameModal, type GameSetup } from './NewGameModal'
 import { OptionsMenu } from './OptionsMenu'
+import { StatsModal } from './StatsModal'
 import type { StrategyId } from '../ai/strategy'
 import {
   PLAYER_HEX,
@@ -71,6 +72,9 @@ interface Props {
    *  shown as stacked die+notice rows in that player's nest until their turn comes
    *  round again. See useGame.GameView. */
   log: TurnEntry[][]
+  /** Per-seat running tally for the whole game (indexed by player) — shown in the
+   *  Game stats window, opened from the win popup or the Options menu. */
+  stats: PlayerStats[]
   /** The seats a human controls (the rest are AI) — passed through to pre-fill
    *  the New Game setup window's per-seat type toggles. */
   humanSeats: number[]
@@ -125,6 +129,7 @@ export function GameBoard({
   face,
   rolling,
   log,
+  stats,
   humanSeats,
   seatStrategies,
   onPick,
@@ -143,6 +148,10 @@ export function GameBoard({
   // game until the player presses "Start game" in the New Game window.
   const [optionsOpen, setOptionsOpen] = useState(false)
   const [setupOpen, setSetupOpen] = useState(false)
+  // The Game stats window — opened from the win popup or the Options menu, closed
+  // by its own Close button. Independent of the win popup's dismissed state, so it
+  // can be reopened any time during a game.
+  const [statsOpen, setStatsOpen] = useState(false)
   // The Options gear is a single square button, so its box is just CTRL_SIZE.
   const ctrlW = CTRL_SIZE
 
@@ -477,11 +486,12 @@ export function GameBoard({
 
     {/* Win popup — a content-sized panel announcing the winner. The overlay is
         click-through, so the New Game button on the board behind it stays live;
-        tap the panel to dismiss and inspect the final board. */}
+        tap the panel (away from the Game stats button) to dismiss and inspect the
+        final board. The panel is a div, not a button, so it can hold its own
+        button — the stats button stops the click from also dismissing. */}
     {showWin && state.winner != null && (
       <div className="win-overlay">
-        <button
-          type="button"
+        <div
           className="win-panel"
           onClick={() => setDismissedWin(state)}
           style={
@@ -493,8 +503,18 @@ export function GameBoard({
           }
         >
           <span>{WIN.banner(state.winner)}</span>
+          <button
+            type="button"
+            className="win-stats"
+            onClick={(e) => {
+              e.stopPropagation()
+              setStatsOpen(true)
+            }}
+          >
+            {OPTIONS.stats}
+          </button>
           <span className="win-hint">{WIN.hint}</span>
-        </button>
+        </div>
       </div>
     )}
 
@@ -509,12 +529,25 @@ export function GameBoard({
             setOptionsOpen(false)
             setSetupOpen(true)
           }}
+          onStats={() => {
+            setOptionsOpen(false)
+            setStatsOpen(true)
+          }}
           onDev={() => {
             setOptionsOpen(false)
             onOpenDev()
           }}
           onClose={() => setOptionsOpen(false)}
         />
+      </div>
+    )}
+
+    {/* Game stats window — a per-player scoreboard, opened from the win popup or
+        the Options menu. A DOM overlay (scrim) like the others; its Close button
+        is the only way out, so it can sit over the win popup and return to it. */}
+    {statsOpen && (
+      <div className="stats-overlay">
+        <StatsModal state={state} stats={stats} onClose={() => setStatsOpen(false)} />
       </div>
     )}
 

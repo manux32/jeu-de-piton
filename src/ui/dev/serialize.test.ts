@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { createGame, JEU_DE_PITON } from '../../engine'
 import { place } from './scenario'
 import { serializeScenario, slugify } from './serialize'
-import type { GameView } from '../useGame'
+import { emptyStats, type GameView } from '../useGame'
 
 describe('slugify', () => {
   it('kebab-cases names and trims junk', () => {
@@ -18,6 +18,7 @@ describe('serializeScenario', () => {
   const view = (game: GameView['game']): GameView => ({
     game,
     log: game.players.map(() => []),
+    stats: game.players.map(() => emptyStats()),
   })
 
   it('emits a place map, skips nest-default pitons, and sets turn/roll/phase', () => {
