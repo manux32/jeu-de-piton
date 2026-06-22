@@ -19,7 +19,7 @@ to the normal load. *(A proper on/off gate is a later nicety; for now it's alway
 publicly — pure client-side state editing, no security surface.)* Engine stays
 untouched —
 scenarios dispatch a `load` action ([`useGame.ts`](../src/ui/useGame.ts)) carrying
-a full `GameView`. Three pieces:
+a full `GameView`. Four pieces:
 
 - **Scenario picker** — scenarios are one file each under
   [`scenarios/`](../src/ui/dev/scenarios/), auto-discovered via `import.meta.glob`
@@ -35,6 +35,12 @@ a full `GameView`. Three pieces:
   roll→phase, `extraTurnStreak`, per-piton position). Controlled reflection of the
   live `GameView`; runs no engine transitions, so illegal setups are allowed on
   purpose.
+- **Timing editor** ([`TimingEditor.tsx`](../src/ui/dev/TimingEditor.tsx)) — live,
+  session-only overrides of the `_MS` motion durations (die spin/hold, AI
+  roll/move pacing) plus a master multiplier that scales all of them *except*
+  `SPIN_TICK_MS`. theme.ts owns the defaults; the timer hooks read the live values
+  through the store in [`timing.ts`](../src/ui/timing.ts) (`useDieRoll`,
+  `useAiTurn`), so a tweak lands on the next roll/turn. Master 0× = no delay.
 - **Save as scenario** ([`SaveScenario.tsx`](../src/ui/dev/SaveScenario.tsx)) —
   name + description → [`serialize.ts`](../src/ui/dev/serialize.ts) (pure, unit-
   tested) → POST to a dev-only Vite middleware (`apply: 'serve'`,

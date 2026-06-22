@@ -30,7 +30,9 @@ import { useEffect } from 'react'
 import { legalMoves, type GameState } from '../engine'
 import type { Strategy } from '../ai/strategy'
 import type { GameAction } from './useGame'
-import { AI_ROLL_DELAY_MS, AI_MOVE_DELAY_MS } from './theme'
+// Read through the live store so the Dev tools panel can retune AI pacing at
+// runtime; theme.ts still owns the defaults it's seeded from.
+import { aiRollDelayMs, aiMoveDelayMs } from './timing'
 
 export function useAiTurn(
   game: GameState,
@@ -53,7 +55,7 @@ export function useAiTurn(
     if (game.phase === 'awaiting-roll') {
       // Pause, then roll — useDieRoll handles the spin/settle/handover, and its
       // own guards no-op if anything changed under us before the timer fired.
-      const timer = window.setTimeout(roll, AI_ROLL_DELAY_MS)
+      const timer = window.setTimeout(roll, aiRollDelayMs())
       return () => window.clearTimeout(timer)
     }
 
@@ -64,7 +66,7 @@ export function useAiTurn(
       if (moves.length === 0) return
       const timer = window.setTimeout(() => {
         dispatch({ type: 'pick', move: strategies[game.turn](game, moves) })
-      }, AI_MOVE_DELAY_MS)
+      }, aiMoveDelayMs())
       return () => window.clearTimeout(timer)
     }
   }, [game, isAiTurn, rolling, roll, dispatch, strategies])

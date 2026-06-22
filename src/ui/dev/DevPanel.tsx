@@ -10,6 +10,7 @@ import { useState } from 'react'
 import type { GameView } from '../useGame'
 import { loadScenario, type DevScenario } from './scenario'
 import { StateEditor } from './StateEditor'
+import { TimingEditor } from './TimingEditor'
 import { SaveScenario } from './SaveScenario'
 
 interface Props {
@@ -67,6 +68,7 @@ export function DevPanel({ view, scenarios, onLoad, onClose }: Props) {
       </section>
 
       <StateEditor view={view} onChange={onLoad} />
+      <TimingEditor />
       <SaveScenario view={view} />
     </aside>
   )

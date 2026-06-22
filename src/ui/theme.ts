@@ -179,11 +179,11 @@ export const PULSE_MAX = 0.9
  * "thinking" beats so a human can follow what the AI is doing. Raise them to slow
  * an AI-vs-AI game down to a watchable pace.
  */
-export const SPIN_MS = 1000
+export const SPIN_MS = 500
 export const SPIN_TICK_MS = 50
-export const HOLD_MS = 1000
-export const AI_ROLL_DELAY_MS = 600
-export const AI_MOVE_DELAY_MS = 600
+export const HOLD_MS = 500
+export const AI_ROLL_DELAY_MS = 500
+export const AI_MOVE_DELAY_MS = 500
 
 // ════════════════════════════════════════════════════════════════════════════
 // Handing a few values to the stylesheet (CSS)

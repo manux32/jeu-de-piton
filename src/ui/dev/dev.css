@@ -155,3 +155,27 @@
   background: var(--bg);
   color: var(--text-h);
 }
+
+/* Timing editor: a label + control(s) per row. Used for the master multiplier
+   (label + slider + number) and each per-knob duration (label + number + the
+   effective/exempt tag). */
+.dev-timing-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dev-timing-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  color: var(--text-h);
+}
+.dev-slider {
+  flex: 1;
+  min-width: 0;
+}
+.dev-timing-eff {
+  width: 64px;
+  font-size: 13px;
+  text-align: right;
+}

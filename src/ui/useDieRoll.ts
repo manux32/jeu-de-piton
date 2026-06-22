@@ -15,9 +15,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { applyRoll, rollDie, type GameState } from '../engine'
 import type { GameAction } from './useGame'
-// Roll timing lives with the other motion knobs in theme.ts (SPIN_MS: spin
-// duration, SPIN_TICK_MS: spin refresh, HOLD_MS: the no-move result hold).
-import { SPIN_MS, SPIN_TICK_MS, HOLD_MS } from './theme'
+// Roll timing (SPIN_MS: spin duration, SPIN_TICK_MS: spin refresh, HOLD_MS: the
+// no-move result hold) is read through the live store so the Dev tools panel can
+// retune it at runtime; theme.ts still owns the defaults it's seeded from.
+import { spinMs, spinTickMs, holdMs } from './timing'
 
 const randomFace = () => Math.floor(Math.random() * 6) + 1
 
@@ -84,7 +85,7 @@ export function useDieRoll(
     rollingRef.current = true
     setRolling(true)
 
-    const spin = setInterval(() => setOverride(randomFace()), SPIN_TICK_MS)
+    const spin = setInterval(() => setOverride(randomFace()), spinTickMs())
     timers.current.push(spin)
 
     const settle = setTimeout(() => {
@@ -96,9 +97,9 @@ export function useDieRoll(
         // Show the result in the *current* player's colour, then hand over after
         // a beat so the player sees what left them with no move.
         setOverride(value)
-        timers.current.push(setTimeout(() => finish(value), HOLD_MS))
+        timers.current.push(setTimeout(() => finish(value), holdMs()))
       }
-    }, SPIN_MS)
+    }, spinMs())
     timers.current.push(settle)
   }, [game, finish])
 
