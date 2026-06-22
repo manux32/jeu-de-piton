@@ -143,7 +143,9 @@ the candidate list below, in no particular order:
   factors — playtesting between changes, rather than jumping straight to a wholesale
   replacement. (Latest step: a one-ply *dodge a capture* tier plus an un-clog-the-lane
   tier — the ladder now does shallow lookahead via the engine's own `legalMoves`; see
-  [decisions.md](decisions.md).) A richer rung might fold in blocking, or
+  [decisions.md](decisions.md). *Worth a playtest:* un-clog-the-lane outranks
+  dodge, so the AI advances a safe lane piton even while a track piton sits in
+  danger — by design, but watch how it feels.) A richer rung might fold in blocking, or
   racing the leader more deliberately; a fundamentally different brain (e.g. shallow
   lookahead) is still a clean drop-in later via the swappable-policy seam
   (`src/ai/strategy.ts`), no engine/UI change — and that seam is now player-facing:
