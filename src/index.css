@@ -707,9 +707,9 @@ code {
   display: flex;
   flex-direction: column;
   gap: 0.73em;
-  width: min(24em, 92vmin);
+  width: min(26em, 94vmin);
   box-sizing: border-box;
-  padding: 1.07em 1.2em 0.93em;
+  padding: 1.07em 1.5em 0.93em;
   border-radius: 0.8em;
   background: var(--stats-bg, rgba(20, 18, 28, 0.94));
   color: #f3f1f6;
@@ -730,13 +730,23 @@ code {
   font-weight: 800;
   text-align: center;
 }
-/* The scoreboard: row labels down the left, one player per column. */
+/* The scoreboard: row labels down the left, one player per column. Fixed layout
+   so the player columns are all EQUAL width (auto layout sized each to its own
+   content, making the short "Red" column narrower than "Yellow"). The label
+   column is pinned wide enough for the longest row name; the rest of the panel is
+   split evenly across the player columns. */
 .stats-table {
   width: 100%;
+  table-layout: fixed;
   border-collapse: collapse;
 }
+/* The top-left corner cell is empty, but in a fixed layout its width sets the
+   whole label column's width — wide enough for "On enemy's start" etc. */
+.stats-corner {
+  width: 9em;
+}
 /* Player column headers — each tinted its own colour (set inline). Right-aligned
-   to sit over their number columns; the top-left corner cell stays blank. */
+   to sit over their number columns. */
 .stats-player {
   text-align: right;
   font-weight: 800;
@@ -748,11 +758,13 @@ code {
   font-weight: 600;
   opacity: 0.85;
   padding: 0.2em 0.4em;
-  white-space: nowrap;
 }
 .stats-cell {
   text-align: right;
   font-variant-numeric: tabular-nums;
+  /* Keep "n / 4" (and every count) on one line — the default normal wrapping was
+     breaking "3 / 4" across two lines in a narrow column. */
+  white-space: nowrap;
   padding: 0.2em 0.4em;
 }
 /* A section total (Captures / Pitons lost) — fenced off above with a hairline and
