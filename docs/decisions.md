@@ -10,6 +10,23 @@
 > [rules-and-lineage.md](rules-and-lineage.md), [board-model.md](board-model.md)).
 > Don't duplicate git history — capture reasoning a commit message wouldn't.
 
+- **2026-06-22** — **Per-game player stats scoreboard (captures / losses / 6s),
+  accumulated UI-side.** *Where it lives (the key call):* the per-seat tally is
+  built in [`useGame`](../src/ui/useGame.ts) by *observing* each engine transition
+  — the same pattern as the turn log — **not** in the engine. The rules core stays
+  pure; stats are a presentation ledger, not a rule. It accrues from the deal to the
+  win and, unlike the turn log, is **never wiped** at a handover. *Why the
+  "on start square" splits are exact, not heuristic:* every start square is a safe
+  square, so a *moving* piton can never capture on one — the only capture that lands
+  on a start square is leaving the nest straight onto your OWN start and bumping a
+  squatting enemy (the cabin start-square exception). So `from.kind === 'nest'` ⟺ a
+  start-square capture (its mirror is the victim's "on enemy's start"); every
+  movement capture is "regular." The triple-6 loss is counted **only when a piton
+  was actually lost**, gated on the same nest-count rise the turn log already reads.
+  *UI:* a separate Stats window ([`StatsModal`](../src/ui/StatsModal.tsx)) — not
+  crammed into the win popup — reusing the Options/New-Game overlay family + one
+  `STATS_WINDOW_SIZE` knob, opened from a button on the win popup or an Options-menu
+  row; players are columns, ranked by pitons home then total captures.
 - **2026-06-22** — **greedyStrategy's tail got two smarter tiers: un-clog the home
   lane, then a one-ply *dodge a capture*.** The old final pair (finish-from-lane →
   advance-leader) became: (7) **un-clog the home lane** — advance *any* lane piton,

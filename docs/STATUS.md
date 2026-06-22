@@ -27,13 +27,19 @@ opponents** — with **all persistent chrome rendered on the board SVG**, no HUD
 title — a small **"Pitons" logo wordmark** (the "i" is a pawn, the "o" a die) — the
 Options gear button, the centre die over HOME, per-nest notices, and a
 whose-turn corner wash. (The full-board modals — the win popup, the New Game
-window, and the Options menu — sit *over* the board as DOM overlays, not inside the
-SVG, so they centre reliably on iOS; each is sized by one `*_WINDOW_SIZE` knob.) The
+window, the Options menu, and the Game stats scoreboard — sit *over* the board as
+DOM overlays, not inside the SVG, so they centre reliably on iOS; each is sized by
+one `*_WINDOW_SIZE` knob.) The
 cabin ruleset is shipped end-to-end, including the start-square
 exception (engine `legalMoves` *and* the visual ownership arrows). **A single
 Options gear button is the one entry to every game option** (`OptionsMenu`): it
-opens a small window whose rows launch New Game and the Dev panel — future options
-add rows here. **New Game opens
+opens a small window whose rows launch New Game, the **Game stats** window, and the
+Dev panel — future options add rows here. **A per-game stats scoreboard**
+(`StatsModal`) tallies each seat's captures (split regular vs the start-square
+exception), pitons lost (captured / on an enemy's start / the triple-6 penalty),
+and 6s rolled — a players-as-columns table ranked by pitons home, opened from the
+win popup or the Options row; the tally is accrued UI-side by observing moves (the
+engine stays pure). **New Game opens
 a setup window over the board** (`NewGameModal`) to pick player count, each seat's
 **human/AI**, each seat's **colour** (a dropdown picker; kept distinct — picking one
 a seat holds swaps them), and **each AI seat's difficulty** (an Easy/Hard dropdown).
@@ -111,7 +117,8 @@ the candidate list below, in no particular order:
   natural next control to add — either to the New Game window or as its own Options
   row.
 - **Options menu — extensions.** The single gear button + the Options window
-  (`OptionsMenu`) ship; rows launch New Game and the Dev panel. Optional: tune the
+  (`OptionsMenu`) ship; rows launch New Game, the Game stats window, and the Dev
+  panel. Optional: tune the
   look via `OPTIONS_WINDOW_SIZE` + the `options-*` styles; the gear button reuses the
   `CTRL_*` knobs. Future options (e.g. a ruleset picker, sound/animation toggles)
   drop in as one more row + a label in `strings.OPTIONS`.
