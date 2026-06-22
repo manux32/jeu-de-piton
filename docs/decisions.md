@@ -10,6 +10,19 @@
 > [rules-and-lineage.md](rules-and-lineage.md), [board-model.md](board-model.md)).
 > Don't duplicate git history — capture reasoning a commit message wouldn't.
 
+- **2026-06-22** — **greedyStrategy tier 6 ("reach a safe square") now excludes a
+  *dangerous* start outright, not just via the soft guard.** *The trap:* every start
+  square is also a marked safe square (entries {0,17,34,51} ⊂ `safeSquares`), so a
+  move landing on an opponent's start counts as "safe" — but if that owner still nests
+  a piton, it exits onto the square and captures next turn, the opposite of safe. The
+  flat ladder's *general* dangerous-start avoidance didn't save us: it only
+  *deprioritises* such landings within a tier and falls back to "play one anyway if the
+  tier would otherwise empty" — so when the dangerous start was the *only* safe-square
+  landing, tier 6 took the bait. *Fix:* fold `!landsOnDangerousStart` into tier 6's
+  predicate so the move never qualifies as safety at all and falls through to a later
+  tier (where the leader fallback still shuns it). The soft guard stays for the other
+  tiers, where a dangerous-start landing can be a legitimate-but-risky move (e.g. a
+  capture). Tier 8 needs no such change — `capturableNextRoll` already self-rejects it.
 - **2026-06-22** — **Per-game player stats scoreboard (captures / losses / 6s),
   accumulated UI-side.** *Where it lives (the key call):* the per-seat tally is
   built in [`useGame`](../src/ui/useGame.ts) by *observing* each engine transition
