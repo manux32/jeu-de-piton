@@ -15,30 +15,76 @@ cover is **two dice**: `diceCount` exists as a knob but **nothing reads it**, an
 the whole turn engine is single-die to the bone. So the cost of a variant splits
 cleanly:
 
-- **Single-die variants** (Ludo, Petits Chevaux, cabin sub-variants) ≈ config +
-  maybe board art. Close to the "drops in with no engine change" dream.
+- **Single-die variants on a 4-arm cross** (Ludo, Petits Chevaux, cabin
+  sub-variants) ≈ config + small tuning. Close to the "drops in with no engine
+  change" dream — the board geometry is procedural, so even Ludo's different
+  proportions are absorbed (see "Board cost is about topology…" below).
 - **Canonical Parcheesi** = a **multi-session structural task**, because it's the
-  one mainstream variant built on two dice. It is the *hardest* variant we could
-  pick, not the easy proof-of-concept the backlog once imagined.
+  one mainstream variant built on two dice. It's the hardest variant *among those
+  that reuse our cross board* — but **not** the hardest imaginable: a board with a
+  *different topology* (a non-cross board) would cost more still. The cheap
+  proof-of-concept the backlog once imagined exists, but it's Ludo, not canonical.
 
 ## The variant landscape, easiest → hardest
 Difficulty is driven by two independent axes: **does it fit the single-die turn
-model?** and **does it reuse our exact board art?**
+model?** and **does the board share our topology?** That second axis is the one
+easy to get wrong — see "Board cost is about topology, not 'different board'"
+below. Both the engine board model ([`../src/engine/board.ts`](../src/engine/board.ts))
+and the UI layout ([`../src/ui/layout.ts`](../src/ui/layout.ts)) are **fully
+procedural over a generic 4-arm symmetric cross**, so a board with the same
+topology but different proportions mostly *flows through by changing numbers* —
+it does not need new layout code or hand-drawn art.
 
-| Variant | Dice | Fits turn model? | Board | Rough cost |
+| Variant | Dice | Fits turn model? | Board topology | Rough cost |
 | --- | --- | --- | --- | --- |
 | Cabin sub-variant (toggle one knob — e.g. allow stacking, change entry roll) | 1 | yes | ours | **trivial** — pure config |
 | Canonical-on-our-board, *single-die* hypothetical | 1 | yes | ours | small — config + a couple knobs |
-| Ludo | 1 | yes | **different** (52-track, enter on 6) | medium — config is easy, but the SVG board is hand-drawn for the Parcheesi cross, so new board art |
-| Petits Chevaux | 1 | yes | different | medium — like Ludo |
-| **Canonical Parcheesi** | **2** | **no** | ours | **large** — see below |
+| Ludo / Petits Chevaux | 1 | yes | **same cross** (52-track = 4×13), enter on 6 | **small** — geometry is procedural; cost is retuning one phase constant + *optional* restyling |
+| **Canonical Parcheesi** | **2** | **no** | ours | **large** — structural turn-model change, see below |
+| A non-cross board (Tock oval, hexagonal, circular…) | varies | — | **different** | **largest** — rewrites layout.ts's core assumptions |
 
-So the *truly* easiest real second variant is anything single-die: it exercises
-the variant seam without touching the part we never built. Ludo is mechanically a
-near-drop-in; its only real cost is that it needs its own board geometry +
-rendering (our hand-drawn SVG is a Parcheesi cross, not a Ludo board). Canonical
-Parcheesi is the opposite trade: it reuses our board exactly (it *is* a Parcheesi
-board) but breaks the turn model.
+So the *truly* easiest real second variant is anything single-die on a 4-arm
+cross: it exercises the variant seam without touching either part we'd have to
+rebuild. **Ludo is mechanically a near-drop-in** and, crucially, its board is the
+*same topology* as ours (it's the simplified English descendant of the same
+cross), so its geometry is absorbed too. Canonical Parcheesi is the opposite
+trade: it reuses our board exactly but breaks the single-die turn model. A board
+with a *different topology* is the only thing costlier than two dice.
+
+## Board cost is about topology, not "different board"
+The intuition that "a new board can't be cheap — we built so much visual
+machinery and centralized knobs" is half right, and worth pinning precisely so
+the wrong variant doesn't get ruled out:
+
+- **Same topology, different proportions (Ludo, Petits Chevaux): cheap.** A real
+  Ludo board *is* a 4-arm cross. Its 52-cell track is `4 × 13`, which feeds
+  straight through the procedural layout: `sideLen = (52/4 - 1)/2 = 6`,
+  `gridSize = 2·6 + 3 = 15` — the classic 15×15 Ludo grid, computed
+  automatically by [`buildLayout`](../src/ui/layout.ts). The engine's
+  [`makeGeometry`](../src/engine/board.ts) / [`entrySeats`](../src/engine/board.ts)
+  handle any `trackLength % 4 === 0` the same way. **No layout rewrite, no
+  hand-drawn art.** The only real costs:
+  1. **Retune one phase constant** — `SAFE_PHASE` in
+     [`../src/ui/layout.ts`](../src/ui/layout.ts) — so engine index 0 lands on
+     the correct cell for the new arm length (a small pinning task, exactly like
+     pinning the cabin board was).
+  2. **Restyling (optional, gradable).** An *authentic* Ludo look (solid-colour
+     full arms, big corner yards, arrows) differs from the Parcheesi look — but
+     that is the **`theme.ts` knob workflow the user already drives** (change/add
+     knob values + maybe a component tweak), not architecture. And it's
+     gradable: *minimal* Ludo = Ludo rules rendered in our current style (nearly
+     free); *authentic* Ludo = restyling on top.
+
+- **Different topology (non-cross): expensive.** A board that is *not* a 4-arm
+  symmetric cross — an oval Tock track, a hexagonal or circular board — breaks
+  [`buildLayout`](../src/ui/layout.ts)'s load-bearing assumptions (4-fold
+  symmetry, tile-one-arm-by-90°-rotation, square grid) and the engine's
+  `trackLength % 4 === 0` seating. **That** is a real layout-core rewrite, and
+  the only board change that costs *more* than two dice.
+
+So the honest ranking of "two dice vs. a different board" depends entirely on the
+board: two dice is **harder** than a same-topology board (Ludo) but **easier**
+than a different-topology one.
 
 ## What the `Ruleset` surface already covers (no engine change)
 These canonical differences are already pure data — see
