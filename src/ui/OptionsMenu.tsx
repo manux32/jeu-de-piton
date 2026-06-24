@@ -18,13 +18,15 @@ interface Props {
   onNewGame: () => void
   /** Open the Game stats window (closes this menu first). */
   onStats: () => void
+  /** Open the Game log window (closes this menu first). */
+  onLog: () => void
   /** Open the Dev tools panel (closes this menu first). */
   onDev: () => void
   /** Dismiss the menu with no change. */
   onClose: () => void
 }
 
-export function OptionsMenu({ onNewGame, onStats, onDev, onClose }: Props) {
+export function OptionsMenu({ onNewGame, onStats, onLog, onDev, onClose }: Props) {
   return (
     <div
       className="options-panel"
@@ -43,6 +45,9 @@ export function OptionsMenu({ onNewGame, onStats, onDev, onClose }: Props) {
         </button>
         <button type="button" className="options-item" onClick={onStats}>
           {OPTIONS.stats}
+        </button>
+        <button type="button" className="options-item" onClick={onLog}>
+          {OPTIONS.log}
         </button>
         <button type="button" className="options-item" onClick={onDev}>
           {OPTIONS.dev}

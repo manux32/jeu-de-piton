@@ -792,6 +792,110 @@ code {
   justify-content: flex-end;
 }
 
+/* Game log window — same DOM-overlay family as the Options/Stats windows (a plain
+   fixed layer over the viewport, NOT in the board SVG — see cross-platform-ui.md).
+   The overlay doubles as the scrim; the panel's base font-size is set inline from
+   LOG_WINDOW_SIZE (vmin) and every dimension below is em off it. The whole history
+   can be long, so the panel is height-capped and its middle (.log-scroll) scrolls;
+   the title and Close bar stay pinned. */
+.log-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(8, 6, 13, 0.32);
+}
+.log-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6em;
+  width: min(24em, 92vmin);
+  max-height: 86vh;
+  box-sizing: border-box;
+  padding: 1.07em 1.2em 0.93em;
+  border-radius: 0.8em;
+  background: var(--log-bg, rgba(20, 18, 28, 0.94));
+  color: #f3f1f6;
+  font-family: var(--heading);
+  line-height: 1.2;
+  box-shadow: 0 0.4em 1.87em rgba(0, 0, 0, 0.5);
+  animation: win-pop 0.28s cubic-bezier(0.2, 1.2, 0.3, 1) both;
+}
+.log-panel button {
+  font: inherit;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  margin: 0;
+}
+.log-title {
+  flex: none;
+  font-size: 1.27em;
+  font-weight: 800;
+  text-align: center;
+}
+/* The scrolling history area — grows to fill the capped panel, scrolls when the
+   log outruns it. min-height:0 lets it actually shrink inside the flex column so
+   the overflow scrolls (instead of pushing the Close bar off). */
+.log-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8em;
+  padding: 0.4em 0.2em;
+  border-top: 0.067em solid rgba(255, 255, 255, 0.12);
+  border-bottom: 0.067em solid rgba(255, 255, 255, 0.12);
+}
+.log-empty {
+  opacity: 0.6;
+  text-align: center;
+  padding: 1em 0;
+}
+/* One round block — a header, then the seats that played that round stacked. */
+.log-round {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35em;
+}
+.log-round-head {
+  font-weight: 800;
+  font-size: 1.05em;
+  opacity: 0.92;
+  padding-bottom: 0.1em;
+  border-bottom: 0.067em solid rgba(255, 255, 255, 0.1);
+}
+/* One seat's turn within a round: its colour label, then its finished notice
+   stack indented beneath. */
+.log-turn {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1em;
+  padding-left: 0.5em;
+}
+.log-player {
+  font-weight: 700;
+}
+/* The notice stack — reuses the board's .nest-notice-row atoms (via NoticeRow),
+   listed oldest→newest top-down (no clip, unlike the nest's bottom-anchored box).
+   Indented under the player label; base text is the panel's light colour, so the
+   rows read on the dark panel while their tinted runs keep their player hues. */
+.log-notice {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15em;
+  padding-left: 1.1em;
+}
+.log-actions {
+  flex: none;
+  display: flex;
+  justify-content: flex-end;
+}
+
 /* Game title rendered inside the board SVG (top-left). Drawn on the always-light
    board background, so a fixed dark fill reads in either page theme. Sized in
    viewBox units by <text font-size>, so it scales with the board. */

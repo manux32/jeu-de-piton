@@ -57,6 +57,21 @@ export interface TurnEntry {
 }
 
 /**
+ * One *completed* turn in the permanent game-log history: which seat played it and
+ * the stack of sub-turns they finished (the very rows their nest showed). Unlike
+ * the per-seat `log`, which is wiped each round, these are snapshotted the moment a
+ * seat's turn ends and kept for the whole game — the Game Log window reads them.
+ * The in-progress turn is never here (only finished stacks are snapshotted), so the
+ * log shows previous turns only, exactly like the board notices.
+ */
+export interface CompletedTurn {
+  /** The seat that played this turn (index into `state.players`). */
+  seat: number
+  /** Its finished sub-turns, oldest first — a copy of the seat's nest stack. */
+  entries: TurnEntry[]
+}
+
+/**
  * One seat's running tally for the whole game — a scoreboard shown in the Stats
  * window (totals are derived in the UI). Like the turn log, it's pure observation
  * of the engine's before/after states, never a re-derived rule; unlike the log it
@@ -107,6 +122,10 @@ export interface GameView {
   /** Per-seat running tally for the whole game (the Stats window). Indexed by
    *  player; accumulates from the deal to the win, never wiped at a handover. */
   stats: PlayerStats[]
+  /** Append-only full-game history, oldest turn first: every seat's completed
+   *  sub-turn stack, snapshotted when its turn ended. Never wiped except by New
+   *  Game. Powers the Game Log window. */
+  history: CompletedTurn[]
 }
 
 export type GameAction =
@@ -139,6 +158,7 @@ function init(playerCount: number, colors?: PlayerColor[]): GameView {
     game,
     log: game.players.map(() => []),
     stats: game.players.map(() => emptyStats()),
+    history: [],
   }
 }
 
@@ -278,9 +298,13 @@ function reducer(view: GameView, action: GameAction): GameView {
         ]),
       }
       // Game over: play has stopped, so no handover — the win line stays put and
-      // every seat keeps its log behind the popup. Otherwise hand over if the
-      // turn moved on (a non-bonus move), wiping the incoming seat's stale log.
-      return next.phase === 'game-over' ? logged : handover(logged, next, mover)
+      // every seat keeps its log behind the popup. There's no handover to snapshot
+      // the winning turn, so flush it into the history here, so the log ends on the
+      // win. Otherwise hand over if the turn moved on (a non-bonus move), wiping the
+      // incoming seat's stale log (handover snapshots the outgoing turn).
+      return next.phase === 'game-over'
+        ? { ...logged, history: [...logged.history, { seat: mover, entries: logged.log[mover] }] }
+        : handover(logged, next, mover)
     }
   }
 }
@@ -291,10 +315,20 @@ function reducer(view: GameView, action: GameAction): GameView {
  * — its entries are last-round history the player no longer needs to see, and its
  * nest shows the "Roll" prompt + centre die instead. A turn that *stays* with the
  * actor (a bonus 6 / game-over) is not a handover, so nothing is wiped.
+ *
+ * A real handover also marks the end of `actor`'s turn, so this is where their now
+ * finished stack is snapshotted (a copy) into the permanent `history` for the Game
+ * Log — once per turn, never the in-progress one (a bonus-6 stay returns early
+ * above, before any snapshot).
  */
 function handover(view: GameView, next: GameState, actor: number): GameView {
   if (next.turn === actor) return { ...view, game: next }
-  return { ...view, game: next, log: setAt(view.log, next.turn, []) }
+  return {
+    ...view,
+    game: next,
+    history: [...view.history, { seat: actor, entries: view.log[actor] }],
+    log: setAt(view.log, next.turn, []),
+  }
 }
 
 export function useGame(initialPlayers: number) {

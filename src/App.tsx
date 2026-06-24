@@ -16,7 +16,7 @@ const DevTools = lazy(() => import('./ui/dev/DevTools'))
 
 function App() {
   const [view, dispatch] = useGame(4)
-  const { game, log, stats } = view
+  const { game, log, stats, history } = view
 
   // Which seats a human controls; every other seat is driven by the AI. This is
   // controller config (not game/render state), so it lives here, not in the
@@ -71,6 +71,7 @@ function App() {
         rolling={rolling}
         log={log}
         stats={stats}
+        history={history}
         humanSeats={humanSeats}
         seatStrategies={seatStrategies}
         onPick={(move) => dispatch({ type: 'pick', move })}

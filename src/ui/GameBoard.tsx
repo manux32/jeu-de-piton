@@ -21,12 +21,14 @@ import { Trajectories } from './Trajectories'
 import { DieFace } from './DieFace'
 import { GearIcon } from './GearIcon'
 import { BoardTitle } from './BoardTitle'
+import { NoticeRow } from './NoticeRow'
 import { PROMPT, WIN, OPTIONS, type Notice } from './strings'
 import { GLYPHS, type Glyph } from './glyphs'
-import type { TurnEntry, PlayerStats } from './useGame'
+import type { TurnEntry, PlayerStats, CompletedTurn } from './useGame'
 import { NewGameModal, type GameSetup } from './NewGameModal'
 import { OptionsMenu } from './OptionsMenu'
 import { StatsModal } from './StatsModal'
+import { LogModal } from './LogModal'
 import type { StrategyId } from '../ai/strategy'
 import {
   PLAYER_HEX,
@@ -46,10 +48,6 @@ import {
   NOTICE_OFFSET_Y,
   NOTICE_WIDTH,
   NOTICE_MAX_LINES,
-  NOTICE_DIE_SIZE,
-  NOTICE_DIE_GLYPH_TEXT,
-  NOTICE_DIE_GLYPH_OFFSET_X,
-  NOTICE_DIE_GLYPH_OFFSET_Y,
   NOTICE_DEBUG_OUTLINE,
   NOTICE_FONT_PX,
   NOTICE_LINE_HEIGHT,
@@ -75,6 +73,9 @@ interface Props {
   /** Per-seat running tally for the whole game (indexed by player) — shown in the
    *  Game stats window, opened from the win popup or the Options menu. */
   stats: PlayerStats[]
+  /** Append-only full-game history (every completed turn, oldest first) — shown in
+   *  the Game log window, opened from the Options menu. */
+  history: CompletedTurn[]
   /** The seats a human controls (the rest are AI) — passed through to pre-fill
    *  the New Game setup window's per-seat type toggles. */
   humanSeats: number[]
@@ -130,6 +131,7 @@ export function GameBoard({
   rolling,
   log,
   stats,
+  history,
   humanSeats,
   seatStrategies,
   onPick,
@@ -152,6 +154,9 @@ export function GameBoard({
   // by its own Close button. Independent of the win popup's dismissed state, so it
   // can be reopened any time during a game.
   const [statsOpen, setStatsOpen] = useState(false)
+  // The Game log window — the full per-turn history, opened from the Options menu,
+  // closed by its own Close button. Independent of the other windows.
+  const [logOpen, setLogOpen] = useState(false)
   // The Options gear is a single square button, so its box is just CTRL_SIZE.
   const ctrlW = CTRL_SIZE
 
@@ -333,59 +338,14 @@ export function GameBoard({
             <foreignObject x={0} y={0} width={NEST_NOTICE_W} height={NEST_NOTICE_H}>
               <div className={cls} role="status" aria-live="polite">
                 {rows.map((row, ri) => (
-                  <div
+                  <NoticeRow
                     key={ri}
-                    className={row.current ? 'nest-notice-row nest-notice-row-current' : 'nest-notice-row'}
-                  >
-                    {(row.die != null || row.glyph != null) && (
-                      <svg
-                        className="nest-row-die"
-                        viewBox="-1.25 -1.25 2.5 2.5"
-                        style={{ width: `${NOTICE_DIE_SIZE}em`, height: `${NOTICE_DIE_SIZE}em` }}
-                        aria-hidden
-                      >
-                        <DieFace
-                          value={row.die ?? 1}
-                          cx={0}
-                          cy={0}
-                          size={2}
-                          color={dieColor}
-                          label={row.glyph ?? undefined}
-                          // The glyph fills the face (its own big knob). It's
-                          // bbox-centred, so the X/Y nudges stay at 0 — kept only
-                          // as optical escape hatches, independent of "Roll".
-                          labelSize={row.glyph != null ? NOTICE_DIE_GLYPH_TEXT : undefined}
-                          labelOffsetX={row.glyph != null ? NOTICE_DIE_GLYPH_OFFSET_X : undefined}
-                          labelOffsetY={row.glyph != null ? NOTICE_DIE_GLYPH_OFFSET_Y : undefined}
-                        />
-                      </svg>
-                    )}
-                    {/* One inner span so the tinted runs flow as inline text
-                        (spaces + wrapping intact) instead of each becoming its
-                        own flex item. */}
-                    <span>
-                      {typeof row.content === 'string'
-                        ? row.content
-                        : row.content.map((seg, i) => (
-                            <span
-                              key={i}
-                              style={seg.color ? { color: PLAYER_HEX[seg.color] } : undefined}
-                            >
-                              {seg.text}
-                            </span>
-                          ))}
-                    </span>
-                    {/* Live rows only: a right spacer the same width as the die so
-                        the centred text span is flanked symmetrically and lands on
-                        the nest centre (the die is pinned left). Finished rows have
-                        no spacer and stay left-aligned. */}
-                    {row.current && (
-                      <span
-                        aria-hidden
-                        style={{ flex: 'none', width: `${NOTICE_DIE_SIZE}em` }}
-                      />
-                    )}
-                  </div>
+                    die={row.die}
+                    glyph={row.glyph}
+                    content={row.content}
+                    current={row.current}
+                    dieColor={dieColor}
+                  />
                 ))}
               </div>
             </foreignObject>
@@ -533,6 +493,10 @@ export function GameBoard({
             setOptionsOpen(false)
             setStatsOpen(true)
           }}
+          onLog={() => {
+            setOptionsOpen(false)
+            setLogOpen(true)
+          }}
           onDev={() => {
             setOptionsOpen(false)
             onOpenDev()
@@ -548,6 +512,15 @@ export function GameBoard({
     {statsOpen && (
       <div className="stats-overlay">
         <StatsModal state={state} stats={stats} onClose={() => setStatsOpen(false)} />
+      </div>
+    )}
+
+    {/* Game log window — the full per-turn history (round → player → that seat's
+        finished notice stack), opened from the Options menu. A DOM overlay (scrim)
+        like the others; its own Close button is the only way out. */}
+    {logOpen && (
+      <div className="log-overlay">
+        <LogModal state={state} history={history} onClose={() => setLogOpen(false)} />
       </div>
     )}
 

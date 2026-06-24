@@ -123,6 +123,9 @@ export const OPTIONS_PANEL_BG = 'rgba(20, 18, 28, 0.94)'
  *  windows. */
 export const STATS_PANEL_BG = 'rgba(20, 18, 28, 0.94)'
 
+/** Backdrop of the Game log window — same family as the Options/Stats windows. */
+export const LOG_PANEL_BG = 'rgba(20, 18, 28, 0.94)'
+
 // ── How strongly a player's colour shows through ────────────────────────────
 // These are see-through amounts (0 = invisible, 1 = solid), not sizes.
 /** Home-lane fill: the player's colour at a soft wash so the white shows through. */
@@ -424,6 +427,12 @@ export const OPTIONS_WINDOW_SIZE = 3.5  // OVERALL size of the Options window, i
 //    Options window since it packs a denser table of numbers. Backdrop:
 //    STATS_PANEL_BG.
 export const STATS_WINDOW_SIZE = 2.6   // OVERALL size of the Game stats window, in vmin
+
+// ── Game log window — same DOM-overlay family. One overall-size knob in [vmin];
+//    the panel's layout (round/player blocks + the notice rows) is all `em` off it
+//    in index.css. The notice rows reuse the board's NoticeRow, so their die +
+//    text scale with this size. Backdrop: LOG_PANEL_BG.
+export const LOG_WINDOW_SIZE = 2.4     // OVERALL size of the Game log window, in vmin
 
 // ── Options gear button (the single button on the board — built as HTML at [px]
 //    size, then shrunk onto the board with CTRL_SCALE so its thin border stays

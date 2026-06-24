@@ -51,6 +51,7 @@ export const OPTIONS = {
   /** The menu rows, each opening its sub-window. */
   newGame: 'New game',
   stats: 'Game stats',
+  log: 'Game log',
   dev: 'Dev tools',
   /** Bottom-bar button that dismisses the Options window with no change. */
   close: 'Close',
@@ -77,6 +78,22 @@ export const STATS = {
   lostToThreeSixes: 'Triple-6 penalty',
   /** Row: total 6s this seat rolled. */
   sixes: '6s rolled',
+  /** Bottom-bar button that closes the window. */
+  close: 'Close',
+} as const
+
+/** Copy for the Game log window — the full per-turn history, grouped round →
+ *  player, each player's block showing that seat's finished notice stack (the same
+ *  die + outcome rows their nest showed). Opened from the Options menu. */
+export const LOG = {
+  /** The window's heading. */
+  title: 'Game log',
+  /** A round header — `n` is the 1-based round (one full pass round the table). */
+  round: (n: number) => `Round ${n}`,
+  /** A player block's label — its capitalized colour name ("Red"). */
+  player: (color: string) => `${color.charAt(0).toUpperCase()}${color.slice(1)}`,
+  /** Shown before anyone has completed a turn (the log is empty at the deal). */
+  empty: 'No turns played yet.',
   /** Bottom-bar button that closes the window. */
   close: 'Close',
 } as const
