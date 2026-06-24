@@ -92,3 +92,15 @@ permissive special case.
 ### Design consequence: direction is a UI concern
 The engine advances by *increasing* track index; counter-clockwise travel is the
 SVG layer's mapping. Direction never branches the rules core.
+
+### Design consequence: presentation state is derived by *observing* transitions
+Anything the UI needs that the rules don't own — the per-nest **notices**, the
+per-seat **turn log**, the **stats** tally, the full **game-log history** — is
+*not* added to engine state. Instead `useGame` ([`useGame.ts`](../src/ui/useGame.ts))
+computes it by **observing the before/after engine state across each transition**:
+it diffs what changed (a piton appeared in a nest ⇒ a capture or a 3rd-6 penalty; a
+piton reached `finished` ⇒ "got one home") rather than re-running or re-checking the
+rule. This is the recurring pattern that keeps the engine pure while the UI grows
+rich feedback — a *presentation ledger*, not a rule. When adding a new piece of
+derived feedback, reach for this seam (observe in `useGame`), **not** a new engine
+field. The dated instances → [decisions.md](decisions.md).

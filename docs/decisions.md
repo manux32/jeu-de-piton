@@ -3,12 +3,16 @@
 > Durable, append-only rationale log (ADR-style) — **read when revisiting *why* a
 > past choice was made**, not every session. Newest entry first.
 >
-> **Maintain:** when a real decision is made (architecture, rules, a pinned
-> value, a non-obvious tradeoff), prepend a dated bullet here. Keep it to *why*,
-> not blow-by-blow status — status belongs in [STATUS.md](STATUS.md), and the
-> resulting facts belong in their reference doc ([architecture.md](architecture.md),
-> [rules-and-lineage.md](rules-and-lineage.md), [board-model.md](board-model.md)).
-> Don't duplicate git history — capture reasoning a commit message wouldn't.
+> **Maintain — the admission test (apply before adding an entry):** an entry earns
+> its place *only* if it records a **why**, a **rejected alternative**, or a
+> **reusable gotcha** that `git log` + the diff wouldn't already show. If the bullet
+> could be reconstructed from the commit + its diff, it's per-change status narration
+> — that's git's job; don't write it here. Keep entries to *why*, not blow-by-blow
+> status (status → [STATUS.md](STATUS.md)); the resulting *facts* belong in their
+> reference doc ([architecture.md](architecture.md),
+> [rules-and-lineage.md](rules-and-lineage.md), [board-model.md](board-model.md),
+> [cross-platform-ui.md](cross-platform-ui.md)) with this log holding only the dated
+> rationale. Prepend new entries (newest first).
 
 - **2026-06-23** — **Pre-push hook runs the CI build, because `npm run dev` never
   type-checks.** *The failure it closes:* the Game-log change left a stale `GameView`

@@ -15,11 +15,22 @@ straight, to-the-point answer to what was actually asked. (He may choose to dive
 into the code later; revisit this then.)
 
 ## Orientation — docs are tiered; load lazily
-**At session start, read only [docs/STATUS.md](docs/STATUS.md)** (current state +
-backlog + open questions). Everything else is **reference — open it only when a
-task touches that area**, to keep session context lean:
-- **Architecture & vision** (engine/UI split, tech choices, goals/non-goals) →
-  [docs/architecture.md](docs/architecture.md)
+**At session start, read only [docs/STATUS.md](docs/STATUS.md)** (backlog + live
+open questions — *that's all it holds*). Everything else is **reference — open it
+only when a task touches that area**, to keep session context lean.
+
+**This list is the project's routing map: every kind of fact has exactly one home
+below, and everything else *points* instead of restating it** (the home-tree
+[single-source-of-truth directive](../../CLAUDE.md), applied here). When filing
+anything, route it to the one home; when you find the same fact in two places, the
+non-home copy is the bug — delete it and leave a pointer. The `/mnx-session-wrap`
+settling pass enforces this each session.
+
+- **Backlog + live open questions** (the only volatile, session-scoped facts) →
+  [docs/STATUS.md](docs/STATUS.md). **Not** an overview, capabilities list,
+  quick-ref, or why-log — those live below.
+- **What the game *is* + how it's built** (engine/UI/AI split, tech, goals/non-goals,
+  recurring patterns) → [docs/architecture.md](docs/architecture.md)
 - **Game lineage + canonical rules + cabin house-rules** → [docs/rules-and-lineage.md](docs/rules-and-lineage.md)
 - **Board model** (engine indices ↔ screen, seating, how a piton travels) →
   [docs/board-model.md](docs/board-model.md) — read before touching board geometry
@@ -27,8 +38,12 @@ task touches that area**, to keep session context lean:
 - **PC ↔ mobile parity** (iOS Safari `foreignObject` gotchas + do/don'ts) →
   [docs/cross-platform-ui.md](docs/cross-platform-ui.md) — read before authoring or
   moving any HTML inside the board SVG; desktop hides bugs that only bite the iPad.
-- ***Why* a past choice was made** (dated rationale log) → [docs/decisions.md](docs/decisions.md)
-- **Dev scenario rig** (the `src/ui/dev/` panel — now ships in every build) → [docs/dev-tooling.md](docs/dev-tooling.md)
+- ***Why* a past choice was made** (dated rationale log) → [docs/decisions.md](docs/decisions.md).
+  An entry earns its place only if it records *why* / a rejected alternative / a
+  reusable gotcha that `git log` + the diff wouldn't already show.
+- **Dev rig + commands + deploy** (`src/ui/dev/` panel, build/test commands, Pages
+  deploy) → [docs/dev-tooling.md](docs/dev-tooling.md) / [README](README.md).
+- **What changed, when** → git history (no doc mirrors it).
 - Original scaffold-time plan, frozen → [docs/archive/PLAN.md](docs/archive/PLAN.md)
 
 This is its own independent git repo (`manux32/jeu-de-piton`), nested under the

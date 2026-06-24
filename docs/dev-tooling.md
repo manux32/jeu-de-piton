@@ -3,8 +3,9 @@
 > Reference — **read when touching the dev rig** (`src/ui/dev/`), not every
 > session. The rig is feature-complete. *Why* it's shaped this way (knob-not-board
 > editor, lazy-not-dead-branched, the parameter-merge calls) lives in the
-> 2026-06-12 / -13 entries of [decisions.md](decisions.md). Current status +
-> day-to-day commands stay in [STATUS.md](STATUS.md).
+> 2026-06-12 / -13 entries of [decisions.md](decisions.md). Day-to-day commands
+> (`install`/`dev`/`build`/`test`/`make:icons`) live in the
+> [README](../README.md#develop); the backlog is in [STATUS.md](STATUS.md).
 
 A right-hand **Dev** panel drops the app into doctored board situations to validate
 UI/interaction fixes without playing up to them. It's opened from the **Dev tools**
@@ -78,3 +79,15 @@ NODE_OPTIONS=--use-system-ca node scripts/screenshot.mjs \
 `references/shot.png`; `--size WxH` / `--path <route>` / `--wait <ms>` round it
 out. Output is scratch — delete it after, like the SVG renders above. Handy for
 self-checking a board-unit-vs-px sizing change without a manual eyeball.
+
+## Deploy
+Push `main` → the GitHub Action ([`.github/workflows/deploy.yml`](../.github/workflows/deploy.yml))
+runs the production build (`npm run build` = `tsc -b && vite build`) and publishes
+to GitHub Pages (live URL in the [README](../README.md)). PWA icons regenerate from
+`public/favicon.svg` via `npm run make:icons`. A tracked
+[`.githooks/pre-push`](../.githooks/pre-push) hook runs that same CI build locally
+before every push and blocks on failure — so a type error `vite` dev skips can't
+reach a silent failed deploy (a failed build produces no Pages artifact, so the site
+just stops updating with no loud error). It auto-wires on `npm install` via the
+`prepare` script; bypass a real emergency with `git push --no-verify`. The *why* →
+[decisions.md](decisions.md) (2026-06-23).

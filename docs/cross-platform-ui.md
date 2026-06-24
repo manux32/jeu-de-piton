@@ -112,6 +112,14 @@ shape, which is what to copy for any future one:
   `SETUP_WINDOW_SIZE` / `OPTIONS_WINDOW_SIZE` (the panel's whole layout is `em` off
   that base font, so the knob scales the whole window). No board-unit/`scale()`
   plumbing.
+- **Left-aligned text inside an overlay needs two explicit resets** (learned building
+  the Game log; not iOS-specific — it bites desktop too): `#root` sets
+  `text-align: center` and it **inherits** into the overlay, so any panel that wants
+  left-aligned text must set `text-align: left` *itself*; and `align-items:
+  flex-start` shrink-wraps each child to its own content width, so centred text then
+  lands at a *different* x per block. For a tree/list layout (e.g. Round → player →
+  rows) use explicit `text-align: left` + full-width (stretch) blocks + pure
+  `padding-left` indents, so every level has a fixed, content-independent left edge.
 
 ## Note on the "all chrome on the board SVG" principle
 

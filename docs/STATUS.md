@@ -1,83 +1,25 @@
 # jeu-de-piton — status
 
-> **Fast-moving tracker — skim at session start.** Keep it short: *current state,
-> backlog, live open questions, dev quick-ref* only. Durable material lives
-> elsewhere — don't let it pile up here:
-> - architecture / vision → [architecture.md](architecture.md)
-> - rules → [rules-and-lineage.md](rules-and-lineage.md) · board geometry →
->   [board-model.md](board-model.md) · dev rig → [dev-tooling.md](dev-tooling.md)
-> - *why* a past choice was made → [decisions.md](decisions.md) (append new
->   decisions there, not here)
+> **Fast-moving tracker — skim at session start.** This file holds **only volatile
+> status: the backlog and live open questions.** Nothing else. It is deliberately
+> *not* an overview, a capabilities list, a dev quick-reference, or a why-log — every
+> such fact has exactly one home elsewhere (the full per-doc routing map is in
+> [CLAUDE.md](../CLAUDE.md)):
+> - what the game *is* / how it's built → [architecture.md](architecture.md) ·
+>   [rules-and-lineage.md](rules-and-lineage.md) · [board-model.md](board-model.md) ·
+>   [cross-platform-ui.md](cross-platform-ui.md)
+> - dev rig + commands + deploy → [dev-tooling.md](dev-tooling.md) /
+>   [README](../README.md)
+> - *why* a past choice was made → [decisions.md](decisions.md)
+> - what changed, when → git history
 >
-> Maintain: **"Where we are" is a date-free snapshot of the game's *current
-> capabilities*** — no dates, no shipped-feature narration. A date there (grep
-> `\d{4}-\d{2}-\d{2}`) means it's history that belongs in
-> [decisions.md](decisions.md): move it and leave the single pointer. The dated
-> *why* of how we got here is decisions.md's job, not this section's — that split
-> is the one source-of-truth rule this file most often breaks. Likewise across the
-> file: when a milestone closes or a fact gets pinned, move the detail to the right
-> reference doc and leave only a one-line pointer; don't narrate finished work. And
-> don't copy volatile/derived facts into prose: reference the command (`npm test`
-> for the test count) or the code symbol (`CTRL_SCALE`, not its value), never a
-> hand-kept copy that goes stale.
-
-## Where we are
-A **playable, polished** cross-and-circle race game — hot-seat **plus AI
-opponents** — with **all persistent chrome rendered on the board SVG**, no HUD: the
-title — a small **"Pitons" logo wordmark** (the "i" is a pawn, the "o" a die) — the
-Options gear button, the centre die over HOME, per-nest notices, and a
-whose-turn corner wash. (The full-board modals — the win popup, the New Game
-window, the Options menu, the Game stats scoreboard, and the Game log — sit *over*
-the board as DOM overlays, not inside the SVG, so they centre reliably on iOS; each
-is sized by one `*_WINDOW_SIZE` knob.) The
-cabin ruleset is shipped end-to-end, including the start-square
-exception (engine `legalMoves` *and* the visual ownership arrows). **A single
-Options gear button is the one entry to every game option** (`OptionsMenu`): it
-opens a small window whose rows launch New Game, the **Game stats** window, the
-**Game log** window, and the Dev panel — future options add rows here. **A per-game stats scoreboard**
-(`StatsModal`) tallies each seat's captures (split regular vs the start-square
-exception), pitons lost (captured / on an enemy's start / the triple-6 penalty),
-and 6s rolled — a players-as-columns table ranked by pitons home, opened from the
-win popup or the Options row; the tally is accrued UI-side by observing moves (the
-engine stays pure). **New Game opens
-a setup window over the board** (`NewGameModal`) to pick player count, each seat's
-**human/AI**, each seat's **colour** (a dropdown picker; kept distinct — picking one
-a seat holds swaps them), and **each AI seat's difficulty** (an Easy/Hard dropdown).
-Nothing applies until "Start game". Seats you don't control play themselves via a
-swappable **`Strategy`** — a pure third layer in [`src/ai/`](../src/ai/) chosen
-per-seat through an id→strategy seam (`STRATEGY_BY_ID`; labels in `strings.ts`);
-default you're seat 0, the rest AI on Hard; all-AI is allowed — watch it play.
-Player colours run beyond the four seat defaults — the engine `PlayerColor` union +
-an `ALL_PLAYER_COLORS` pickable palette currently add **orange** and **purple**
-(black/white wait on a render tweak — see backlog). Each seat keeps a **turn log** pinned in its nest until its turn comes round
-again: a stack of rows, one per sub-turn, each showing the die rolled and what it
-did — moves are described in words (left the nest, reached the home lane, got one
-home, reached a safe square, left the start square, a plain move, plus captures /
-extra rolls / forfeits / the streak penalty / the win). So a 6-streak shows
-several rows and, before you roll, you can read everything everyone did since.
-**A full Game log** (`LogModal`) is the persistent twin of that per-nest log: an
-append-only `history` (accrued in `useGame`, snapshotted when each turn ends —
-previous turns only, never the in-progress one) laid out as a scrollable, indented
-tree of Round → player → that seat's finished notice rows, the very rows the nest
-showed (rendered through the shared `NoticeRow`). Opened from the Options menu.
-**Move trajectories** can be drawn as dashed, track-following lines in each piton's
-colour: a live preview from every movable piton to where it would land, and a
-persisted history of the moves played since your last turn (a dot marks each
-origin) that clears when your turn returns, like the notices. Each seat rides its
-own parallel lane so overlapping routes don't draw on top of each other. The two
-features are independently toggleable — theme defaults, live-switchable in the Dev
-panel's General section. All
-look-and-feel is knob-driven from [theme.ts](../src/ui/theme.ts) and all UI copy
-from [strings.ts](../src/ui/strings.ts). Tests + build + lint are green (`npm test`
-for the count) and `src/ui/` stays rules-free.
-
-**Live on mobile** as an installable, offline-first PWA at
-**https://manux32.github.io/jeu-de-piton/** — auto-deploys from `main`.
-
-The engine/UI/AI layers + vision → [architecture.md](architecture.md); the
-session-by-session *why* (newest first, incl. AI, persistent notices, and the
-mobile/PWA caveats) → [decisions.md](decisions.md); shipped rules + board geometry →
-[rules-and-lineage.md](rules-and-lineage.md) / [board-model.md](board-model.md).
+> **Maintain (deterministic triggers, not judgment):** a line here is *misfiled* and
+> must be moved to its home doc + deleted here if it — (a) describes a shipped
+> capability in the present tense, (b) carries a date (`\d{4}-\d{2}-\d{2}` ⇒ history,
+> belongs in [decisions.md](decisions.md)), or (c) restates a command/why/overview
+> already homed above. When a backlog item ships, **delete it** — git is the
+> changelog; don't narrate finished work. The settling pass in `/mnx-session-wrap`
+> enforces this every session.
 
 ## Backlog — unscheduled; pick the next task with the user
 Nothing is pre-committed for next session. The game is mature, so future work is
@@ -167,26 +109,7 @@ the candidate list below, in no particular order:
   brain is registered there + given a label in `strings.ts`. The current rungs are
   surfaced as **Easy** (`randomStrategy`) / **Hard** (`greedyStrategy`).
 
-## Open rule details
-- **None open.** All cabin rules are confirmed and shipped as of 2026-06-13 — the
-  start-square exception was the last (engine + visual). Full ruleset, including the
-  resolved items, lives in [rules-and-lineage.md](rules-and-lineage.md).
-
-## Dev quick-ref
-- Basic commands (`npm install`/`dev`/`build`/`test`) → [README](../README.md#develop).
-  Dev server is port 5173 — see [CLAUDE.md](../CLAUDE.md) session-start policy.
-- **Dev scenario panel** now ships in **every** build (incl. the deployed PWA) so
-  mobile/iPad issues can be driven from scenarios — opened from the **Dev** button on
-  the board, right of New Game; panel chunk stays lazy. Lets you drop into doctored
-  board states to validate UI fixes, **live-tune the motion timings** (die
-  spin/hold, AI pacing) via a master multiplier, and **toggle the move-trajectory
-  features** (a **General** section at the top) — how it works → [dev-tooling.md](dev-tooling.md).
-  (A proper on/off gate is a later nicety; for now it's always on, incl. publicly.)
-- Eyeball a render **without** the dev server via a throwaway Vitest →
-  `references/` SVG → `scripts/render-board.mjs` (details in [dev-tooling.md](dev-tooling.md)).
-- **Deploy:** push `main` → the GitHub Action builds + publishes to Pages (live URL
-  above). PWA icons regenerate from `public/favicon.svg` via `npm run make:icons`. A
-  **`.githooks/pre-push`** guard runs the full `npm run build` (= the CI gate) before any
-  push, so a type error the dev server skips can't reach a silent failed deploy
-  (auto-wired on install via the `prepare` script; bypass with `--no-verify`) — why →
-  [decisions.md](decisions.md).
+## Open questions
+- **None open.** All cabin rules are confirmed and shipped; the full ruleset (incl.
+  the resolved items) lives in [rules-and-lineage.md](rules-and-lineage.md). New
+  open design questions — rules or otherwise — go here until resolved.
