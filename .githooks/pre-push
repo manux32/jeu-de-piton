@@ -1,0 +1,17 @@
+#!/bin/sh
+# Pre-push failsafe — run the SAME build CI runs (tsc -b && vite build) before a
+# push can leave this machine. The dev server (`npm run dev`) never type-checks,
+# so a type error in a test fixture or cold code path builds fine locally yet
+# fails CI's `tsc -b`, which silently kills the GitHub Pages deploy. This stops
+# that class of bug at the last local gate.
+#
+# Build only (no network, no NODE_OPTIONS needed) — mirrors exactly what gates
+# the deploy. Bypass for a genuine emergency with: git push --no-verify
+echo "pre-push: running 'npm run build' (CI parity check)…"
+if ! npm run build; then
+  echo "" >&2
+  echo "pre-push: build FAILED — fix the errors above before pushing." >&2
+  echo "          (override only if you must: git push --no-verify)" >&2
+  exit 1
+fi
+echo "pre-push: build OK — pushing."
