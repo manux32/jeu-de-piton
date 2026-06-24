@@ -200,6 +200,32 @@ describe('legalMoves — capture (rung 4)', () => {
     expect(forPiton(state, 5, 'red-0')).toEqual([])
   })
 
+  it('cannot capture an enemy on a safe square via the 12 either (a 6 moves 12)', () => {
+    // The 6→12 only changes distance, not the landing rule: safe-square immunity
+    // lives in resolveLanding, which never sees how far the piton came. Square 12
+    // is safe; red-0 at 0 + 12 lands exactly on blue-0 there → blocked, no capture.
+    // (Transit 1..11 is clear — square 7 is safe but empty — so only the LANDING
+    // rule can stop it.) The control below confirms the 12 *does* capture normally,
+    // so this isn't a vacuous pass.
+    let state = place(createGame(JEU_DE_PITON), 'red-0', { kind: 'track', square: 0 })
+    state = place(state, 'blue-0', { kind: 'track', square: 12 })
+    expect(forPiton(state, 6, 'red-0')).toEqual([])
+  })
+
+  it('CAN capture a lone enemy 12 away on a non-safe square (the 12 control)', () => {
+    // Square 13 is not safe; red-0 at 1 + 12 lands on blue-0 → capture.
+    let state = place(createGame(JEU_DE_PITON), 'red-0', { kind: 'track', square: 1 })
+    state = place(state, 'blue-0', { kind: 'track', square: 13 })
+    expect(forPiton(state, 6, 'red-0')).toEqual([
+      {
+        pitonId: 'red-0',
+        from: { kind: 'track', square: 1 },
+        to: { kind: 'track', square: 13 },
+        captures: 'blue-0',
+      },
+    ])
+  })
+
   it('never "captures" an ally — landing on your own is just blocked', () => {
     let state = place(createGame(JEU_DE_PITON), 'red-0', { kind: 'track', square: 0 })
     state = place(state, 'red-1', { kind: 'track', square: 3 })
