@@ -1,25 +1,11 @@
 # jeu-de-piton — status
 
-> **Fast-moving tracker — skim at session start.** This file holds **only volatile
-> status: the backlog and live open questions.** Nothing else. It is deliberately
-> *not* an overview, a capabilities list, a dev quick-reference, or a why-log — every
-> such fact has exactly one home elsewhere (the full per-doc routing map is in
-> [CLAUDE.md](../CLAUDE.md)):
-> - what the game *is* / how it's built → [architecture.md](architecture.md) ·
->   [rules-and-lineage.md](rules-and-lineage.md) · [board-model.md](board-model.md) ·
->   [cross-platform-ui.md](cross-platform-ui.md)
-> - dev rig + commands + deploy → [dev-tooling.md](dev-tooling.md) /
->   [README](../README.md)
-> - *why* a past choice was made → [decisions.md](decisions.md)
-> - what changed, when → git history
->
-> **Maintain (deterministic triggers, not judgment):** a line here is *misfiled* and
-> must be moved to its home doc + deleted here if it — (a) describes a shipped
-> capability in the present tense, (b) carries a date (`\d{4}-\d{2}-\d{2}` ⇒ history,
-> belongs in [decisions.md](decisions.md)), or (c) restates a command/why/overview
-> already homed above. When a backlog item ships, **delete it** — git is the
-> changelog; don't narrate finished work. The settling pass in `/mnx-session-wrap`
-> enforces this every session.
+> **Fast-moving tracker — skim at session start.** Holds **only the backlog + live
+> open questions** (the project's session-scoped state). Everything else — overview,
+> capabilities, commands, *why* — has its one home in the
+> [routing map](../CLAUDE.md); a line that belongs there is misfiled, so move it and
+> leave nothing here. Ship a backlog item ⇒ delete it (git is the changelog).
+> `/mnx-session-wrap` keeps this tidy each session.
 
 ## Backlog — unscheduled; pick the next task with the user
 Nothing is pre-committed for next session. The game is mature, so future work is
