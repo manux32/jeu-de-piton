@@ -14,6 +14,25 @@
 > [cross-platform-ui.md](cross-platform-ui.md)) with this log holding only the dated
 > rationale. Prepend new entries (newest first).
 
+- **2026-06-24** — **Docs restructured around single-source-of-truth; routing has
+  one home and a garbage collector.** *The failure:* STATUS's "Where we are" was a
+  capabilities snapshot — duplication *by construction*, since it restates the
+  reference docs — and both it and this log accreted because the system had writers
+  but no eviction step, while routing stayed a session-tail judgment call that
+  drifted. *The fix, by rung:* (1) STATUS now holds only backlog + open questions;
+  the per-doc **routing map moved into [CLAUDE.md](../CLAUDE.md)** (one home per
+  fact, deterministic lookup). (2) The reusable layer was harvested to its home
+  (observe-the-transition → [architecture.md](architecture.md); the overlay
+  text-align gotcha → [cross-platform-ui.md](cross-platform-ui.md); deploy →
+  [dev-tooling.md](dev-tooling.md)). (3) Enforcement was **promoted from a prose nag
+  to a mechanism** — a generic settling/eviction pass in `/mnx-session-wrap` runs
+  every session. *Why the skill stays generic* (not a per-project copy): the
+  mechanism has one home too, and reads each project's *declared* routing — its
+  contract is that routing must be declared legibly, or the settling step decays back
+  into judgment. *Rejected:* retiring this log for git — git shows what/when, not
+  synthesized *why* or rejected alternatives, so it stays in a lighter form gated by
+  an admission test (an entry must add a why/alternative/gotcha the diff wouldn't
+  show — this entry's own bar).
 - **2026-06-23** — **Pre-push hook runs the CI build, because `npm run dev` never
   type-checks.** *The failure it closes:* the Game-log change left a stale `GameView`
   test fixture missing the new `history` field. `vite` dev (and HMR) never run `tsc`, so
