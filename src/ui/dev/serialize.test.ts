@@ -19,6 +19,7 @@ describe('serializeScenario', () => {
     game,
     log: game.players.map(() => []),
     stats: game.players.map(() => emptyStats()),
+    history: [],
   })
 
   it('emits a place map, skips nest-default pitons, and sets turn/roll/phase', () => {
