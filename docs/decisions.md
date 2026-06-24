@@ -10,6 +10,20 @@
 > [rules-and-lineage.md](rules-and-lineage.md), [board-model.md](board-model.md)).
 > Don't duplicate git history — capture reasoning a commit message wouldn't.
 
+- **2026-06-23** — **Pre-push hook runs the CI build, because `npm run dev` never
+  type-checks.** *The failure it closes:* the Game-log change left a stale `GameView`
+  test fixture missing the new `history` field. `vite` dev (and HMR) never run `tsc`, so
+  it built fine locally — but CI's `npm run build` (`tsc -b && vite build`) failed, and a
+  failed build silently produces no Pages artifact, so the deploy just stops updating with
+  no loud error. The PC had the feature; the iPad (served from Pages) didn't. *The fix:*
+  a tracked [`.githooks/pre-push`](../.githooks/pre-push) that runs the exact CI gate
+  (`npm run build`) and blocks the push on failure — caught at the last local moment
+  instead of as a silent post-push deploy miss. *Why pre-push, not pre-commit:* commits
+  are frequent (one per step) and the build is the deploy gate, so push is the natural
+  once-per-batch checkpoint. *Why it survives clones:* a `prepare` npm script sets
+  `core.hooksPath .githooks` on install, so it's not a per-machine local tweak. Bypass for
+  a real emergency with `git push --no-verify`. Note this is a *local* mirror of CI, not a
+  replacement — CI stays the backstop; they now check the same thing.
 - **2026-06-23** — **Full Game log window — the persistent twin of the per-nest
   turn log.** *Where the data lives (the key call):* a new append-only `history` in
   [`useGame`](../src/ui/useGame.ts) — same observe-the-transition pattern as the turn

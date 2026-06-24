@@ -185,4 +185,8 @@ the candidate list below, in no particular order:
 - Eyeball a render **without** the dev server via a throwaway Vitest →
   `references/` SVG → `scripts/render-board.mjs` (details in [dev-tooling.md](dev-tooling.md)).
 - **Deploy:** push `main` → the GitHub Action builds + publishes to Pages (live URL
-  above). PWA icons regenerate from `public/favicon.svg` via `npm run make:icons`.
+  above). PWA icons regenerate from `public/favicon.svg` via `npm run make:icons`. A
+  **`.githooks/pre-push`** guard runs the full `npm run build` (= the CI gate) before any
+  push, so a type error the dev server skips can't reach a silent failed deploy
+  (auto-wired on install via the `prepare` script; bypass with `--no-verify`) — why →
+  [decisions.md](decisions.md).
