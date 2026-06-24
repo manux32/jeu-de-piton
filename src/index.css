@@ -811,7 +811,10 @@ code {
   display: flex;
   flex-direction: column;
   gap: 0.6em;
-  width: min(24em, 92vmin);
+  /* Wide enough that the longest notice ("Left start square · Capture! (purple)")
+     still fits on ONE line after the tree indents eat into the row — see
+     .log-notice white-space:nowrap. */
+  width: min(28em, 94vmin);
   max-height: 86vh;
   box-sizing: border-box;
   padding: 1.07em 1.2em 0.93em;
@@ -832,13 +835,15 @@ code {
 }
 .log-title {
   flex: none;
-  font-size: 1.27em;
+  font-size: 1.6em;
   font-weight: 800;
   text-align: center;
 }
 /* The scrolling history area — grows to fill the capped panel, scrolls when the
    log outruns it. min-height:0 lets it actually shrink inside the flex column so
-   the overflow scrolls (instead of pushing the Close bar off). */
+   the overflow scrolls (instead of pushing the Close bar off). align-items:
+   flex-start keeps each round/turn block only as wide as its content, left-packed
+   — the tree reads from a single left margin, not centred or stretched. */
 .log-scroll {
   flex: 1 1 auto;
   min-height: 0;
@@ -846,6 +851,7 @@ code {
   -webkit-overflow-scrolling: touch;
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 0.8em;
   padding: 0.4em 0.2em;
   border-top: 0.067em solid rgba(255, 255, 255, 0.12);
@@ -856,39 +862,49 @@ code {
   text-align: center;
   padding: 1em 0;
 }
-/* One round block — a header, then the seats that played that round stacked. */
+/* The tree's three left-aligned levels, each a step smaller than its parent
+   (round → player → notice). The sizes are em off the panel base (LOG_WINDOW_SIZE)
+   so the one knob still scales the whole window; the notice level (the floor) is
+   kept within ~10% of its board size — deeper contrast comes from enlarging the
+   parents, not shrinking the notice/die further. The indents climb with each
+   level so a child always sits right of its parent's text. */
+
+/* Round — outermost: biggest, no indent. */
 .log-round {
   display: flex;
   flex-direction: column;
-  gap: 0.35em;
+  gap: 0.3em;
 }
 .log-round-head {
   font-weight: 800;
-  font-size: 1.05em;
-  opacity: 0.92;
-  padding-bottom: 0.1em;
-  border-bottom: 0.067em solid rgba(255, 255, 255, 0.1);
+  font-size: 1.4em;
 }
-/* One seat's turn within a round: its colour label, then its finished notice
-   stack indented beneath. */
+/* One seat's turn: its colour label (indented from the round), then its finished
+   notice stack (indented again, beneath the label). */
 .log-turn {
   display: flex;
   flex-direction: column;
   gap: 0.1em;
-  padding-left: 0.5em;
+  padding-left: 1.1em;
 }
 .log-player {
   font-weight: 700;
+  font-size: 1.12em;
 }
 /* The notice stack — reuses the board's .nest-notice-row atoms (via NoticeRow),
    listed oldest→newest top-down (no clip, unlike the nest's bottom-anchored box).
-   Indented under the player label; base text is the panel's light colour, so the
-   rows read on the dark panel while their tinted runs keep their player hues. */
+   The floor of the size tree (0.9em ≈ 10% under its board size); indented under
+   the player label; base text is the panel's light colour, so the rows read on the
+   dark panel while their tinted runs keep their player hues. nowrap keeps each
+   notice on a single line (the panel is sized to fit the longest). */
 .log-notice {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 0.15em;
-  padding-left: 1.1em;
+  padding-left: 1.2em;
+  font-size: 0.9em;
+  white-space: nowrap;
 }
 .log-actions {
   flex: none;
