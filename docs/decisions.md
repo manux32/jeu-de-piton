@@ -10,6 +10,26 @@
 > [rules-and-lineage.md](rules-and-lineage.md), [board-model.md](board-model.md)).
 > Don't duplicate git history — capture reasoning a commit message wouldn't.
 
+- **2026-06-23** — **Full Game log window — the persistent twin of the per-nest
+  turn log.** *Where the data lives (the key call):* a new append-only `history` in
+  [`useGame`](../src/ui/useGame.ts) — same observe-the-transition pattern as the turn
+  log and the stats tally, **not** an engine concern. The non-obvious bit is *when* a
+  turn is recorded: a seat's finished stack is snapshotted **at turn-end** — inside
+  `handover` (which already fires once per real handover, and skips bonus-6 stays) plus
+  an explicit flush at game-over (no handover fires there, so the winning turn would be
+  lost otherwise). Snapshotting only *completed* stacks is what makes the log "previous
+  turns only" by construction — the in-progress turn is never in it, with no extra
+  filter. *One render source:* the board's per-row die+notice JSX was extracted into a
+  shared [`NoticeRow`](../src/ui/NoticeRow.tsx) so a log line and a nest line can't
+  drift. *Round grouping* is derived in `LogModal`, not stored: walk the flat turn list,
+  start a new round when the seat index stops climbing (robust to a skipped seat). *CSS
+  trap worth remembering for any future DOM-overlay panel:* `#root` sets
+  `text-align: center` and it **inherits**, so a panel that wants left-aligned text must
+  set `text-align: left` itself; and `align-items: flex-start` shrink-wraps each block to
+  its content width, so centred text then lands at a *different* x per block — the cause
+  of the first "mess of indentations" pass. Fix = explicit `text-align: left` + full-width
+  (stretch) blocks + pure `padding-left` indents, so every tree level has a fixed,
+  content-independent left edge.
 - **2026-06-22** — **greedyStrategy tier 6 ("reach a safe square") now excludes a
   *dangerous* start outright, not just via the soft guard.** *The trap:* every start
   square is also a marked safe square (entries {0,17,34,51} ⊂ `safeSquares`), so a

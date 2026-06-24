@@ -27,14 +27,14 @@ opponents** — with **all persistent chrome rendered on the board SVG**, no HUD
 title — a small **"Pitons" logo wordmark** (the "i" is a pawn, the "o" a die) — the
 Options gear button, the centre die over HOME, per-nest notices, and a
 whose-turn corner wash. (The full-board modals — the win popup, the New Game
-window, the Options menu, and the Game stats scoreboard — sit *over* the board as
-DOM overlays, not inside the SVG, so they centre reliably on iOS; each is sized by
-one `*_WINDOW_SIZE` knob.) The
+window, the Options menu, the Game stats scoreboard, and the Game log — sit *over*
+the board as DOM overlays, not inside the SVG, so they centre reliably on iOS; each
+is sized by one `*_WINDOW_SIZE` knob.) The
 cabin ruleset is shipped end-to-end, including the start-square
 exception (engine `legalMoves` *and* the visual ownership arrows). **A single
 Options gear button is the one entry to every game option** (`OptionsMenu`): it
-opens a small window whose rows launch New Game, the **Game stats** window, and the
-Dev panel — future options add rows here. **A per-game stats scoreboard**
+opens a small window whose rows launch New Game, the **Game stats** window, the
+**Game log** window, and the Dev panel — future options add rows here. **A per-game stats scoreboard**
 (`StatsModal`) tallies each seat's captures (split regular vs the start-square
 exception), pitons lost (captured / on an enemy's start / the triple-6 penalty),
 and 6s rolled — a players-as-columns table ranked by pitons home, opened from the
@@ -55,6 +55,11 @@ did — moves are described in words (left the nest, reached the home lane, got 
 home, reached a safe square, left the start square, a plain move, plus captures /
 extra rolls / forfeits / the streak penalty / the win). So a 6-streak shows
 several rows and, before you roll, you can read everything everyone did since.
+**A full Game log** (`LogModal`) is the persistent twin of that per-nest log: an
+append-only `history` (accrued in `useGame`, snapshotted when each turn ends —
+previous turns only, never the in-progress one) laid out as a scrollable, indented
+tree of Round → player → that seat's finished notice rows, the very rows the nest
+showed (rendered through the shared `NoticeRow`). Opened from the Options menu.
 **Move trajectories** can be drawn as dashed, track-following lines in each piton's
 colour: a live preview from every movable piton to where it would land, and a
 persisted history of the moves played since your last turn (a dot marks each
@@ -119,8 +124,8 @@ the candidate list below, in no particular order:
   natural next control to add — either to the New Game window or as its own Options
   row.
 - **Options menu — extensions.** The single gear button + the Options window
-  (`OptionsMenu`) ship; rows launch New Game, the Game stats window, and the Dev
-  panel. Optional: tune the
+  (`OptionsMenu`) ship; rows launch New Game, the Game stats window, the Game log
+  window, and the Dev panel. Optional: tune the
   look via `OPTIONS_WINDOW_SIZE` + the `options-*` styles; the gear button reuses the
   `CTRL_*` knobs. Future options (e.g. a ruleset picker, sound/animation toggles)
   drop in as one more row + a label in `strings.OPTIONS`.

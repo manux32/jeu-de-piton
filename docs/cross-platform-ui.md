@@ -95,9 +95,9 @@ Newest first. Each entry: symptom → cause → fix.
 ## How the modals are structured (the DOM-overlay pattern)
 
 The full-board modals live as DOM overlays, not in the SVG (established 2026-06-20;
-the *why* is in [decisions.md](decisions.md)). There are three — the win popup, the
-New Game window, and the Options menu — all the same shape, which is what to copy
-for any future one:
+the *why* is in [decisions.md](decisions.md)). Several do this — the win popup, the
+New Game window, the Options menu, the Game stats window, the Game log — all the same
+shape, which is what to copy for any future one:
 - **GameBoard returns a fragment** of its single `<svg>` plus the overlays as DOM
   siblings — they are no longer inside the `<svg>`. Their open state
   (`dismissedWin`, `setupOpen`, `optionsOpen`) stays in GameBoard; the Options gear
