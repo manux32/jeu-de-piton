@@ -176,3 +176,28 @@ brand's bonus-move rules:
   three-in-a-row** — so three consecutive 6s trip the lose-leading penalty even
   if none was playable. Encoded in `applyRoll` (a non-6 with no move still
   forfeits as before).
+
+## 2v2 partnership mode — CONFIRMED (2026-06-24)
+
+A team variant of the cabin rules: a 4-player game where the four seats form two
+teams of two. The base rules above are unchanged; team play only changes who is
+an ally, who keeps playing, and when the game ends.
+
+- **Teams.** Seats 1&3 are one team, seats 2&4 the other (partners sit on
+  opposite arms — the colours already alternate around the board).
+- **Partners are fully one side.** A teammate's piton counts exactly like your
+  own: you **cannot capture it**, **cannot pass through or land on it**, and it
+  **blocks** you the same way your own pitons do. (During normal play each player
+  still rolls and moves only their *own* pitons.)
+- **Finished-partner takeover (the tempo rule).** Once a player gets **all** their
+  own pitons HOME, they keep taking their turns but spend them **moving their
+  partner's** pitons. So while a team has one member home and one still running,
+  the team gets **two rolls per lap** on its remaining pitons — a deliberate,
+  significant closing advantage.
+- **Win.** The game ends when **every piton of both members of a team** is HOME.
+  The first team to do so wins.
+
+Implementation (engine, shipped 2026-06-24 — UI pending): a per-seat
+`GameState.teams` array (seat → team id); a free-for-all is the special case where
+each seat is its own team, so all the solo rules above are unchanged. See
+[architecture.md](architecture.md) for the model and the `movingSeat` seam.
