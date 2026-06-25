@@ -14,6 +14,22 @@
 > [cross-platform-ui.md](cross-platform-ui.md)) with this log holding only the dated
 > rationale. Prepend new entries (newest first).
 
+- **2026-06-25** — **2v2 read-back windows: the Game log stays chronological (a team
+  *tag*, not a regroup); the nest team letter is baked geometry.** Finishing the 2v2
+  UI (session two). *The design call (the user's, worth recording):* in a team game the
+  Game log prefixes each turn with a neutral `[A]`/`[B]` tag in true play order, rather
+  than re-clustering each round's turns under Team A/Team B headers. *Why / rejected
+  alternative:* a log's job is chronology — play alternates A,B,A,B within a round, and
+  reordering to group teammates would hide that real back-and-forth; the tag gives the
+  at-a-glance team read without lying about order. (The Game stats window does the
+  opposite on purpose — it's a *standings* table, so it groups columns by team, leading
+  team first, with a vertical separator.) *Also this session, applying the existing
+  rule not setting a new one:* the nest-centre team letter moved from live SVG `<text>`
+  to a bbox-centred baked `<path>` (added "A"/"B" to `gen-glyphs.mjs`), because live
+  `<text>` sat left+low — `textAnchor=middle` centres on advance width and
+  `dominant-baseline=central` reserves unused descender room — the same drift the die
+  labels hit (see the 2026-06-21 entry + [cross-platform-ui.md](cross-platform-ui.md)).
+  Confirms the standing rule: any new fixed glyph that must sit dead-centre gets baked.
 - **2026-06-25** — **2v2 is a derived state, not a UI mode flag.** The 2v2 UI half
   (New Game toggle + Team A/B headers, nest team labels, team win banner) reads
   "is this a team game?" everywhere as `new Set(state.teams).size < teams.length` —
