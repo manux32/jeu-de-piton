@@ -23,8 +23,9 @@ const outPath = resolve(here, '../src/ui/glyphs.ts')
 
 const font = opentype.parse(readFileSync(fontPath).buffer)
 
-// The fixed strings we draw on the dice (keep in sync with src/ui/strings.ts).
-const RUNS = { roll: 'Roll', glyph: '!' }
+// The fixed strings we bake (keep in sync with src/ui/strings.ts): the die labels
+// ("Roll", "!") plus the 2v2 nest-centre team letters.
+const RUNS = { roll: 'Roll', glyph: '!', teamA: 'A', teamB: 'B' }
 
 const D = 4 // decimals — em-space coords are 0..~1, so this is sub-pixel on board
 const upm = font.unitsPerEm
@@ -73,7 +74,7 @@ export interface Glyph {
   readonly cy: number
 }
 
-export const GLYPHS: Record<'roll' | 'glyph', Glyph> = {
+export const GLYPHS: Record<${Object.keys(RUNS).map((k) => `'${k}'`).join(' | ')}, Glyph> = {
 ${body}
 }
 `

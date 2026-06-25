@@ -9,7 +9,7 @@
  */
 import type { GameState } from '../engine'
 import { type BoardLayout, cellStart, cellSize, cellMid } from './layout'
-import { TEAM } from './strings'
+import { GLYPHS } from './glyphs'
 import {
   PLAYER_HEX,
   TEAM_LABEL_FILL,
@@ -143,6 +143,8 @@ export function Board({ state, layout }: Props) {
           quadrant (see layout.nestSlots / nestCentres) */}
       {layout.nestSlots.map((slots, p) => {
         const hex = PLAYER_HEX[state.players[p].color]
+        // The baked letter for this nest's team (2v2 only; unused otherwise).
+        const teamGlyph = GLYPHS[state.teams[p] === 0 ? 'teamA' : 'teamB']
         // The player to act gets their whole corner quadrant — the blank board
         // region between two arms, behind the nest — washed in their colour as the
         // whose-turn cue. It ships as a static highlight; flip NEST_FLASH
@@ -206,22 +208,23 @@ export function Board({ state, layout }: Props) {
                 strokeWidth={NEST_HOLE_STROKE_W}
               />
             ))}
-            {/* 2v2: the team name sits in the dead centre of the nest cluster (the
+            {/* 2v2: the team letter sits in the dead centre of the nest cluster (the
                 gap between the four holes), a neutral team marker. Pitons render in
-                the holes on top in <Pitons>, so they don't sit over this. */}
+                the holes on top in <Pitons>, so they don't sit over this. It's baked
+                outline geometry (glyphs.ts), not <text> — bbox-centred exactly onto
+                the cluster centre the same way DieFace centres its label, so it can't
+                drift left/low via font side-bearings or dominant-baseline (the very
+                bug live <text> had here; see cross-platform-ui.md). */}
             {isTeamGame && (
-              <text
-                x={nestCx}
-                y={nestCy}
-                textAnchor="middle"
-                dominantBaseline="central"
-                fontSize={TEAM_LABEL_SIZE}
-                fontWeight={700}
+              <path
+                d={teamGlyph.d}
                 fill={TEAM_LABEL_FILL}
                 pointerEvents="none"
-              >
-                {TEAM.letter(state.teams[p])}
-              </text>
+                transform={
+                  `translate(${nestCx}, ${nestCy}) scale(${TEAM_LABEL_SIZE})` +
+                  ` translate(${-teamGlyph.cx}, ${-teamGlyph.cy})`
+                }
+              />
             )}
           </g>
         )

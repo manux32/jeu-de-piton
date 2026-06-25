@@ -74,7 +74,7 @@ export const HOME_FILL = '#f3e7ec'
 export const DIE_FACE_FILL = '#fdfcf8'
 /** The empty nest holes — the near-white disc a waiting piece sits in. */
 export const NEST_HOLE_FILL = '#fdfcf8'
-/** The "Team A/B" label drawn in a nest centre in a 2v2 game (size lives in
+/** The "A"/"B" team letter drawn in a nest centre in a 2v2 game (size lives in
  *  GEOMETRY). A neutral dark so it reads as a team marker, not a player colour
  *  (the nest already carries the player's hue around it). */
 export const TEAM_LABEL_FILL = '#2b2b2b'
@@ -308,7 +308,7 @@ export const NEST_HOLE_R = 0.36        // radius of each empty hole
 export const NEST_HOLE_STROKE_W = 0.05 // hole border thickness
 export const NEST_WASH_RX = 0.6        // corner rounding of the whose-turn glow
 export const NEST_WASH_INSET = 0.15    // how far the glow sits in from the corner edges
-export const TEAM_LABEL_SIZE = 0.45     // font size of the "A"/"B" nest-centre team label (2v2 only), in board units
+export const TEAM_LABEL_SIZE = 0.65     // font size of the "A"/"B" nest-centre team label (2v2 only), in board units
 
 // ── Playing pieces (the disc, its "you can move me" halo, finished pieces) ──
 export const PITON_R = 0.3              // radius of a piece
