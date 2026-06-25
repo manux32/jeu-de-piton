@@ -35,7 +35,7 @@ describe('createGame — opening state', () => {
   it('seats the ruleset default of 4 players, 4 pitons each, all in the nest', () => {
     const state = createGame(JEU_DE_PITON)
     expect(state.players).toHaveLength(4)
-    expect(state.players.map((p) => p.color)).toEqual(['red', 'blue', 'yellow', 'green'])
+    expect(state.players.map((p) => p.color)).toEqual(['green', 'red', 'blue', 'yellow'])
     for (const player of state.players) {
       expect(player.pitons).toHaveLength(4)
       for (const piton of player.pitons) {
@@ -48,16 +48,16 @@ describe('createGame — opening state', () => {
   it('gives each piton a stable, owner-scoped id', () => {
     const state = createGame(JEU_DE_PITON)
     expect(state.players[0].pitons.map((p) => p.id)).toEqual([
+      'green-0',
+      'green-1',
+      'green-2',
+      'green-3',
+    ])
+    expect(state.players[1].pitons.map((p) => p.id)).toEqual([
       'red-0',
       'red-1',
       'red-2',
       'red-3',
-    ])
-    expect(state.players[1].pitons.map((p) => p.id)).toEqual([
-      'blue-0',
-      'blue-1',
-      'blue-2',
-      'blue-3',
     ])
   })
 
@@ -92,7 +92,7 @@ describe('createGame — opening state', () => {
 
   it('honors a player-count override, seating 2 players on opposite arms', () => {
     const state = createGame(JEU_DE_PITON, 2)
-    expect(state.players.map((p) => p.color)).toEqual(['red', 'blue'])
+    expect(state.players.map((p) => p.color)).toEqual(['green', 'red'])
     expect(state.geometry.entryIndices).toEqual([0, 34])
   })
 

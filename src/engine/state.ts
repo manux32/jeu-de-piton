@@ -16,7 +16,7 @@ import { makeGeometry } from './board'
  * to which physical arm is a board-layout concern; the engine only cares about
  * the index ordering.)
  */
-export const PLAYER_COLORS: PlayerColor[] = ['red', 'blue', 'yellow', 'green']
+export const PLAYER_COLORS: PlayerColor[] = ['green', 'red', 'blue', 'yellow']
 
 /**
  * The full palette a seat may be switched to in New Game, in picker order — the
