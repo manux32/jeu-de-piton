@@ -14,6 +14,18 @@
 > [cross-platform-ui.md](cross-platform-ui.md)) with this log holding only the dated
 > rationale. Prepend new entries (newest first).
 
+- **2026-06-25** — **Trajectory geometry follows the piton's OWNER seat, not the
+  seat that played it.** In 2v2 a finished seat plays its partner's pitons, but
+  `Trajectories.pathPoints` was keyed on the playing seat for *all* private
+  geometry — entry index, home-lane cells (`laneCells[p]`), and nest cluster
+  (`nestSlots[p]`). Track→track moves round-trip through `progressOf`/`positionAt`
+  for any entry, so they looked fine; only **home-lane** and **nest-exit** moves
+  (the cases that read owner-private geometry) drew on the wrong arm. Fix: thread
+  the owner seat through `pathPoints` (live preview derives it from
+  `Move.pitonId`; the history log entry now records `move.owner` since it only
+  stored `{from,to}`). Colour still comes from the playing seat — that was always
+  correct. Gotcha to keep: **anything that maps a move to screen geometry must use
+  the owner, not `state.turn`/the log's seat key.**
 - **2026-06-25** — **Default seat colours reordered to green/red/blue/yellow; a
   "seat" abstraction was considered and rejected.** Changed `PLAYER_COLORS` so each
   mode's default falls out of one shared prefix (2p green/red, 3p +blue, 4p & 2v2

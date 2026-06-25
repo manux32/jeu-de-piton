@@ -52,8 +52,14 @@ export interface TurnEntry {
    * persisted trajectory line for it (see Trajectories). NOT shown in the nest
    * notice (which reads only `die`/`notice`). Absent for sub-turns with no piece
    * move: a forfeit, an unplayable bonus 6, or the streak penalty.
+   *
+   * `owner` is the seat that OWNS the moved piton, which differs from the seat
+   * that played it when a finished 2v2 seat plays its partner's piton. The
+   * trajectory's screen geometry (entry, home lane, nest) is the owner's, even
+   * though the line is drawn in the playing seat's colour — so the line must
+   * carry the owner, not be assumed to match the log's seat key.
    */
-  move?: { from: PitonPosition; to: PitonPosition }
+  move?: { from: PitonPosition; to: PitonPosition; owner: number }
 }
 
 /**
@@ -289,13 +295,20 @@ function reducer(view: GameView, action: GameAction): GameView {
         }
       }
 
+      // The piton's owner — same as `mover` except when a finished 2v2 seat is
+      // playing its partner's piton, where the trajectory must follow the
+      // partner's arm geometry (lane/nest), not the playing seat's.
+      const owner = prev.players.findIndex((pl) =>
+        pl.pitons.some((pt) => pt.id === action.move.pitonId),
+      )
+
       const logged: GameView = {
         ...view,
         game: next,
         stats,
         log: setAt(view.log, mover, [
           ...view.log[mover],
-          { die, notice: joinNotice(parts), move: { from: action.move.from, to: action.move.to } },
+          { die, notice: joinNotice(parts), move: { from: action.move.from, to: action.move.to, owner } },
         ]),
       }
       // Game over: play has stopped, so no handover — the win line stays put and
