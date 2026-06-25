@@ -133,8 +133,9 @@ export type GameAction =
   | { type: 'pick'; move: Move }
   // Start a fresh game. `colors` (optional) sets each seat's colour from the New
   // Game setup window; its length is the player count. Omit it and `playerCount`
-  // chooses the count with the default seat→colour order.
-  | { type: 'newGame'; playerCount: number; colors?: PlayerColor[] }
+  // chooses the count with the default seat→colour order. `teams` (optional) sets
+  // each seat's team id for 2v2 (`[0,1,0,1]`); omit it for a free-for-all.
+  | { type: 'newGame'; playerCount: number; colors?: PlayerColor[]; teams?: number[] }
   // DEV-only: drop a fully-built view straight in (see src/ui/dev/).
   | { type: 'load'; view: GameView }
 
@@ -152,8 +153,8 @@ const bumpStat = (
   key: keyof PlayerStats,
 ): PlayerStats[] => setAt(stats, seat, { ...stats[seat], [key]: stats[seat][key] + 1 })
 
-function init(playerCount: number, colors?: PlayerColor[]): GameView {
-  const game = createGame(JEU_DE_PITON, playerCount, colors)
+function init(playerCount: number, colors?: PlayerColor[], teams?: number[]): GameView {
+  const game = createGame(JEU_DE_PITON, playerCount, colors, teams)
   return {
     game,
     log: game.players.map(() => []),
@@ -206,7 +207,7 @@ function describeMove(move: Move, before: GameState, mover: number): Notice[] {
 function reducer(view: GameView, action: GameAction): GameView {
   switch (action.type) {
     case 'newGame':
-      return init(action.playerCount, action.colors)
+      return init(action.playerCount, action.colors, action.teams)
 
     case 'load':
       return action.view

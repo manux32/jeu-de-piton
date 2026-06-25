@@ -29,6 +29,13 @@
  * captures, no safe squares. When all of a player's pitons are HOME, `applyMove`
  * ends the game (winner set, no extra turn even off a 6). Earlier rung 2 covers
  * ENTRY (nest → entry square).
+ *
+ * TEAMS (2v2) layer cleanly on top via `GameState.teams` and `movingSeat`: a
+ * teammate counts as an ally everywhere (no capture, no passing through, blocks
+ * like your own), the win condition is the whole TEAM home, and a seat whose own
+ * pitons are all HOME spends its turns moving its partner's pitons. A free-for-
+ * all is the special case where each seat is its own team, so every function here
+ * behaves exactly as before.
  */
 
 import type { GameState, Move, PitonPosition } from './types'
@@ -56,13 +63,45 @@ function pitonOnSquare(
   return null
 }
 
+/** Do seats `a` and `b` share a team? In a free-for-all every seat is its own
+ *  team, so this is just `a === b`. */
+function sameTeam(state: GameState, a: number, b: number): boolean {
+  return state.teams[a] === state.teams[b]
+}
+
+/** Are all of seat `s`'s own pitons HOME? */
+function seatFinished(state: GameState, s: number): boolean {
+  return state.players[s].pitons.every((p) => p.position.kind === 'finished')
+}
+
 /**
- * Is one of the CURRENT player's own pitons sitting at lane cell `step`? Lanes
- * are private, so this is the only occupancy that matters inside a home lane —
- * no enemy can be there, and there are no safe squares or captures in-lane.
+ * Which seat's pitons the player on the clock actually moves this turn. Normally
+ * its own — but once all of its own pitons are HOME, it takes over its (still
+ * unfinished) teammate's pitons: the partnership tempo rule, where a finished
+ * player keeps rolling on the team's behalf, so the team effectively gets two
+ * turns per lap on what's left. With no teams (each seat its own team) the loop
+ * finds no teammate, so this is always `state.turn` and every rule below stays
+ * the solo rule. A whole team being HOME is game-over, so the final fallback
+ * (return `turn`) only ever yields a seat that has no legal move anyway.
  */
-function ownPitonAtLaneStep(state: GameState, step: number): boolean {
-  return state.players[state.turn].pitons.some(
+export function movingSeat(state: GameState): number {
+  const { turn } = state
+  if (!seatFinished(state, turn)) return turn
+  for (let s = 0; s < state.players.length; s++) {
+    if (s !== turn && sameTeam(state, s, turn) && !seatFinished(state, s)) return s
+  }
+  return turn
+}
+
+/**
+ * Is one of seat `seat`'s own pitons sitting at lane cell `step`? Lanes are
+ * private (one per arm), so this is the only occupancy that matters inside a home
+ * lane — no enemy or teammate can be there, and there are no safe squares or
+ * captures in-lane. `seat` is the piton's owner (the `movingSeat`), not
+ * necessarily the seat on the clock.
+ */
+function ownPitonAtLaneStep(state: GameState, seat: number, step: number): boolean {
+  return state.players[seat].pitons.some(
     (p) => p.position.kind === 'lane' && p.position.step === step,
   )
 }
@@ -78,16 +117,19 @@ function rollStep(state: GameState, roll: number): number {
  * rules forbid passing through any of them. The landing square `p1` itself is
  * judged separately by `resolveLanding` — this is only about transit.
  *
- *  - an ALLY crossed en route → blocked (you may not pass your own piton);
+ *  - an ALLY crossed en route → blocked (you may not pass your own piton, and a
+ *    teammate counts as your own — partners are one side);
  *  - an occupied SAFE square crossed en route → blocked (it blocks everyone);
  *  - a lone enemy on a non-safe square en route → passed freely.
  *
  * Crossed progress beyond the shared track (`>= trackPathLength`) lies in the
  * mover's PRIVATE home lane: only the mover's own piton can sit there and it
- * still blocks passage; enemies and safe squares don't exist in-lane.
+ * still blocks passage; enemies, teammates, and safe squares don't exist in-lane.
+ * `seat` is the moving piton's owner (the `movingSeat`).
  */
 function passageBlocked(
   state: GameState,
+  seat: number,
   entryIndex: number,
   p0: number,
   p1: number,
@@ -97,13 +139,13 @@ function passageBlocked(
   for (let k = p0 + 1; k < p1; k++) {
     if (k >= trackPathLength) {
       // private lane cell — blocked only by your own piton already there
-      if (ownPitonAtLaneStep(state, k - trackPathLength)) return true
+      if (ownPitonAtLaneStep(state, seat, k - trackPathLength)) return true
       continue
     }
     const square = (entryIndex + k) % trackLength
     const occupant = pitonOnSquare(state, square)
     if (occupant === null) continue
-    if (occupant.player === state.turn) return true // can't pass your own piton
+    if (sameTeam(state, occupant.player, seat)) return true // can't pass own/teammate
     if (safeSquares.includes(square)) return true // occupied safe square blocks all
     // else: a lone enemy on a non-safe square — pass freely
   }
@@ -117,27 +159,29 @@ function passageBlocked(
  *
  * On the shared TRACK:
  *  - empty square → legal, no capture;
- *  - an ALLY → blocked (no stacking on your own);
+ *  - an ALLY (own or teammate) → blocked (no stacking, and you never capture a
+ *    partner — partners are one side);
  *  - an enemy on a SAFE square → blocked (immune — no capture there);
  *  - a lone enemy off a safe square → capture (its id), if capture is enabled.
  *
  * In the private home LANE: blocked only by your own piton already on that cell
  * (no enemies, no captures). Reaching HOME (`finished`) is always clear — any
- * number of a player's pitons may rest there.
+ * number of a player's pitons may rest there. `seat` is the moving piton's owner.
  */
 function resolveLanding(
   state: GameState,
+  seat: number,
   dest: PitonPosition,
 ): string | null | 'blocked' {
   if (dest.kind === 'finished') return null // HOME — always reachable
   if (dest.kind === 'lane') {
-    return ownPitonAtLaneStep(state, dest.step) ? 'blocked' : null
+    return ownPitonAtLaneStep(state, seat, dest.step) ? 'blocked' : null
   }
   if (dest.kind === 'nest') return null // unreachable as a destination here
   const square = dest.square
   const occupant = pitonOnSquare(state, square)
   if (occupant === null) return null
-  if (occupant.player === state.turn) return 'blocked' // land on own piton
+  if (sameTeam(state, occupant.player, seat)) return 'blocked' // own/teammate piton
   if (state.ruleset.safeSquares.includes(square)) return 'blocked' // enemy is safe
   if (!state.ruleset.captureEnabled) return 'blocked'
   return occupant.id // capture the lone enemy
@@ -151,8 +195,12 @@ function resolveLanding(
 export function legalMoves(state: GameState, roll: number): Move[] {
   if (state.phase === 'game-over') return []
 
-  const player = state.players[state.turn]
-  const entryIndex = state.geometry.entryIndices[state.turn]
+  // Whose pitons this turn moves: the seat's own, or — once they're all HOME —
+  // its teammate's (the partnership tempo rule). All the journey arithmetic below
+  // (entry square, lane, capture/passing allies) is relative to THIS seat.
+  const seat = movingSeat(state)
+  const player = state.players[seat]
+  const entryIndex = state.geometry.entryIndices[seat]
   const moves: Move[] = []
 
   // --- Entry: a nest piton onto its entry square --------------------------
@@ -169,7 +217,7 @@ export function legalMoves(state: GameState, roll: number): Move[] {
     const entryCaptures: string | null | 'blocked' =
       occupant === null
         ? null
-        : occupant.player === state.turn || !state.ruleset.captureEnabled
+        : sameTeam(state, occupant.player, seat) || !state.ruleset.captureEnabled
           ? 'blocked'
           : occupant.id
     if (entryCaptures !== 'blocked') {
@@ -198,9 +246,9 @@ export function legalMoves(state: GameState, roll: number): Move[] {
     const p1 = p0 + step
     const dest = positionAt(p1, entryIndex, state.geometry)
     if (dest === null) continue // overshoot past HOME → illegal (exact-home entry)
-    if (passageBlocked(state, entryIndex, p0, p1)) continue
+    if (passageBlocked(state, seat, entryIndex, p0, p1)) continue
 
-    const captures = resolveLanding(state, dest)
+    const captures = resolveLanding(state, seat, dest)
     if (captures === 'blocked') continue
 
     moves.push({ pitonId: piton.id, from: piton.position, to: dest, captures })
@@ -228,16 +276,18 @@ function penalizedStreakRoll(state: GameState, roll: number): boolean {
 }
 
 /**
- * Send the current player's most-advanced piton still on the shared track back
- * to its nest (the `lose-leading` penalty). Pitons in the home lane or finished
- * are immune, so only `kind: 'track'` pitons are eligible; if the player has
- * none out, this is a no-op.
+ * Send the moving seat's most-advanced piton still on the shared track back to
+ * its nest (the `lose-leading` penalty). Pitons in the home lane or finished are
+ * immune, so only `kind: 'track'` pitons are eligible; if the seat has none out,
+ * this is a no-op. (When a finished player is rolling on its teammate's behalf,
+ * the `movingSeat` is the teammate, so it's the teammate's leader that's lost.)
  */
 function loseLeadingTrackPiton(state: GameState): GameState {
-  const entryIndex = state.geometry.entryIndices[state.turn]
+  const seat = movingSeat(state)
+  const entryIndex = state.geometry.entryIndices[seat]
   let leadId: string | null = null
   let leadProgress = -1
-  for (const piton of state.players[state.turn].pitons) {
+  for (const piton of state.players[seat].pitons) {
     if (piton.position.kind !== 'track') continue
     const prog = progressOf(piton.position, entryIndex, state.geometry)!
     if (prog > leadProgress) {
@@ -330,25 +380,33 @@ function setPositions(
 
 /**
  * Apply a chosen move and hand play on. Moves the piton to `move.to`, sends any
- * captured piton back to its nest, then: if that brought all of the mover's
- * pitons HOME the game ends (winner recorded — a winning move never also grants
- * another roll, even off a 6); otherwise the same player either keeps the turn
- * (an extra roll, if the roll just played earns one — a 6) or passes it on.
+ * captured piton back to its nest, then: if that brought every piton of the
+ * mover's whole TEAM HOME the game ends (winner recorded — a winning move never
+ * also grants another roll, even off a 6); otherwise the same player either keeps
+ * the turn (an extra roll, if the roll just played earns one — a 6) or passes it
+ * on. (In a free-for-all the "team" is the single seat, so the win is just "all
+ * my pitons home" as before.)
  */
 export function applyMove(state: GameState, move: Move): GameState {
   if (state.phase !== 'awaiting-move') {
     throw new Error(`applyMove requires phase 'awaiting-move', got '${state.phase}'`)
   }
+  const seat = movingSeat(state)
   const updates: Record<string, PitonPosition> = { [move.pitonId]: move.to }
   if (move.captures) updates[move.captures] = { kind: 'nest' }
   const moved = setPositions(state, updates)
 
-  // Win: all of the mover's pitons are HOME → game over, no further play.
-  if (moved.players[state.turn].pitons.every((p) => p.position.kind === 'finished')) {
+  // Win: every piton of the moving seat's whole team is HOME → game over, no
+  // further play. The winner is recorded as the moving seat's colour; the UI
+  // resolves the winning *team* from it via `teams`.
+  const teamHome = moved.players.every(
+    (pl, i) => !sameTeam(moved, i, seat) || pl.pitons.every((p) => p.position.kind === 'finished'),
+  )
+  if (teamHome) {
     return {
       ...moved,
       phase: 'game-over',
-      winner: moved.players[state.turn].color,
+      winner: moved.players[seat].color,
       lastRoll: null,
     }
   }

@@ -152,6 +152,15 @@ export interface GameState {
    */
   geometry: BoardGeometry
   players: PlayerState[]
+  /**
+   * Team membership by seat: `teams[i]` is the team id of seat `i`. Seats sharing
+   * an id are partners (the 2v2 setup is `[0, 1, 0, 1]` — seats 1&3 vs 2&4). In a
+   * normal free-for-all every seat is its own team (`[0, 1, 2, …]`), which makes
+   * "same team" collapse to "same seat" — so every team-aware rule (ally vs
+   * enemy, win = the whole team HOME, a finished seat playing its partner's
+   * pitons) degrades exactly to the solo rules. See `movingSeat` in moves.ts.
+   */
+  teams: number[]
   /** Index into `players` whose turn it is. */
   turn: number
   /** Result of the most recent die roll, if one is pending a move. */

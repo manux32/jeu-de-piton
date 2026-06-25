@@ -37,11 +37,16 @@ export const ALL_PLAYER_COLORS: PlayerColor[] = [...PLAYER_COLORS, 'orange', 'pu
  * seat and they must be distinct — colours are the engine's player identity
  * (piton ids, owner, capture/win), so duplicates would collide. Omit it to keep
  * the default seat→colour order.
+ *
+ * `teams` sets each seat's team id (seats sharing an id are partners) — the 2v2
+ * setup is `[0, 1, 0, 1]`. Omit it for a free-for-all, where every seat is its
+ * own team and the team rules collapse to the solo ones (see `GameState.teams`).
  */
 export function createGame(
   ruleset: Ruleset,
   playerCount = ruleset.playerCount,
   colors: readonly PlayerColor[] = PLAYER_COLORS.slice(0, playerCount),
+  teams: readonly number[] = Array.from({ length: playerCount }, (_, i) => i),
 ): GameState {
   if (playerCount < 2 || playerCount > 4) {
     throw new Error(`playerCount must be 2–4, got ${playerCount}`)
@@ -51,6 +56,9 @@ export function createGame(
   }
   if (new Set(colors).size !== colors.length) {
     throw new Error(`colors must be distinct, got ${colors.join(', ')}`)
+  }
+  if (teams.length !== playerCount) {
+    throw new Error(`teams must have ${playerCount} entries, got ${teams.length}`)
   }
 
   const geometry = makeGeometry(
@@ -74,6 +82,7 @@ export function createGame(
     ruleset,
     geometry,
     players,
+    teams: [...teams],
     turn: 0,
     lastRoll: null,
     extraTurnStreak: 0,

@@ -100,4 +100,18 @@ describe('createGame — opening state', () => {
     expect(() => createGame(JEU_DE_PITON, 1)).toThrow(/2–4/)
     expect(() => createGame(JEU_DE_PITON, 5)).toThrow(/2–4/)
   })
+
+  it('defaults every seat to its own team (free-for-all)', () => {
+    expect(createGame(JEU_DE_PITON).teams).toEqual([0, 1, 2, 3])
+    expect(createGame(JEU_DE_PITON, 2).teams).toEqual([0, 1])
+  })
+
+  it('carries an explicit team assignment (2v2)', () => {
+    const state = createGame(JEU_DE_PITON, 4, undefined, [0, 1, 0, 1])
+    expect(state.teams).toEqual([0, 1, 0, 1])
+  })
+
+  it('rejects a teams array whose length is not the player count', () => {
+    expect(() => createGame(JEU_DE_PITON, 4, undefined, [0, 1, 0])).toThrow(/teams must have 4/)
+  })
 })

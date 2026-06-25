@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { createGame } from './state'
 import { JEU_DE_PITON } from './rulesets'
-import { rollDie, legalMoves, applyRoll, applyMove } from './moves'
+import { rollDie, legalMoves, applyRoll, applyMove, movingSeat } from './moves'
 import type { GameState, PitonPosition } from './types'
 
 /** Test helper: return a copy of `state` with one piton repositioned. */
@@ -442,6 +442,87 @@ describe('legalMoves — lane, exact HOME & win (rung 6)', () => {
     expect(next.phase).toBe('game-over')
     // A winning move ends the game; the 6 grants no further roll.
     expect(legalMoves(next, 5)).toEqual([])
+  })
+})
+
+describe('2v2 teams', () => {
+  // Seats 0 (red) & 2 (yellow) are one team; 1 (blue) & 3 (green) the other.
+  const team2v2 = () => createGame(JEU_DE_PITON, 4, undefined, [0, 1, 0, 1])
+  const forPiton = (state: GameState, roll: number, id: string) =>
+    legalMoves(state, roll).filter((m) => m.pitonId === id)
+
+  it('treats a teammate as an ally — no capture on landing', () => {
+    // red-0 + 3 lands on partner yellow-0 at square 3 → blocked (no stacking, no
+    // capturing a partner). The control: the same landing on an enemy (blue) IS a
+    // capture, so the block is the teammate rule, not geometry.
+    let ally = place(team2v2(), 'red-0', { kind: 'track', square: 0 })
+    ally = place(ally, 'yellow-0', { kind: 'track', square: 3 })
+    expect(forPiton(ally, 3, 'red-0')).toEqual([])
+
+    let enemy = place(team2v2(), 'red-0', { kind: 'track', square: 0 })
+    enemy = place(enemy, 'blue-0', { kind: 'track', square: 3 })
+    expect(forPiton(enemy, 3, 'red-0')[0].captures).toBe('blue-0')
+  })
+
+  it('cannot pass through a teammate (partners block like your own)', () => {
+    // yellow-0 (partner) sits mid-path on a non-safe square; red-0 + 5 would cross
+    // it → blocked, exactly as if it were red's own piton.
+    let s = place(team2v2(), 'red-0', { kind: 'track', square: 2 })
+    s = place(s, 'yellow-0', { kind: 'track', square: 4 })
+    expect(forPiton(s, 5, 'red-0')).toEqual([])
+  })
+
+  it('does not end the game when only one team member is all HOME', () => {
+    // red brings its last piton HOME, but partner yellow still has pitons out, so
+    // the team isn't done — play continues, no winner.
+    let s = team2v2()
+    s = place(s, 'red-0', { kind: 'finished' })
+    s = place(s, 'red-1', { kind: 'finished' })
+    s = place(s, 'red-2', { kind: 'finished' })
+    s = place(s, 'red-3', { kind: 'lane', step: 6 }) // a 1 finishes red
+    s = place(s, 'yellow-0', { kind: 'track', square: 40 }) // partner still out
+
+    const rolled = applyRoll(s, 1)
+    const next = applyMove(rolled, legalMoves(rolled, 1).find((m) => m.pitonId === 'red-3')!)
+
+    expect(next.players[0].pitons.every((p) => p.position.kind === 'finished')).toBe(true)
+    expect(next.phase).not.toBe('game-over')
+    expect(next.winner).toBeNull()
+  })
+
+  it('a finished seat spends its turn moving its partner\'s pitons', () => {
+    // red is entirely HOME on red's turn; it takes over yellow (the partner) and
+    // enters a yellow piton on YELLOW's start square (34), not red's (0).
+    let s = team2v2()
+    for (const id of ['red-0', 'red-1', 'red-2', 'red-3']) s = place(s, id, { kind: 'finished' })
+
+    expect(movingSeat(s)).toBe(2)
+    const moves = legalMoves(s, 5)
+    expect(moves.length).toBeGreaterThan(0)
+    expect(moves.every((m) => m.pitonId.startsWith('yellow'))).toBe(true)
+    expect(moves[0].to).toEqual({ kind: 'track', square: 34 })
+  })
+
+  it('ends the game and wins when the whole TEAM is HOME', () => {
+    // red all HOME; partner yellow has its last piton a step from HOME. red is on
+    // the clock but moves yellow's piton — finishing it completes the team.
+    let s = team2v2()
+    for (const id of ['red-0', 'red-1', 'red-2', 'red-3']) s = place(s, id, { kind: 'finished' })
+    for (const id of ['yellow-0', 'yellow-1', 'yellow-2']) s = place(s, id, { kind: 'finished' })
+    s = place(s, 'yellow-3', { kind: 'lane', step: 6 })
+
+    const rolled = applyRoll(s, 1)
+    const next = applyMove(rolled, legalMoves(rolled, 1).find((m) => m.pitonId === 'yellow-3')!)
+
+    expect(next.phase).toBe('game-over')
+    expect(next.winner).toBe('yellow') // the moving seat's colour; the UI reads its team
+  })
+
+  it('movingSeat stays the seat on the clock in a free-for-all', () => {
+    // Default identity teams: a finished seat has no partner to take over.
+    let s = createGame(JEU_DE_PITON)
+    for (const id of ['red-0', 'red-1', 'red-2', 'red-3']) s = place(s, id, { kind: 'finished' })
+    expect(movingSeat(s)).toBe(0)
   })
 })
 

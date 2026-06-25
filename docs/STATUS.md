@@ -14,6 +14,20 @@ so decide with the user at the start of each session. This section names a
 *specific* next task **only** when we've explicitly agreed one; otherwise it's just
 the candidate list below, in no particular order:
 
+- **2v2 teams — UI half (engine half SHIPPED).** The engine team-model is done and
+  tested: `GameState.teams` (seat→team id; identity = free-for-all, so the solo
+  rules are the special case), team-aware ally/capture/blocking, `movingSeat` (a
+  seat all-HOME plays its partner's pitons — the tempo advantage), and a
+  team-based win. `createGame` + the `newGame` action already take a `teams` arg
+  (default identity), so the engine is wired and waiting. **Remaining (next
+  session) is pure UI:** a **2v2 button** in New Game (right of the player-count
+  buttons; teams are seats 1&3 vs 2&4) + **"Team A"/"Team B"** headers grouping the
+  seat rows; the **log** (simple — group by team); and the **Stats** window —
+  reorder columns so the winning team's two members come first (left→right) with a
+  **vertical separator** between teams. Win-display reads the winning *team* from
+  `winner` (the moving seat's colour) via `teams`. Confirmed design: partners are
+  fully one side (no capture, no passing each other); the finished-partner tempo
+  boost is intended.
 - **Rule-variant layer.** The cabin ruleset ships as a `Ruleset` and the engine
   is variant-agnostic *for single-die variants* (Ludo etc.) — those are close to a
   config-only drop-in (+ a ruleset picker in New Game, + board art if the geometry
