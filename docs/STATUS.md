@@ -96,9 +96,6 @@ the candidate list below, in no particular order:
   surfaced as **Easy** (`randomStrategy`) / **Hard** (`greedyStrategy`).
 
 ## Open questions
-- **2v2 tempo balance — needs a playtest.** Now that the mode is fully playable
-  (engine + both UI halves shipped), watch whether the partner-takeover *two-rolls-
-  per-lap* rule lets an early-finishing team run away with the game. If it's too
-  strong, the closing advantage may need a knob (e.g. takeover only after both a
-  member finishes *and* some condition). Purely a balance question — defer until a
-  real game or two has been played.
+- **None open.** All cabin rules are confirmed and shipped; the full ruleset (incl.
+  the resolved items) lives in [rules-and-lineage.md](rules-and-lineage.md). New
+  open design questions — rules or otherwise — go here until resolved.

@@ -220,7 +220,7 @@ export function Board({ state, layout }: Props) {
                 fill={TEAM_LABEL_FILL}
                 pointerEvents="none"
               >
-                {TEAM.name(state.teams[p])}
+                {TEAM.letter(state.teams[p])}
               </text>
             )}
           </g>

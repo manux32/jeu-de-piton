@@ -131,6 +131,8 @@ export const SETUP = {
 export const TEAM = {
   /** Display name for a team id: 0 → "Team A", 1 → "Team B". */
   name: (teamId: number) => `Team ${String.fromCharCode(65 + teamId)}`,
+  /** Bare team letter, used for the nest-centre label: 0 → "A". */
+  letter: (teamId: number) => String.fromCharCode(65 + teamId),
   /** Compact tag for a team id, prefixed to a player in the log: 0 → "[A]". */
   tag: (teamId: number) => `[${String.fromCharCode(65 + teamId)}]`,
 } as const
