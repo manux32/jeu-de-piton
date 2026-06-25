@@ -16,7 +16,7 @@ import type { GameState } from '../engine'
 import type { CompletedTurn } from './useGame'
 import { NoticeRow } from './NoticeRow'
 import { PLAYER_HEX, LOG_PANEL_BG, LOG_WINDOW_SIZE } from './theme'
-import { LOG } from './strings'
+import { LOG, TEAM } from './strings'
 
 interface Props {
   state: GameState
@@ -38,6 +38,11 @@ export function LogModal({ state, history, onClose }: Props) {
     if (!cur || turn.seat <= cur[cur.length - 1].seat) rounds.push([turn])
     else cur.push(turn)
   }
+
+  // In a team game (two seats share a team id) each turn is tagged with its
+  // team — "[A]" before the colour — so the alternating sides read at a glance;
+  // turns stay in true play order. A free-for-all has no tags.
+  const isTeamGame = new Set(state.teams).size < state.teams.length
 
   return (
     <div
@@ -61,6 +66,9 @@ export function LogModal({ state, history, onClose }: Props) {
                 return (
                   <div key={ti} className="log-turn">
                     <div className="log-player" style={{ color: hex }}>
+                      {isTeamGame && (
+                        <span className="log-team-tag">{TEAM.tag(state.teams[turn.seat])}</span>
+                      )}
                       {LOG.player(color)}
                     </div>
                     <div className="log-notice">

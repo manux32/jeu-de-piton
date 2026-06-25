@@ -14,21 +14,6 @@ so decide with the user at the start of each session. This section names a
 *specific* next task **only** when we've explicitly agreed one; otherwise it's just
 the candidate list below, in no particular order:
 
-- **2v2 teams — log + stats windows (engine + first UI half SHIPPED).** The engine
-  team-model and the first UI half are done. The *rules* of the mode live in
-  [rules-and-lineage.md](rules-and-lineage.md#2v2-partnership-mode--confirmed-2026-06-24).
-  Shipped UI: a **2v2 toggle** in New Game (right of the count pills; forces 4 seats,
-  teams `[0,1,0,1]` = seats 1&3 vs 2&4) with the seat rows regrouped under **Team A/B**
-  headers; each nest shows its team name (`TEAM_LABEL_*` knobs) in a team game; the win
-  window announces the **team** ("Team A wins!") with its two members' colours listed,
-  in the generic window palette; and `teams` threads New Game → App → `createGame`. The
-  UI derives "is this a team game" from a non-identity `teams` array — no separate mode
-  flag (see decisions.md). **Remaining (session two) — the two read-back windows:** the
-  **Game log** (group by team) and the **Game stats** window (reorder columns so the
-  winning team's two members come first, left→right, with a **vertical separator**
-  between teams). Both read team membership from `state.teams`. Worth a playtest once
-  stats lands: does the two-rolls-per-lap tempo let an early-finishing team run away
-  with it?
 - **Rule-variant layer.** The cabin ruleset ships as a `Ruleset` and the engine
   is variant-agnostic *for single-die variants* (Ludo etc.) — those are close to a
   config-only drop-in (+ a ruleset picker in New Game, + board art if the geometry
@@ -111,6 +96,9 @@ the candidate list below, in no particular order:
   surfaced as **Easy** (`randomStrategy`) / **Hard** (`greedyStrategy`).
 
 ## Open questions
-- **None open.** All cabin rules are confirmed and shipped; the full ruleset (incl.
-  the resolved items) lives in [rules-and-lineage.md](rules-and-lineage.md). New
-  open design questions — rules or otherwise — go here until resolved.
+- **2v2 tempo balance — needs a playtest.** Now that the mode is fully playable
+  (engine + both UI halves shipped), watch whether the partner-takeover *two-rolls-
+  per-lap* rule lets an early-finishing team run away with the game. If it's too
+  strong, the closing advantage may need a knob (e.g. takeover only after both a
+  member finishes *and* some condition). Purely a balance question — defer until a
+  real game or two has been played.

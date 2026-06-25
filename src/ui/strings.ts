@@ -131,6 +131,8 @@ export const SETUP = {
 export const TEAM = {
   /** Display name for a team id: 0 → "Team A", 1 → "Team B". */
   name: (teamId: number) => `Team ${String.fromCharCode(65 + teamId)}`,
+  /** Compact tag for a team id, prefixed to a player in the log: 0 → "[A]". */
+  tag: (teamId: number) => `[${String.fromCharCode(65 + teamId)}]`,
 } as const
 
 export const WIN = {

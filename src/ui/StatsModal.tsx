@@ -40,15 +40,34 @@ export function StatsModal({ state, stats, onClose }: Props) {
   const lossesTotal = (s: PlayerStats) =>
     s.lostToCapture + s.lostOnEnemyStart + s.lostToThreeSixes
 
-  // Players are columns, ranked most pitons home → least, then most captures →
-  // least as the tie-breaker; any further tie keeps seating order (sort is
-  // stable). This is the "winner first" ordering the user asked for.
-  const order = state.players
-    .map((_, i) => i)
-    .sort(
-      (a, b) =>
-        pitonsHome(b) - pitonsHome(a) || capturesTotal(stats[b]) - capturesTotal(stats[a]),
-    )
+  // Within any grouping, columns rank most pitons home → least, then most
+  // captures → least as the tie-breaker; any further tie keeps seating order
+  // (sort is stable). This is the "winner first" ordering the user asked for.
+  const seats = state.players.map((_, i) => i)
+  const byRank = (a: number, b: number) =>
+    pitonsHome(b) - pitonsHome(a) || capturesTotal(stats[b]) - capturesTotal(stats[a])
+
+  // In a team game (two seats share a team id) the columns are grouped by team —
+  // the leading team's two members first, a vertical separator, then the other
+  // team. "Leading" = the winner's team once decided, else most combined pitons
+  // home (Team A breaks a tie). `teamSplit` is the column index the second team
+  // starts at, where the separator is drawn; -1 (no split) in a free-for-all.
+  const isTeamGame = new Set(state.teams).size < state.teams.length
+  let order = [...seats].sort(byRank)
+  let teamSplit = -1
+  if (isTeamGame) {
+    const winnerSeat =
+      state.winner != null ? state.players.findIndex((p) => p.color === state.winner) : -1
+    const winTeam = winnerSeat >= 0 ? state.teams[winnerSeat] : -1
+    const teamScore = (t: number) =>
+      state.teams.reduce((sum, tt, i) => (tt === t ? sum + pitonsHome(i) : sum), 0)
+    const teamOrder = [...new Set(state.teams)]
+      .sort((a, b) => a - b)
+      .sort((a, b) => (b === winTeam ? 1 : 0) - (a === winTeam ? 1 : 0) || teamScore(b) - teamScore(a))
+    const groups = teamOrder.map((t) => seats.filter((i) => state.teams[i] === t).sort(byRank))
+    order = groups.flat()
+    teamSplit = groups[0].length
+  }
 
   // The rows, top to bottom. The two `section` rows carry the running total of
   // the `sub` rows beneath them, so the breakdown reads at a glance.
@@ -77,8 +96,12 @@ export function StatsModal({ state, stats, onClose }: Props) {
         <thead>
           <tr>
             <th className="stats-corner" />
-            {order.map((i) => (
-              <th key={i} className="stats-player" style={{ color: PLAYER_HEX[state.players[i].color] }}>
+            {order.map((i, oi) => (
+              <th
+                key={i}
+                className={`stats-player${oi === teamSplit ? ' stats-team-edge' : ''}`}
+                style={{ color: PLAYER_HEX[state.players[i].color] }}
+              >
                 {STATS.player(state.players[i].color)}
               </th>
             ))}
@@ -90,8 +113,8 @@ export function StatsModal({ state, stats, onClose }: Props) {
               <th scope="row" className="stats-label">
                 {row.label}
               </th>
-              {order.map((i) => (
-                <td key={i} className="stats-cell">
+              {order.map((i, oi) => (
+                <td key={i} className={`stats-cell${oi === teamSplit ? ' stats-team-edge' : ''}`}>
                   {row.value(i)}
                 </td>
               ))}
