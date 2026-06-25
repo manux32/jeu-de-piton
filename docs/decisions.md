@@ -14,6 +14,25 @@
 > [cross-platform-ui.md](cross-platform-ui.md)) with this log holding only the dated
 > rationale. Prepend new entries (newest first).
 
+- **2026-06-25** — **Default seat colours reordered to green/red/blue/yellow; a
+  "seat" abstraction was considered and rejected.** Changed `PLAYER_COLORS` so each
+  mode's default falls out of one shared prefix (2p green/red, 3p +blue, 4p & 2v2
+  +yellow) — seat order also fixes board-arm order, so this moved which arm each
+  colour occupies (intended). The reorder forced a 4-cycle rename across the
+  engine/AI tests, because they use colour names (`red-0`, "yellow's start") as
+  *seat handles* — colour is the engine's player identity. *That coupling raised the
+  real question (and the rejected alternative):* should seat index become the
+  identity, with colour demoted to pure paint? **Decided no, and intentionally not
+  even backlogged.** *Why:* the coupling causes no bugs (colours are constrained
+  distinct, so they key fine); the test-churn motivation is one-time (we reorder
+  defaults ~once, now done), not recurring; and — the deciding point — **rule
+  variants wouldn't benefit either**, since a variant is a `Ruleset` of *mechanics*
+  (piton count, safe squares, capture/dice rules) and where position matters it
+  already keys off `entryIndices` geometry, never the colour name. Canonical
+  Parcheesi is still just a ruleset, identity-agnostic. The seat refactor would only
+  pay off for *presentation* features that don't exist (mid-game recolour, freely
+  swapped palettes, spectator seats), so it's pure churn today — recorded here so a
+  later session that re-notices "tests use colours as seats" doesn't re-open it.
 - **2026-06-25** — **2v2 read-back windows: the Game log stays chronological (a team
   *tag*, not a regroup); the nest team letter is baked geometry.** Finishing the 2v2
   UI (session two). *The design call (the user's, worth recording):* in a team game the

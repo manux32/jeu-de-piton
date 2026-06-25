@@ -150,8 +150,9 @@ Consequences (intentional):
   player 0 → faces up the board from the bottom.
 - A **2-player** game (entries `{0, 34}`) is therefore **North–South**, not
   sideways.
-- Colors map to arms in seat order `[red, blue, yellow, green]`. Letting each
-  player **choose** their color is a planned future nicety (not done).
+- Colors map to arms in seat order — the default seat→colour order is
+  `PLAYER_COLORS` (`src/engine/state.ts`), so seat 0 (South) takes the first
+  entry. New Game lets each player **choose** their colour per seat (shipped).
 
 ## Don't drift — mistakes made and corrected (2026-06-12)
 - ❌ Mouth drawn on a **side column** → ✅ it is the **tip-middle** cell.
