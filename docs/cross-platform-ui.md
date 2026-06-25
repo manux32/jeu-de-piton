@@ -58,6 +58,17 @@ scenarios, rather than playing a whole game).
 
 Newest first. Each entry: symptom → cause → fix.
 
+- **2v2 pill touched the right window edge on iPad, with a gap on PC** (fixed
+  2026-06-25). Not a foreignObject bug — the New Game window is a plain DOM overlay.
+  Its Players row (label + 2/3/4/2v2 pills) is right-anchored with
+  `justify-content: space-between`, and the pills size to their text. iOS `system-ui`
+  (San Francisco) is wider than Windows' Segoe, so on iPad the row's content
+  overflowed the fixed-width panel's content box, spilling the last pill past the
+  right padding to the window edge (desktop was already near the threshold — only
+  ~0.4em of the 1.2em padding showed). **Fix:** widen the window cap (`18em` → `20em`
+  on `.setup-panel`) so the row fits and the padding shows as the gap again.
+  **Rule — widen, don't pad:** adding right padding shrinks the content box and makes
+  the overflow *worse*; give fixed-width modals slack for iOS's wider font instead.
 - **Die-label text ("Roll", "!") looked centred on PC but off-centre on iPad**
   (fixed 2026-06-21). This is *not* a foreignObject bug — it's native SVG `<text>`.
   Two compounding causes, both rooted in **`system-ui` resolving to a different
