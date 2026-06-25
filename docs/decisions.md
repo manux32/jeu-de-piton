@@ -14,6 +14,18 @@
 > [cross-platform-ui.md](cross-platform-ui.md)) with this log holding only the dated
 > rationale. Prepend new entries (newest first).
 
+- **2026-06-25** — **2v2 is a derived state, not a UI mode flag.** The 2v2 UI half
+  (New Game toggle + Team A/B headers, nest team labels, team win banner) reads
+  "is this a team game?" everywhere as `new Set(state.teams).size < teams.length` —
+  i.e. straight off the engine's `teams` array — rather than carrying a separate
+  `mode: '2v2'` boolean through the UI. *Why:* `teams` is already the single source
+  of truth (a free-for-all is the identity `[0,1,2,…]`, 2v2 is `[0,1,0,1]`), so a
+  parallel flag could only drift out of sync with it; the engine deliberately models
+  a free-for-all as the degenerate team case, and the UI mirrors that. *Consequence
+  for session two:* the Game log / stats windows should derive team grouping the same
+  way (off `state.teams`), not re-introduce a flag. Also recorded here so a later
+  session doesn't "tidy up" by adding one. (The win window separately dropped the
+  winner-hue tint for the generic window palette — a look choice, not logged.)
 - **2026-06-24** — **Docs restructured around single-source-of-truth; routing has
   one home and a garbage collector.** *The failure:* STATUS's "Where we are" was a
   capabilities snapshot — duplication *by construction*, since it restates the

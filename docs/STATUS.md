@@ -14,20 +14,21 @@ so decide with the user at the start of each session. This section names a
 *specific* next task **only** when we've explicitly agreed one; otherwise it's just
 the candidate list below, in no particular order:
 
-- **2v2 teams — UI half (engine half SHIPPED).** The engine team-model is done and
-  tested (`GameState.teams`, team-aware ally/capture/blocking, `movingSeat`
-  partner-takeover, team-based win); `createGame` + the `newGame` action take a
-  `teams` arg (default identity = free-for-all), so the engine is wired and
-  waiting. The *rules* of the mode live in
+- **2v2 teams — log + stats windows (engine + first UI half SHIPPED).** The engine
+  team-model and the first UI half are done. The *rules* of the mode live in
   [rules-and-lineage.md](rules-and-lineage.md#2v2-partnership-mode--confirmed-2026-06-24).
-  **Remaining (next session) is pure UI:** a **2v2 button** in New Game (right of
-  the player-count buttons; teams are seats 1&3 vs 2&4) + **"Team A"/"Team B"**
-  headers grouping the seat rows; the **log** (simple — group by team); and the
-  **Stats** window — reorder columns so the winning team's two members come first
-  (left→right) with a **vertical separator** between teams. Win-display reads the
-  winning *team* from `winner` (the moving seat's colour) via `teams`. Worth a
-  playtest once it runs: does the two-rolls-per-lap tempo let an early-finishing
-  team run away with it?
+  Shipped UI: a **2v2 toggle** in New Game (right of the count pills; forces 4 seats,
+  teams `[0,1,0,1]` = seats 1&3 vs 2&4) with the seat rows regrouped under **Team A/B**
+  headers; each nest shows its team name (`TEAM_LABEL_*` knobs) in a team game; the win
+  window announces the **team** ("Team A wins!") with its two members' colours listed,
+  in the generic window palette; and `teams` threads New Game → App → `createGame`. The
+  UI derives "is this a team game" from a non-identity `teams` array — no separate mode
+  flag (see decisions.md). **Remaining (session two) — the two read-back windows:** the
+  **Game log** (group by team) and the **Game stats** window (reorder columns so the
+  winning team's two members come first, left→right, with a **vertical separator**
+  between teams). Both read team membership from `state.teams`. Worth a playtest once
+  stats lands: does the two-rolls-per-lap tempo let an early-finishing team run away
+  with it?
 - **Rule-variant layer.** The cabin ruleset ships as a `Ruleset` and the engine
   is variant-agnostic *for single-die variants* (Ludo etc.) — those are close to a
   config-only drop-in (+ a ruleset picker in New Game, + board art if the geometry

@@ -197,7 +197,7 @@ an ally, who keeps playing, and when the game ends.
 - **Win.** The game ends when **every piton of both members of a team** is HOME.
   The first team to do so wins.
 
-Implementation (engine, shipped 2026-06-24 — UI pending): a per-seat
-`GameState.teams` array (seat → team id); a free-for-all is the special case where
+Implementation (engine, shipped 2026-06-24; UI progress in [STATUS](STATUS.md)): a
+per-seat `GameState.teams` array (seat → team id); a free-for-all is the special case where
 each seat is its own team, so all the solo rules above are unchanged. The model +
 the partner-takeover seam (`movingSeat`) are documented in `src/engine/moves.ts`.
