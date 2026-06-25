@@ -423,7 +423,7 @@ code {
   gap: 0.73em;
   /* Intrinsic width in em (scales with the knob); capped in vmin so it never
      sprawls past the board on a wide screen or off a narrow one. */
-  width: min(18em, 88vmin);
+  width: min(20em, 88vmin);
   box-sizing: border-box;
   padding: 1.07em 1.2em 0.93em;
   border-radius: 0.8em;
