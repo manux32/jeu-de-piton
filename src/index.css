@@ -334,19 +334,31 @@ code {
   align-items: center;
   gap: 0.2em;
   padding: 0.55em 1.1em;
-  border: 0.06em solid var(--win-color, #fff);
+  border: 0.06em solid rgba(255, 255, 255, 0.22);
   border-radius: 0.32em;
   background: var(--win-bg, rgba(18, 16, 26, 0.84));
-  color: var(--win-color, #fff);
+  color: #f3f1f6;
   font-family: var(--heading);
   font-weight: 800;
   line-height: 1.1;
   white-space: nowrap;
   animation: win-pop 0.32s cubic-bezier(0.2, 1.2, 0.3, 1) both;
 }
+/* The winning team's two members, each in its own colour, under the team
+   headline (2v2 only). Small, sized in em so it scales with the headline. */
+.win-team {
+  font-size: 0.5em;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.win-team-sep {
+  color: #f3f1f6;
+  opacity: 0.5;
+}
 /* "Game stats" button on the win panel — opens the stats window without
    dismissing the popup (its click is stopped from bubbling to the panel). Sized in
-   em so it scales with the headline; a quiet outlined pill in the winner's hue. */
+   em so it scales with the headline; a quiet outlined pill in the generic window
+   palette (matches the Options/Stats windows, not the winner's hue). */
 .win-stats {
   font: inherit;
   cursor: pointer;
@@ -356,13 +368,13 @@ code {
   font-size: 0.34em;
   font-weight: 700;
   padding: 0.55em 1.1em;
-  color: var(--win-color, #fff);
-  border: 0.12em solid var(--win-color, #fff);
+  color: #f3f1f6;
+  border: 0.12em solid rgba(255, 255, 255, 0.4);
   border-radius: 999px;
   background: transparent;
 }
 .win-stats:hover {
-  background: color-mix(in srgb, var(--win-color, #fff) 18%, transparent);
+  background: rgba(255, 255, 255, 0.14);
 }
 /* The quiet "tap to dismiss" hint under the headline — half size, dimmed. */
 .win-hint {
@@ -456,6 +468,21 @@ code {
   padding: 0.67em 0;
   border-top: 0.067em solid rgba(255, 255, 255, 0.12);
   border-bottom: 0.067em solid rgba(255, 255, 255, 0.12);
+}
+/* 2v2: the seat rows regroup into two team blocks, each under a Team A/B header.
+   A little extra gap between the two groups sets the teams apart. */
+.setup-teamgroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.53em;
+}
+.setup-teamgroup + .setup-teamgroup {
+  margin-top: 0.53em;
+}
+.setup-teamhead {
+  font-weight: 700;
+  opacity: 0.85;
+  letter-spacing: 0.03em;
 }
 /* Count pills, the Human/AI toggle, and the Cancel/Start buttons share one look.
    A fixed height (shared with the dropdown triggers below) keeps every control in

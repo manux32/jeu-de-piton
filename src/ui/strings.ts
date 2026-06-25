@@ -105,6 +105,8 @@ export const SETUP = {
   title: 'New game',
   /** Label beside the 2/3/4 player-count picker. */
   players: 'Players',
+  /** The team-mode pill, right of the count pills — forces 4 seats in two teams. */
+  teams: '2v2',
   /** The two states of a seat's type toggle. */
   human: 'Human',
   ai: 'AI',
@@ -123,10 +125,21 @@ export const SETUP = {
   start: 'Start game',
 } as const
 
+/** Copy for 2v2 team identity — a team id (0, 1) maps to a display name. Seats
+ *  sharing a team id are partners. Used by the New Game seat-row headers, the
+ *  board nest labels, and the win banner. */
+export const TEAM = {
+  /** Display name for a team id: 0 → "Team A", 1 → "Team B". */
+  name: (teamId: number) => `Team ${String.fromCharCode(65 + teamId)}`,
+} as const
+
 export const WIN = {
-  /** The big board announcement. `color` is the engine's lowercase colour name
+  /** Free-for-all announcement. `color` is the engine's lowercase colour name
    *  (e.g. 'green'); it's capitalized for display → "Green wins! 🎉". */
   banner: (color: string) => `${color.charAt(0).toUpperCase()}${color.slice(1)} wins! 🎉`,
+  /** 2v2 announcement — the winning *team*, with its two members' colours listed
+   *  separately beneath (see GameBoard). `team` is a TEAM.name string. */
+  teamBanner: (team: string) => `${team} wins! 🎉`,
   /** Quiet hint under the headline — the popup dismisses on click. */
   hint: 'tap to dismiss',
 } as const

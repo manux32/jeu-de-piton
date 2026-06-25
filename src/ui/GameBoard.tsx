@@ -12,7 +12,7 @@
  * + `rolls` and the `onPick` / `onRoll` / `onNewGame` / `onOpenDev` callbacks; it
  * adds no rules of its own (every decision is the engine's, made in App).
  */
-import { useMemo, useState, type CSSProperties } from 'react'
+import { Fragment, useMemo, useState, type CSSProperties } from 'react'
 import type { GameState, Move } from '../engine'
 import { buildLayout, destinationCell, cellMid, cellStart } from './layout'
 import { Board } from './Board'
@@ -22,7 +22,7 @@ import { DieFace } from './DieFace'
 import { GearIcon } from './GearIcon'
 import { BoardTitle } from './BoardTitle'
 import { NoticeRow } from './NoticeRow'
-import { PROMPT, WIN, OPTIONS, type Notice } from './strings'
+import { PROMPT, WIN, OPTIONS, TEAM, type Notice } from './strings'
 import { GLYPHS, type Glyph } from './glyphs'
 import type { TurnEntry, PlayerStats, CompletedTurn } from './useGame'
 import { NewGameModal, type GameSetup } from './NewGameModal'
@@ -203,6 +203,12 @@ export function GameBoard({
     over && state.winner != null
       ? state.players.findIndex((pl) => pl.color === state.winner)
       : -1
+  // 2v2 vs free-for-all: a team game is one where two seats share a team id. The
+  // win popup announces the winning *team* (the winner's team) and lists its two
+  // members' colours; a free-for-all keeps the single-colour banner.
+  const isTeamGame = new Set(state.teams).size < state.teams.length
+  const winTeam = winnerSeat >= 0 ? state.teams[winnerSeat] : -1
+  const winMembers = state.players.filter((_, i) => state.teams[i] === winTeam)
   // Anchor the notice at the BOTTOM of the player's corner quadrant — the washed
   // area the nest sits in (same bounds as Board's whose-turn wash) — so it always
   // clears the nest's holes/box. Centred horizontally on the nest cluster, then
@@ -454,15 +460,32 @@ export function GameBoard({
         <div
           className="win-panel"
           onClick={() => setDismissedWin(state)}
+          // The panel now wears the generic window look (no winner-hue tint); only
+          // the team members' names below carry colour.
           style={
             {
-              '--win-color': PLAYER_HEX[state.winner],
               '--win-bg': WIN_PANEL_BG,
               fontSize: `${WIN_WINDOW_SIZE}vmin`,
             } as CSSProperties
           }
         >
-          <span>{WIN.banner(state.winner)}</span>
+          <span>
+            {isTeamGame ? WIN.teamBanner(TEAM.name(winTeam)) : WIN.banner(state.winner)}
+          </span>
+          {/* 2v2: the winning team's two members, each in its own colour, under the
+              team headline. (Free-for-all already names the colour in the banner.) */}
+          {isTeamGame && (
+            <span className="win-team">
+              {winMembers.map((m, i) => (
+                <Fragment key={m.color}>
+                  {i > 0 && <span className="win-team-sep"> · </span>}
+                  <span style={{ color: PLAYER_HEX[m.color] }}>
+                    {m.color.charAt(0).toUpperCase() + m.color.slice(1)}
+                  </span>
+                </Fragment>
+              ))}
+            </span>
+          )}
           <button
             type="button"
             className="win-stats"
@@ -533,6 +556,7 @@ export function GameBoard({
           colors={state.players.map((p) => p.color)}
           humanSeats={humanSeats}
           strategies={seatStrategies}
+          teams={state.teams}
           onCancel={() => setSetupOpen(false)}
           onStart={(setup) => {
             onNewGame(setup)

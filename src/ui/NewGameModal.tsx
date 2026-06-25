@@ -23,7 +23,7 @@ import {
   SETUP_SWATCH_SIZE,
   SETUP_WINDOW_SIZE,
 } from './theme'
-import { SETUP } from './strings'
+import { SETUP, TEAM } from './strings'
 import { Dropdown } from './Dropdown'
 
 /** The next game's settings, as the setup window hands them back on Start. */
@@ -35,6 +35,9 @@ export interface GameSetup {
   /** Per-seat AI difficulty, in seat order (parallel to `colors`). Only used for
    *  the AI seats; a seat a human controls keeps its value but ignores it. */
   strategies: StrategyId[]
+  /** Per-seat team id (seats sharing an id are partners). Identity `[0,1,2,…]` is
+   *  a free-for-all; `[0,1,0,1]` is the 2v2 mode. Parallel to `colors`. */
+  teams: number[]
 }
 
 interface Props {
@@ -44,9 +47,16 @@ interface Props {
   humanSeats: number[]
   /** The current per-seat AI difficulty, to pre-fill the strategy pickers. */
   strategies: StrategyId[]
+  /** The current per-seat team ids, to pre-fill the 2v2 toggle. */
+  teams: number[]
   onCancel: () => void
   onStart: (setup: GameSetup) => void
 }
+
+/** A free-for-all's team ids for `n` seats: every seat its own team. */
+const freeForAll = (n: number): number[] => Array.from({ length: n }, (_, i) => i)
+/** The 2v2 partnership: seats 1&3 vs 2&4 (0-based 0&2 vs 1&3). Always 4 seats. */
+const TWO_V_TWO = [0, 1, 0, 1]
 
 // The colour and strategy options are the same for every seat, so build them
 // once. A colour option is a bare swatch (its name is the accessible label); a
@@ -72,23 +82,32 @@ export function NewGameModal({
   colors: initialColors,
   humanSeats,
   strategies: initialStrategies,
+  teams: initialTeams,
   onCancel,
   onStart,
 }: Props) {
   // Draft state, pre-filled from the live game. `colors.length` is the player
   // count; `humans[i]` is whether seat i is human (else AI); `strategies[i]` is
-  // seat i's AI difficulty (kept even for human seats, so toggling back restores).
+  // seat i's AI difficulty (kept even for human seats, so toggling back restores);
+  // `teams[i]` is seat i's team id (identity = free-for-all, [0,1,0,1] = 2v2).
   const [colors, setColors] = useState<PlayerColor[]>(initialColors)
   const [humans, setHumans] = useState<boolean[]>(
     initialColors.map((_, i) => humanSeats.includes(i)),
   )
   const [strategies, setStrategies] = useState<StrategyId[]>(initialStrategies)
+  const [teams, setTeams] = useState<number[]>(initialTeams)
 
-  // Change the player count, growing/shrinking every per-seat array together.
-  // Each new seat takes the first default seat colour not already taken (tracked
-  // as we add, so growing by several stays distinct), defaults to AI (the common
-  // case is one human against AIs), and defaults to the harder AI.
-  const changeCount = (n: number) => {
+  // A team game is one where two seats share a team id (only 2v2 today). In a
+  // free-for-all every id is distinct, so this is false and all the team chrome
+  // (the 2v2 pill highlight, the Team A/B headers) stays off.
+  const isTeam = new Set(teams).size < teams.length
+
+  // Resize every per-seat array to `n` seats and set the team layout in one go —
+  // the count pills and the 2v2 pill both route through here so the arrays never
+  // drift apart. Each new seat takes the first default colour not already taken
+  // (tracked as we add, so growing by several stays distinct), defaults to AI (the
+  // common case is one human against AIs), and to the harder AI.
+  const applyCount = (n: number, nextTeams: number[]) => {
     setColors((prev) => {
       if (n <= prev.length) return prev.slice(0, n)
       const next = [...prev]
@@ -97,7 +116,14 @@ export function NewGameModal({
     })
     setHumans((prev) => resize(prev, n, () => false))
     setStrategies((prev) => resize(prev, n, () => 'hard'))
+    setTeams(nextTeams)
   }
+
+  // A plain count pick is always a free-for-all; the 2v2 pill forces 4 seats split
+  // into the two partnerships. Picking any count clears 2v2, and vice versa, so the
+  // four pills read as one mutually-exclusive choice.
+  const changeCount = (n: number) => applyCount(n, freeForAll(n))
+  const enable2v2 = () => applyCount(4, TWO_V_TWO)
 
   // Pick a colour for a seat, keeping all seats' colours distinct: if another
   // seat already holds it, the two seats swap colours.
@@ -119,9 +145,51 @@ export function NewGameModal({
     setStrategies((prev) => prev.map((s, i) => (i === seat ? id : s)))
 
   const start = () =>
-    onStart({ colors, humanSeats: humans.flatMap((h, i) => (h ? [i] : [])), strategies })
+    onStart({ colors, humanSeats: humans.flatMap((h, i) => (h ? [i] : [])), strategies, teams })
 
   const count = colors.length
+
+  // In a team game, the seats grouped by team in team-id order — each group is one
+  // Team A/B block of seats. Derived straight from the draft `teams`.
+  const teamGroups = Array.from(new Set(teams)).map((team) => ({
+    team,
+    seats: teams.flatMap((t, i) => (t === team ? [i] : [])),
+  }))
+
+  // One seat's controls — the human/AI toggle, the colour picker, and (AI only)
+  // the difficulty picker. Pulled out so both the flat list and the team-grouped
+  // layout render an identical row. Three fixed grid columns — type | colour |
+  // strategy — so every seat's controls line up and the colour picker never shifts
+  // (the strategy column is reserved even on human rows, where it sits empty).
+  const seatRow = (seat: number) => (
+    <div className="setup-row setup-seat" key={seat}>
+      <button
+        type="button"
+        className="setup-pill setup-type"
+        onClick={() => toggleType(seat)}
+        aria-label={`${SETUP.seat(seat + 1)} — ${humans[seat] ? SETUP.human : SETUP.ai}`}
+      >
+        {humans[seat] ? SETUP.human : SETUP.ai}
+      </button>
+      <Dropdown
+        value={colors[seat]}
+        options={COLOR_OPTIONS}
+        onChange={(color) => pickColor(seat, color)}
+        ariaLabel={SETUP.colorPicker(seat + 1)}
+        className="setup-pick-color"
+        menuClassName="dropdown-menu-swatches"
+      />
+      {!humans[seat] && (
+        <Dropdown
+          value={strategies[seat]}
+          options={STRATEGY_OPTIONS}
+          onChange={(id) => pickStrategy(seat, id)}
+          ariaLabel={SETUP.strategyPicker(seat + 1)}
+          className="setup-pick-strategy"
+        />
+      )}
+    </div>
+  )
 
   return (
     <div
@@ -140,7 +208,9 @@ export function NewGameModal({
     >
       <div className="setup-title">{SETUP.title}</div>
 
-      {/* Player count */}
+      {/* Player count + the 2v2 toggle. The 2/3/4 pills pick a free-for-all count;
+          the 2v2 pill (right of them) forces 4 seats split into two teams. Exactly
+          one is "on" — a plain count when not a team game, else 2v2. */}
       <div className="setup-row setup-count">
         <span className="setup-rowlabel">{SETUP.players}</span>
         <div className="setup-group">
@@ -148,52 +218,37 @@ export function NewGameModal({
             <button
               key={n}
               type="button"
-              className={n === count ? 'setup-pill setup-pill-on' : 'setup-pill'}
-              aria-pressed={n === count}
+              className={n === count && !isTeam ? 'setup-pill setup-pill-on' : 'setup-pill'}
+              aria-pressed={n === count && !isTeam}
               onClick={() => changeCount(n)}
             >
               {n}
             </button>
           ))}
+          <button
+            type="button"
+            className={isTeam ? 'setup-pill setup-pill-on' : 'setup-pill'}
+            aria-pressed={isTeam}
+            onClick={enable2v2}
+          >
+            {SETUP.teams}
+          </button>
         </div>
       </div>
 
       {/* One row per seat: the human/AI toggle, a colour picker, and — for AI
-          seats only — a difficulty picker. */}
+          seats only — a difficulty picker. In a free-for-all the rows are a plain
+          list in seat order; in 2v2 they're regrouped under Team A/B headers (so
+          partners read together even though they sit on alternating seats). */}
       <div className="setup-seats">
-        {colors.map((c, seat) => (
-          <div className="setup-row setup-seat" key={seat}>
-            {/* Three fixed grid columns — type | colour | strategy — so every
-                seat's controls line up vertically and nothing shifts. The
-                strategy column is reserved even on human rows (where it's empty),
-                keeping the colour picker in the same column throughout. */}
-            <button
-              type="button"
-              className="setup-pill setup-type"
-              onClick={() => toggleType(seat)}
-              aria-label={`${SETUP.seat(seat + 1)} — ${humans[seat] ? SETUP.human : SETUP.ai}`}
-            >
-              {humans[seat] ? SETUP.human : SETUP.ai}
-            </button>
-            <Dropdown
-              value={c}
-              options={COLOR_OPTIONS}
-              onChange={(color) => pickColor(seat, color)}
-              ariaLabel={SETUP.colorPicker(seat + 1)}
-              className="setup-pick-color"
-              menuClassName="dropdown-menu-swatches"
-            />
-            {!humans[seat] && (
-              <Dropdown
-                value={strategies[seat]}
-                options={STRATEGY_OPTIONS}
-                onChange={(id) => pickStrategy(seat, id)}
-                ariaLabel={SETUP.strategyPicker(seat + 1)}
-                className="setup-pick-strategy"
-              />
-            )}
-          </div>
-        ))}
+        {isTeam
+          ? teamGroups.map((group) => (
+              <div className="setup-teamgroup" key={group.team}>
+                <div className="setup-teamhead">{TEAM.name(group.team)}</div>
+                {group.seats.map((seat) => seatRow(seat))}
+              </div>
+            ))
+          : colors.map((_, seat) => seatRow(seat))}
       </div>
 
       {/* Bottom bar: nothing takes effect until Start game */}

@@ -9,8 +9,11 @@
  */
 import type { GameState } from '../engine'
 import { type BoardLayout, cellStart, cellSize, cellMid } from './layout'
+import { TEAM } from './strings'
 import {
   PLAYER_HEX,
+  TEAM_LABEL_FILL,
+  TEAM_LABEL_SIZE,
   LANE_FILL_OPACITY,
   NEST_BOX_FILL_OPACITY,
   NEST_FLASH,
@@ -47,6 +50,10 @@ interface Props {
 
 export function Board({ state, layout }: Props) {
   const safe = new Set(state.ruleset.safeSquares)
+  // In a 2v2 game two seats share a team id; each nest then shows its team's name
+  // ("Team A"/"Team B") in its centre. A free-for-all has all-distinct ids, so this
+  // is false and no label is drawn.
+  const isTeamGame = new Set(state.teams).size < state.teams.length
 
   return (
     <g className="board">
@@ -199,6 +206,23 @@ export function Board({ state, layout }: Props) {
                 strokeWidth={NEST_HOLE_STROKE_W}
               />
             ))}
+            {/* 2v2: the team name sits in the dead centre of the nest cluster (the
+                gap between the four holes), a neutral team marker. Pitons render in
+                the holes on top in <Pitons>, so they don't sit over this. */}
+            {isTeamGame && (
+              <text
+                x={nestCx}
+                y={nestCy}
+                textAnchor="middle"
+                dominantBaseline="central"
+                fontSize={TEAM_LABEL_SIZE}
+                fontWeight={700}
+                fill={TEAM_LABEL_FILL}
+                pointerEvents="none"
+              >
+                {TEAM.name(state.teams[p])}
+              </text>
+            )}
           </g>
         )
       })}

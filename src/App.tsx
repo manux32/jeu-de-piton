@@ -78,10 +78,15 @@ function App() {
         onNewGame={(setup) => {
           // Apply the whole draft at once: the controller config (which seats are
           // human, each AI's difficulty) and the engine game (count + per-seat
-          // colours) — so a new game and its players land together.
+          // colours + team layout) — so a new game and its players land together.
           setHumanSeats(setup.humanSeats)
           setSeatStrategies(setup.strategies)
-          dispatch({ type: 'newGame', playerCount: setup.colors.length, colors: setup.colors })
+          dispatch({
+            type: 'newGame',
+            playerCount: setup.colors.length,
+            colors: setup.colors,
+            teams: setup.teams,
+          })
         }}
         onRoll={roll}
         onOpenDev={() => setDevOpen(true)}
