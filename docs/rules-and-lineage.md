@@ -199,5 +199,5 @@ an ally, who keeps playing, and when the game ends.
 
 Implementation (engine, shipped 2026-06-24 — UI pending): a per-seat
 `GameState.teams` array (seat → team id); a free-for-all is the special case where
-each seat is its own team, so all the solo rules above are unchanged. See
-[architecture.md](architecture.md) for the model and the `movingSeat` seam.
+each seat is its own team, so all the solo rules above are unchanged. The model +
+the partner-takeover seam (`movingSeat`) are documented in `src/engine/moves.ts`.
