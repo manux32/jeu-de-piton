@@ -13,7 +13,7 @@
  * adds no rules of its own (every decision is the engine's, made in App).
  */
 import { Fragment, useMemo, useState, type CSSProperties } from 'react'
-import type { GameState, Move } from '../engine'
+import { type GameState, type Move, seatOfPiton } from '../engine'
 import { buildLayout, destinationCell, cellMid, cellStart } from './layout'
 import { Board } from './Board'
 import { Pitons } from './Pitons'
@@ -410,7 +410,9 @@ export function GameBoard({
           clickable to finish a piton. */}
       <g className="move-targets" style={{ color: PLAYER_HEX[state.players[state.turn].color] }}>
         {moves.map((m, i) => {
-          const cell = destinationCell(m.to, state.turn, layout)
+          // The ring sits on the OWNER's lane/home — which is the partner's arm,
+          // not the clock's, when a finished 2v2 seat plays a partner's piton.
+          const cell = destinationCell(m.to, seatOfPiton(state, m.pitonId), layout)
           // A HOME-bound move is the big prize — flag it with a larger, bolder,
           // pulsing marker so players don't miss the chance to finish a piton.
           const home = m.to.kind === 'finished'

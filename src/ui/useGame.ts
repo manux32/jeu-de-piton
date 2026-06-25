@@ -32,6 +32,7 @@ import {
   applyMove,
   applyRoll,
   createGame,
+  seatOfPiton,
   JEU_DE_PITON,
   type GameState,
   type Move,
@@ -298,9 +299,7 @@ function reducer(view: GameView, action: GameAction): GameView {
       // The piton's owner — same as `mover` except when a finished 2v2 seat is
       // playing its partner's piton, where the trajectory must follow the
       // partner's arm geometry (lane/nest), not the playing seat's.
-      const owner = prev.players.findIndex((pl) =>
-        pl.pitons.some((pt) => pt.id === action.move.pitonId),
-      )
+      const owner = seatOfPiton(prev, action.move.pitonId)
 
       const logged: GameView = {
         ...view,

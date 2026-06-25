@@ -21,7 +21,7 @@
  */
 import { useSyncExternalStore } from 'react'
 import type { GameState, Move, PitonPosition } from '../engine'
-import { progressOf, positionAt } from '../engine'
+import { progressOf, positionAt, seatOfPiton } from '../engine'
 import { type BoardLayout, cellMid } from './layout'
 import type { TurnEntry } from './useGame'
 import { subscribeTrajectory, getTrajectorySnapshot } from './trajectorySettings'
@@ -112,13 +112,6 @@ function posCentre(pos: PitonPosition, p: number, layout: BoardLayout): Pt {
   }
 }
 
-/** Seat that owns the piton with `pitonId` (its `<color>-<n>` prefix). Differs
- *  from the seat on the clock when a finished 2v2 seat plays its partner's
- *  piton — and the trajectory geometry must follow the OWNER's arm. */
-function ownerSeat(pitonId: string, state: GameState): number {
-  return state.players.findIndex((pl) => pl.pitons.some((pt) => pt.id === pitonId))
-}
-
 /** The polyline that follows the track from a move's origin to its destination,
  *  cell centre by cell centre, with the per-seat separation nudge applied. `p`
  *  is the piton's OWNER seat — all private geometry (entry, home lane, nest) is
@@ -183,7 +176,7 @@ export function Trajectories({ state, layout, moves, log }: Props) {
       ? moves.map((m, i) => ({
           key: `preview-${i}`,
           // Geometry follows the piton's owner; colour stays the seat on the clock.
-          pts: pathPoints(m.from, m.to, ownerSeat(m.pitonId, state), state, layout),
+          pts: pathPoints(m.from, m.to, seatOfPiton(state, m.pitonId), state, layout),
           color: PLAYER_HEX[state.players[state.turn].color],
           opacity: TRAJECTORY_OPACITY,
         }))

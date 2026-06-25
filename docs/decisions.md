@@ -14,18 +14,22 @@
 > [cross-platform-ui.md](cross-platform-ui.md)) with this log holding only the dated
 > rationale. Prepend new entries (newest first).
 
-- **2026-06-25** — **Trajectory geometry follows the piton's OWNER seat, not the
-  seat that played it.** In 2v2 a finished seat plays its partner's pitons, but
-  `Trajectories.pathPoints` was keyed on the playing seat for *all* private
-  geometry — entry index, home-lane cells (`laneCells[p]`), and nest cluster
-  (`nestSlots[p]`). Track→track moves round-trip through `progressOf`/`positionAt`
-  for any entry, so they looked fine; only **home-lane** and **nest-exit** moves
-  (the cases that read owner-private geometry) drew on the wrong arm. Fix: thread
-  the owner seat through `pathPoints` (live preview derives it from
-  `Move.pitonId`; the history log entry now records `move.owner` since it only
-  stored `{from,to}`). Colour still comes from the playing seat — that was always
-  correct. Gotcha to keep: **anything that maps a move to screen geometry must use
-  the owner, not `state.turn`/the log's seat key.**
+- **2026-06-25** — **Move→screen geometry follows the piton's OWNER seat, not the
+  seat that played it** — a whole class of 2v2 bug, not just trajectories. When a
+  finished 2v2 seat plays its partner's pitons, every render that maps a move to
+  the board's *owner-private* geometry (home-lane cells `laneCells[seat]`, nest
+  `nestSlots[seat]`, entry index) was keyed on the playing seat (`state.turn` /
+  the log's seat key) and drew on the wrong arm. Track squares are absolute and
+  round-trip through `progressOf`/`positionAt` for any entry, so only **home-lane**
+  and **nest** cases broke — masking it on track-only moves. Two sites were hit:
+  the trajectory polyline (`Trajectories.pathPoints`) and the **destination ring**
+  (`destinationCell(m.to, …)` in GameBoard). Fixed by threading the owner seat
+  through both, via one shared engine helper `seatOfPiton(state, pitonId)`; the
+  history log entry also records `move.owner` since it only stored `{from,to}`.
+  Line/ring **colour** still comes from the playing seat — that was always right.
+  Gotcha to keep: **map a move to screen geometry through `seatOfPiton`, never
+  `state.turn`/the seat key; resting pitons are already fine (drawn under their
+  own owner in Pitons).**
 - **2026-06-25** — **Default seat colours reordered to green/red/blue/yellow; a
   "seat" abstraction was considered and rejected.** Changed `PLAYER_COLORS` so each
   mode's default falls out of one shared prefix (2p green/red, 3p +blue, 4p & 2v2

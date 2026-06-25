@@ -63,6 +63,14 @@ function pitonOnSquare(
   return null
 }
 
+/** Seat that owns the piton with `pitonId`, or -1 if none. A piton's owner is
+ *  fixed by its colour and never changes — distinct from the seat *playing* it,
+ *  which differs when a finished 2v2 seat moves a partner's piton. The UI needs
+ *  this to draw the move on the OWNER's arm (home lane / nest), not the clock's. */
+export function seatOfPiton(state: GameState, pitonId: string): number {
+  return state.players.findIndex((pl) => pl.pitons.some((pt) => pt.id === pitonId))
+}
+
 /** Do seats `a` and `b` share a team? In a free-for-all every seat is its own
  *  team, so this is just `a === b`. */
 function sameTeam(state: GameState, a: number, b: number): boolean {
