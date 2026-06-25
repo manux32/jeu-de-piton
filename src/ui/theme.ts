@@ -75,9 +75,9 @@ export const DIE_FACE_FILL = '#fdfcf8'
 /** The empty nest holes — the near-white disc a waiting piece sits in. */
 export const NEST_HOLE_FILL = '#fdfcf8'
 /** The "A"/"B" team letter drawn in a nest centre in a 2v2 game (size lives in
- *  GEOMETRY). A neutral dark so it reads as a team marker, not a player colour
- *  (the nest already carries the player's hue around it). */
-export const TEAM_LABEL_FILL = '#2b2b2b'
+ *  GEOMETRY). A muted neutral grey so it reads as a team marker, not a player
+ *  colour (the nest already carries the player's hue around it). */
+export const TEAM_LABEL_FILL = '#9b96a3'
 
 // ── Outline (border) colours ────────────────────────────────────────────────
 // Just the colours here; how *thick* each outline is lives in GEOMETRY below.
