@@ -14,6 +14,16 @@
 > [cross-platform-ui.md](cross-platform-ui.md)) with this log holding only the dated
 > rationale. Prepend new entries (newest first).
 
+- **2026-06-25** — **Win window has two looks, by game type — *supersedes* the
+  "dropped the winner-hue tint" aside in the 2v2 entry below.** That aside over-stated
+  the change: the neutral palette was only meant for **2v2** (the headline names a
+  *team*, not a colour, so the two members' names carry the colour below instead). A
+  **free-for-all keeps the original winner-hue tint** on the panel border, headline, and
+  stats button. *Mechanism / the reusable bit:* one `--win-color` CSS var, set inline
+  **only** in the free-for-all branch; the `.win-*` rules read it with neutral
+  fallbacks, so 2v2 needs no extra CSS branch — the same `teams` derivation that picks
+  the headline picks the palette. *Why logged at all* (a look tweak is normally git's
+  job): solely to correct the now-misleading aside below.
 - **2026-06-25** — **A second 2v2 mode ("2v2" official vs "2v2 friendly"): the
   partnership *style* rides on `GameState`, not the `Ruleset`.** The friend's family
   plays 2v2 with partners as *enemies for movement* (capture/pass each other) until
