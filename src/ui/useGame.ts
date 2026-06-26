@@ -102,18 +102,19 @@ export interface CompletedTurn {
 export interface PlayerStats {
   /** Captures made on an ordinary track square (the common case). */
   regularCaptures: number
-  /** Regular-2v2 only: the subset of `regularCaptures` that were of this seat's OWN
-   *  teammate's pitons (friendly 2v2 can't capture a teammate). A start-square
-   *  capture can never be of a teammate — a teammate on a start square is a
-   *  safe-square block, not a target — so this only ever subdivides the track ones. */
+  /** Regular-2v2 only: how many of this seat's captures (track OR start-square)
+   *  were of its OWN teammate's pitons — a cross-cut of `regularCaptures` +
+   *  `startCaptures`, not a slice of either alone. Friendly 2v2 can't capture a
+   *  teammate at all, so it stays 0 there. */
   teammateCaptures: number
   /** Captures made by leaving the nest onto your own start square, bumping an
    *  enemy sheltering there (the start-square exception). */
   startCaptures: number
   /** Own pitons sent back to the nest by an enemy's ordinary move. */
   lostToCapture: number
-  /** Regular-2v2 only: the subset of `lostToCapture` taken by this seat's OWN
-   *  teammate (mirror of `teammateCaptures`, from the victim's side). */
+  /** Regular-2v2 only: how many of this seat's losses (track OR start-square) were
+   *  to its OWN teammate — a cross-cut of `lostToCapture` + `lostOnEnemyStart`,
+   *  the mirror of `teammateCaptures` from the victim's side. */
   lostToTeammate: number
   /** Own pitons bumped because they sheltered on an enemy's start square and the
    *  owner came out of the nest onto them (mirror of `startCaptures`). */
@@ -331,9 +332,10 @@ function reducer(view: GameView, action: GameAction): GameView {
         if (victim >= 0) {
           stats = bumpStat(stats, victim, onStart ? 'lostOnEnemyStart' : 'lostToCapture')
           // Regular-2v2 cross-cut: if the victim is the mover's own teammate, tally
-          // that subset too (only a track capture can hit a teammate — see the stat
-          // doc). Friendly 2v2 forbids the capture entirely, so it never gets here.
-          if (!onStart && victim !== mover && prev.teams[victim] === prev.teams[mover]) {
+          // that too — on a track square OR the mover's own start (a teammate can be
+          // captured there exactly as an enemy). Friendly 2v2 forbids the capture
+          // entirely, so this never fires there.
+          if (victim !== mover && prev.teams[victim] === prev.teams[mover]) {
             stats = bumpStat(stats, mover, 'teammateCaptures')
             stats = bumpStat(stats, victim, 'lostToTeammate')
           }

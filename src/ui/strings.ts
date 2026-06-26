@@ -70,18 +70,19 @@ export const STATS = {
   /** Section + its two sub-rows: captures this seat MADE. */
   captures: 'Captures',
   capturesRegular: 'Regular',
-  /** Deeper sub-row under "Regular": how many of those track captures were of the
-   *  seat's own teammate's pitons. Regular-2v2 only (friendly 2v2 can't). */
-  capturesTeammate: 'of teammate',
   capturesStart: 'On start square',
+  /** Deeper cross-cut row closing the Captures section: how many of ALL this seat's
+   *  captures (track + start) were of its own ally's pitons. Regular-2v2 only
+   *  (friendly 2v2 can't capture an ally). "ally" not "teammate" to keep it short. */
+  capturesTeammate: 'of ally',
   /** Section + its three sub-rows: this seat's pitons sent back. */
   losses: 'Pitons lost',
   lostToCapture: 'Captured',
-  /** Deeper sub-row under "Captured": how many of those losses were to the seat's
-   *  own teammate. Mirror of `capturesTeammate`; regular-2v2 only. */
-  lostToTeammate: 'by teammate',
   lostOnEnemyStart: "On enemy's start",
   lostToThreeSixes: 'Triple-6 penalty',
+  /** Deeper cross-cut row closing the Pitons-lost section: how many of ALL this
+   *  seat's losses were to its own ally. Mirror of `capturesTeammate`. */
+  lostToTeammate: 'by ally',
   /** Row: total 6s this seat rolled. */
   sixes: '6s rolled',
   /** Bottom-bar button that closes the window. */

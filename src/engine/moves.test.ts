@@ -473,6 +473,14 @@ describe('2v2 friendly (partners are allies for movement)', () => {
     expect(forPiton(s, 5, 'green-0')).toEqual([])
   })
 
+  it('cannot capture a teammate on your own start square — the partner shields it', () => {
+    // Mirror of the official-mode start-square capture: with partners as allies,
+    // blue parked on green's start (0) blocks green's exit entirely — no stacking,
+    // no capturing a partner, even via the start-square exception.
+    const s = place(team2v2(), 'blue-0', { kind: 'track', square: 0 })
+    expect(forPiton(s, 5, 'green-0')).toEqual([])
+  })
+
   it('does not end the game when only one team member is all HOME', () => {
     // green brings its last piton HOME, but partner blue still has pitons out, so
     // the team isn't done — play continues, no winner.
@@ -557,6 +565,17 @@ describe('2v2 official (partners are enemies for movement)', () => {
     let s = place(team2v2(), 'green-0', { kind: 'track', square: 4 })
     s = place(s, 'blue-0', { kind: 'track', square: 7 })
     expect(forPiton(s, 5, 'green-0')).toEqual([])
+  })
+
+  it('captures a teammate squatting on your own start square (entry exception)', () => {
+    // Square 0 is green's start. The start-square exception is owner-vs-everyone:
+    // a partner (blue) parked there is NOT shielded in the official mode, so green
+    // exiting the nest onto it captures blue, exactly as it would an enemy.
+    const s = place(team2v2(), 'blue-0', { kind: 'track', square: 0 })
+    const moves = forPiton(s, 5, 'green-0')
+    expect(moves).toHaveLength(1)
+    expect(moves[0].to).toEqual({ kind: 'track', square: 0 })
+    expect(moves[0].captures).toBe('blue-0')
   })
 
   it('still takes over a finished partner and wins on the whole team home', () => {

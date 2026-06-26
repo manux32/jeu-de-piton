@@ -69,10 +69,11 @@ export function StatsModal({ state, stats, onClose }: Props) {
     teamSplit = groups[0].length
   }
 
-  // Regular 2v2 (`partnersAreAllies` false) is the only mode where a teammate can
-  // be captured, so the teammate cross-cut rows show only then. They're `sub2` —
-  // a deeper indent under "Regular" / "Captured" — flagging them as a subset OF
-  // that row, not another slice that sums into the section total.
+  // Regular 2v2 (`partnersAreAllies` false) is the only mode where an ally can be
+  // captured, so the ally cross-cut rows show only then. Each closes its section as
+  // a deeper-indented (`sub2`) line: it cross-cuts BOTH sub-rows above it (an ally
+  // can be captured on the track or on a start square), so it's a subset of the
+  // section total, not a slice that sums with the other sub-rows.
   const showTeammate = isTeamGame && !state.partnersAreAllies
 
   // The rows, top to bottom. The two `section` rows carry the running total of
@@ -81,17 +82,17 @@ export function StatsModal({ state, stats, onClose }: Props) {
     { label: STATS.pitonsHome, kind: 'plain', value: (i) => `${pitonsHome(i)} / ${total}` },
     { label: STATS.captures, kind: 'section', value: (i) => capturesTotal(stats[i]) },
     { label: STATS.capturesRegular, kind: 'sub', value: (i) => stats[i].regularCaptures },
+    { label: STATS.capturesStart, kind: 'sub', value: (i) => stats[i].startCaptures },
     ...(showTeammate
       ? [{ label: STATS.capturesTeammate, kind: 'sub2', value: (i: number) => stats[i].teammateCaptures } as Row]
       : []),
-    { label: STATS.capturesStart, kind: 'sub', value: (i) => stats[i].startCaptures },
     { label: STATS.losses, kind: 'section', value: (i) => lossesTotal(stats[i]) },
     { label: STATS.lostToCapture, kind: 'sub', value: (i) => stats[i].lostToCapture },
+    { label: STATS.lostOnEnemyStart, kind: 'sub', value: (i) => stats[i].lostOnEnemyStart },
+    { label: STATS.lostToThreeSixes, kind: 'sub', value: (i) => stats[i].lostToThreeSixes },
     ...(showTeammate
       ? [{ label: STATS.lostToTeammate, kind: 'sub2', value: (i: number) => stats[i].lostToTeammate } as Row]
       : []),
-    { label: STATS.lostOnEnemyStart, kind: 'sub', value: (i) => stats[i].lostOnEnemyStart },
-    { label: STATS.lostToThreeSixes, kind: 'sub', value: (i) => stats[i].lostToThreeSixes },
     { label: STATS.sixes, kind: 'plain', value: (i) => stats[i].sixesRolled },
   ]
 

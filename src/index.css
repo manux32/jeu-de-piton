@@ -734,7 +734,7 @@ code {
   display: flex;
   flex-direction: column;
   gap: 0.73em;
-  width: min(29em, 94vmin);
+  width: min(32em, 96vmin);
   box-sizing: border-box;
   padding: 1.07em 1.5em 0.93em;
   border-radius: 0.8em;
@@ -770,7 +770,7 @@ code {
 /* The top-left corner cell is empty, but in a fixed layout its width sets the
    whole label column's width — wide enough for "On enemy's start" etc. */
 .stats-corner {
-  width: 8.5em;
+  width: 10.5em;
 }
 /* Player column headers — each tinted its own colour (set inline). Centred in
    their equal-width columns (not right-aligned) so the spacing between names is
@@ -786,6 +786,9 @@ code {
   font-weight: 600;
   opacity: 0.85;
   padding: 0.2em 0.4em;
+  /* Keep every row name on one line; the label column (.stats-corner) is pinned
+     wide enough for the longest ("On enemy's start" / "Triple-6 penalty"). */
+  white-space: nowrap;
 }
 .stats-cell {
   /* Centred under the centred headers, in equal columns, for symmetric spacing. */
@@ -814,9 +817,9 @@ code {
 .stats-row-sub > .stats-cell {
   opacity: 0.85;
 }
-/* A deeper sub-row (regular-2v2 teammate cross-cut) — nudged further right and set
-   quieter still, reading as a subset of the sub-row above, not part of the section
-   sum. */
+/* A deeper sub-row (regular-2v2 ally cross-cut) closing a section — nudged further
+   right and set quieter still, reading as a subset OF the section total above, not
+   another slice that sums with the sub-rows. */
 .stats-row-sub2 > .stats-label {
   padding-left: 2.4em;
   font-weight: 500;
