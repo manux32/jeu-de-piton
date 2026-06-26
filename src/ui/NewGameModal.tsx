@@ -38,6 +38,10 @@ export interface GameSetup {
   /** Per-seat team id (seats sharing an id are partners). Identity `[0,1,2,…]` is
    *  a free-for-all; `[0,1,0,1]` is the 2v2 mode. Parallel to `colors`. */
   teams: number[]
+  /** The 2v2 partnership style: `false` = official "2v2" (partners play against
+   *  each other until one finishes); `true` = "2v2 friendly" (partners are full
+   *  allies). Irrelevant in a free-for-all. See `GameState.partnersAreAllies`. */
+  partnersAreAllies: boolean
 }
 
 interface Props {
@@ -49,6 +53,8 @@ interface Props {
   strategies: StrategyId[]
   /** The current per-seat team ids, to pre-fill the 2v2 toggle. */
   teams: number[]
+  /** The current partnership style, to pre-fill which 2v2 pill is lit. */
+  partnersAreAllies: boolean
   onCancel: () => void
   onStart: (setup: GameSetup) => void
 }
@@ -83,6 +89,7 @@ export function NewGameModal({
   humanSeats,
   strategies: initialStrategies,
   teams: initialTeams,
+  partnersAreAllies: initialPartnersAreAllies,
   onCancel,
   onStart,
 }: Props) {
@@ -96,6 +103,9 @@ export function NewGameModal({
   )
   const [strategies, setStrategies] = useState<StrategyId[]>(initialStrategies)
   const [teams, setTeams] = useState<number[]>(initialTeams)
+  // The 2v2 partnership style (only meaningful when `isTeam`): false = official
+  // "2v2", true = "2v2 friendly". See GameState.partnersAreAllies.
+  const [partnersAreAllies, setPartnersAreAllies] = useState(initialPartnersAreAllies)
 
   // A team game is one where two seats share a team id (only 2v2 today). In a
   // free-for-all every id is distinct, so this is false and all the team chrome
@@ -119,11 +129,16 @@ export function NewGameModal({
     setTeams(nextTeams)
   }
 
-  // A plain count pick is always a free-for-all; the 2v2 pill forces 4 seats split
+  // A plain count pick is always a free-for-all; a 2v2 pill forces 4 seats split
   // into the two partnerships. Picking any count clears 2v2, and vice versa, so the
-  // four pills read as one mutually-exclusive choice.
+  // count and 2v2 pills read as one mutually-exclusive choice. The two 2v2 pills
+  // share the team layout and differ only in the partnership *style* (allies = the
+  // friendly mode); switching between them keeps the 4 seats, just re-lighting.
   const changeCount = (n: number) => applyCount(n, freeForAll(n))
-  const enable2v2 = () => applyCount(4, TWO_V_TWO)
+  const enable2v2 = (allies: boolean) => {
+    applyCount(4, TWO_V_TWO)
+    setPartnersAreAllies(allies)
+  }
 
   // Pick a colour for a seat, keeping all seats' colours distinct: if another
   // seat already holds it, the two seats swap colours.
@@ -145,7 +160,13 @@ export function NewGameModal({
     setStrategies((prev) => prev.map((s, i) => (i === seat ? id : s)))
 
   const start = () =>
-    onStart({ colors, humanSeats: humans.flatMap((h, i) => (h ? [i] : [])), strategies, teams })
+    onStart({
+      colors,
+      humanSeats: humans.flatMap((h, i) => (h ? [i] : [])),
+      strategies,
+      teams,
+      partnersAreAllies,
+    })
 
   const count = colors.length
 
@@ -208,9 +229,12 @@ export function NewGameModal({
     >
       <div className="setup-title">{SETUP.title}</div>
 
-      {/* Player count + the 2v2 toggle. The 2/3/4 pills pick a free-for-all count;
-          the 2v2 pill (right of them) forces 4 seats split into two teams. Exactly
-          one is "on" — a plain count when not a team game, else 2v2. */}
+      {/* The game-mode choice, over two rows so the longer "2v2 friendly" pill
+          doesn't crowd the count row (and re-trip the iPad font-width overflow —
+          see cross-platform-ui.md). Row 1: the 2/3/4 free-for-all counts. Row 2:
+          the two 2v2 pills (official vs friendly). Exactly one pill across both
+          rows is "on" — a plain count when not a team game, else one of the 2v2
+          modes by `partnersAreAllies`. */}
       <div className="setup-row setup-count">
         <span className="setup-rowlabel">{SETUP.players}</span>
         <div className="setup-group">
@@ -225,13 +249,26 @@ export function NewGameModal({
               {n}
             </button>
           ))}
+        </div>
+      </div>
+      <div className="setup-row setup-count">
+        <span className="setup-rowlabel">{SETUP.teamsLabel}</span>
+        <div className="setup-group">
           <button
             type="button"
-            className={isTeam ? 'setup-pill setup-pill-on' : 'setup-pill'}
-            aria-pressed={isTeam}
-            onClick={enable2v2}
+            className={isTeam && !partnersAreAllies ? 'setup-pill setup-pill-on' : 'setup-pill'}
+            aria-pressed={isTeam && !partnersAreAllies}
+            onClick={() => enable2v2(false)}
           >
             {SETUP.teams}
+          </button>
+          <button
+            type="button"
+            className={isTeam && partnersAreAllies ? 'setup-pill setup-pill-on' : 'setup-pill'}
+            aria-pressed={isTeam && partnersAreAllies}
+            onClick={() => enable2v2(true)}
+          >
+            {SETUP.teamsFriendly}
           </button>
         </div>
       </div>

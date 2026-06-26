@@ -30,12 +30,16 @@
  * ends the game (winner set, no extra turn even off a 6). Earlier rung 2 covers
  * ENTRY (nest → entry square).
  *
- * TEAMS (2v2) layer cleanly on top via `GameState.teams` and `movingSeat`: a
- * teammate counts as an ally everywhere (no capture, no passing through, blocks
- * like your own), the win condition is the whole TEAM home, and a seat whose own
- * pitons are all HOME spends its turns moving its partner's pitons. A free-for-
- * all is the special case where each seat is its own team, so every function here
- * behaves exactly as before.
+ * TEAMS (2v2) layer cleanly on top via `GameState.teams` and `movingSeat`. The
+ * win condition is the whole TEAM home, and a seat whose own pitons are all HOME
+ * spends its turns moving its partner's pitons — both always team-aware
+ * (`sameTeam`). Whether a teammate is also an ally *for movement* (no capture, no
+ * passing through, blocks like your own) is the partnership *style*
+ * (`GameState.partnersAreAllies`, the `movementAlly` predicate): the "friendly"
+ * mode says yes; the official mode says no — partners play a normal game against
+ * each other until one finishes. A free-for-all is the special case where each
+ * seat is its own team, so both predicates collapse to "same seat" and every
+ * function here behaves exactly as before.
  */
 
 import type { GameState, Move, PitonPosition } from './types'
@@ -72,9 +76,20 @@ export function seatOfPiton(state: GameState, pitonId: string): number {
 }
 
 /** Do seats `a` and `b` share a team? In a free-for-all every seat is its own
- *  team, so this is just `a === b`. */
+ *  team, so this is just `a === b`. Used for the *team* rules — takeover and the
+ *  win condition — which are team-aware in every 2v2 mode. */
 function sameTeam(state: GameState, a: number, b: number): boolean {
   return state.teams[a] === state.teams[b]
+}
+
+/** Are seats `a` and `b` allies *for movement* — i.e. does b's piton block/shield
+ *  a (no capture, no passing through, blocks like your own)? Your own seat always
+ *  is; a teammate is only in the "2v2 friendly" mode (`partnersAreAllies`). In the
+ *  official 2v2 mode partners are enemies for movement, so this is just `a === b`
+ *  there — and in a free-for-all it always is, leaving the solo rules untouched. */
+function movementAlly(state: GameState, a: number, b: number): boolean {
+  if (!sameTeam(state, a, b)) return false
+  return a === b || state.partnersAreAllies
 }
 
 /** Are all of seat `s`'s own pitons HOME? */
@@ -153,7 +168,7 @@ function passageBlocked(
     const square = (entryIndex + k) % trackLength
     const occupant = pitonOnSquare(state, square)
     if (occupant === null) continue
-    if (sameTeam(state, occupant.player, seat)) return true // can't pass own/teammate
+    if (movementAlly(state, occupant.player, seat)) return true // can't pass own/ally
     if (safeSquares.includes(square)) return true // occupied safe square blocks all
     // else: a lone enemy on a non-safe square — pass freely
   }
@@ -167,9 +182,11 @@ function passageBlocked(
  *
  * On the shared TRACK:
  *  - empty square → legal, no capture;
- *  - an ALLY (own or teammate) → blocked (no stacking, and you never capture a
- *    partner — partners are one side);
- *  - an enemy on a SAFE square → blocked (immune — no capture there);
+ *  - a movement ALLY (own, or a teammate in "2v2 friendly") → blocked (no
+ *    stacking, and you never capture an ally — they're one side);
+ *  - an enemy on a SAFE square → blocked (immune — no capture there); in the
+ *    official 2v2 a teammate is an enemy here, so a teammate on a safe square
+ *    blocks the same way (the rule's "can't pass a partner on a safe square");
  *  - a lone enemy off a safe square → capture (its id), if capture is enabled.
  *
  * In the private home LANE: blocked only by your own piton already on that cell
@@ -189,7 +206,7 @@ function resolveLanding(
   const square = dest.square
   const occupant = pitonOnSquare(state, square)
   if (occupant === null) return null
-  if (sameTeam(state, occupant.player, seat)) return 'blocked' // own/teammate piton
+  if (movementAlly(state, occupant.player, seat)) return 'blocked' // own/ally piton
   if (state.ruleset.safeSquares.includes(square)) return 'blocked' // enemy is safe
   if (!state.ruleset.captureEnabled) return 'blocked'
   return occupant.id // capture the lone enemy
@@ -214,7 +231,7 @@ export function legalMoves(state: GameState, roll: number): Move[] {
   // --- Entry: a nest piton onto its entry square --------------------------
   // The start-square exception: a start square is safe to everyone BUT its
   // owner, so the owner may exit the nest (on an entry roll) straight onto it.
-  // An ally already there blocks entry (no stacking); a lone enemy is CAPTURED
+  // A movement ally already there blocks entry (no stacking); a lone enemy is CAPTURED
   // (the square shields it from every OTHER player, but never from its owner);
   // an empty square is a plain entry. The square stays universally safe in
   // `resolveLanding` for everyone who lands on it by *movement* — the owner only
@@ -225,7 +242,7 @@ export function legalMoves(state: GameState, roll: number): Move[] {
     const entryCaptures: string | null | 'blocked' =
       occupant === null
         ? null
-        : sameTeam(state, occupant.player, seat) || !state.ruleset.captureEnabled
+        : movementAlly(state, occupant.player, seat) || !state.ruleset.captureEnabled
           ? 'blocked'
           : occupant.id
     if (entryCaptures !== 'blocked') {

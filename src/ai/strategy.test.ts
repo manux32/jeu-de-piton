@@ -230,6 +230,35 @@ describe('greedyStrategy — priority ladder', () => {
   })
 })
 
+describe('greedyStrategy — official 2v2 (avoids capturing a teammate)', () => {
+  // Seats 0 (green) & 2 (blue) are partners; partnersAreAllies = false, so green
+  // CAN capture blue but the AI shouldn't unless it has no other move.
+  const team = () => createGame(JEU_DE_PITON, 4, undefined, [0, 1, 0, 1], false)
+
+  it('passes up a teammate capture when another move exists', () => {
+    // green-0 + 3 would capture partner blue-0 at square 3; green-1 has a plain
+    // advance (30 → 33). The AI must skip the partner-capture and move green-1.
+    let s = place(team(), 'green-0', { kind: 'track', square: 0 })
+    s = place(s, 'blue-0', { kind: 'track', square: 3 })
+    s = place(s, 'green-1', { kind: 'track', square: 30 })
+    const moves = legalMoves(s, 3)
+    expect(moves.some((m) => m.captures === 'blue-0')).toBe(true) // guard: it IS legal
+    const chosen = greedyStrategy(s, moves)
+    expect(chosen.pitonId).toBe('green-1')
+    expect(chosen.captures).toBeNull()
+  })
+
+  it('captures a teammate when forced (it is the only legal move)', () => {
+    // Only green-0 is out; its single move on a 3 captures partner blue-0. The
+    // forced-move rule leaves no alternative, so the AI plays it.
+    let s = place(team(), 'green-0', { kind: 'track', square: 0 })
+    s = place(s, 'blue-0', { kind: 'track', square: 3 })
+    const moves = legalMoves(s, 3)
+    expect(moves.length).toBe(1) // guard: the partner-capture is the only move
+    expect(greedyStrategy(s, moves).captures).toBe('blue-0')
+  })
+})
+
 describe('randomStrategy', () => {
   it('picks the move the injected RNG points at', () => {
     const s = createGame(JEU_DE_PITON)

@@ -177,27 +177,51 @@ brand's bonus-move rules:
   if none was playable. Encoded in `applyRoll` (a non-6 with no move still
   forfeits as before).
 
-## 2v2 partnership mode — CONFIRMED (2026-06-24)
+## 2v2 partnership mode — CONFIRMED (2026-06-24; two modes 2026-06-25)
 
 A team variant of the cabin rules: a 4-player game where the four seats form two
-teams of two. The base rules above are unchanged; team play only changes who is
-an ally, who keeps playing, and when the game ends.
+teams of two. The base rules above are unchanged; team play only changes who is an
+ally, who keeps playing, and when the game ends. There are **two modes**, offered
+as two separate New Game buttons — they share everything below *except* how
+partners interact during normal play:
 
 - **Teams.** Seats 1&3 are one team, seats 2&4 the other (partners sit on
   opposite arms — the colours already alternate around the board).
-- **Partners are fully one side.** A teammate's piton counts exactly like your
-  own: you **cannot capture it**, **cannot pass through or land on it**, and it
-  **blocks** you the same way your own pitons do. (During normal play each player
-  still rolls and moves only their *own* pitons.)
 - **Finished-partner takeover (the tempo rule).** Once a player gets **all** their
   own pitons HOME, they keep taking their turns but spend them **moving their
   partner's** pitons. So while a team has one member home and one still running,
   the team gets **two rolls per lap** on its remaining pitons — a deliberate,
-  significant closing advantage.
+  significant closing advantage. (Both modes.)
 - **Win.** The game ends when **every piton of both members of a team** is HOME.
-  The first team to do so wins.
+  The first team to do so wins. (Both modes.)
 
-Implementation (engine, shipped 2026-06-24; UI progress in [STATUS](STATUS.md)): a
-per-seat `GameState.teams` array (seat → team id); a free-for-all is the special case where
-each seat is its own team, so all the solo rules above are unchanged. The model +
-the partner-takeover seam (`movingSeat`) are documented in `src/engine/moves.ts`.
+### "2v2" (the official mode) — CONFIRMED 2026-06-25 (the friend)
+Partners play an **almost-normal game against each other** until one finishes:
+
+- A teammate's piton is treated **like an enemy** for movement — you **may capture
+  it** and **may pass through it**, exactly as with an opponent.
+- The one exception is the universal safe-square rule: a teammate parked **on a
+  safe square** blocks you (and is immune), the same as any enemy there — so "you
+  can't pass a partner on a safe square" falls out for free.
+- This lasts until a partner gets all their own pitons HOME; from then the
+  takeover rule above applies and the two cooperate (the surviving player moves the
+  finished one's turns on the team's behalf).
+- **Forced capture of your own partner is possible.** With captures allowed and the
+  base **forced-move rule** (you must move if any legal move exists), a player whose
+  *only* legal move captures their own teammate is **forced to take it** — human and
+  AI alike. The AI avoids a teammate-capture whenever it has any other legal move,
+  but neither can pass the turn to dodge it.
+
+### "2v2 friendly" — CONFIRMED 2026-06-24 (the original mode)
+Partners are **fully one side** the whole game. A teammate's piton counts exactly
+like your own: you **cannot capture it**, **cannot pass through or land on it**, and
+it **blocks** you the same way your own pitons do.
+
+Implementation (engine 2026-06-24; second mode 2026-06-25; UI progress in
+[STATUS](STATUS.md)): a per-seat `GameState.teams` array (seat → team id) plus a
+`GameState.partnersAreAllies` boolean (the mode: `true` = friendly). A free-for-all
+is the special case where each seat is its own team, so all the solo rules above are
+unchanged regardless of the flag. The takeover seam (`movingSeat`) and the
+movement-vs-team split (`movementAlly` vs `sameTeam`) are documented in
+`src/engine/moves.ts`. The AI's teammate-capture avoidance lives in
+`src/ai/strategy.ts` (`greedyStrategy`).

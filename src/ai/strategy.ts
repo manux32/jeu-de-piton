@@ -134,6 +134,13 @@ function capturableNextRoll(
  * definition, capturable next turn (the owner exits onto it), so
  * `capturableNextRoll` already rejects it as a non-escape.
  *
+ * One *hard* exclusion sits ABOVE the whole ladder: in the official 2v2 mode
+ * (partners are enemies for movement) the AI never captures its own teammate while
+ * it has any other legal move — so the ladder runs over the non-teammate-capturing
+ * moves, and only falls back to the full list when *every* legal move would capture
+ * a partner (the forced-move rule then binds human and AI alike). Outside that mode
+ * no legal move ever captures a teammate, so this is a no-op.
+ *
  * It walks tiers 1–7 top-down and plays the first that has any candidate; within
  * a tier it drops dangerous-start landings (unless that would leave none), then
  * picks the most-advanced piton, so even ties are deterministic. If none match it
@@ -159,6 +166,23 @@ export const greedyStrategy: Strategy = (state, moves) => {
   )
   const landsOnDangerousStart = (m: Move) =>
     m.to.kind === 'track' && dangerousStarts.has(m.to.square)
+  // A teammate-capture: the captured piton belongs to a different seat on our own
+  // team — possible only in the official 2v2 mode, where partners are enemies for
+  // movement. We never want to whack our own partner, so it's excluded from the
+  // whole ladder below; the only time we'd play one is when forced (it's the only
+  // legal move), handled by `choices` falling back to the full list.
+  const capturesTeammate = (m: Move) => {
+    if (m.captures == null) return false
+    const victim = state.players.findIndex((pl) =>
+      pl.pitons.some((p) => p.id === m.captures),
+    )
+    return victim !== state.turn && state.teams[victim] === state.teams[state.turn]
+  }
+  // Avoid capturing a teammate unless EVERY legal move would — i.e. only when the
+  // forced-move rule leaves no alternative. So the whole ladder runs over the
+  // non-teammate-capturing moves, dropping to the full list only if that empties.
+  const clean = moves.filter((m) => !capturesTeammate(m))
+  const choices = clean.length > 0 ? clean : moves
   const tiers: Array<(m: Move) => boolean> = [
     (m) =>
       m.from.kind === 'track' &&
@@ -175,7 +199,7 @@ export const greedyStrategy: Strategy = (state, moves) => {
     (m) => m.from.kind === 'lane',
   ]
   for (const tier of tiers) {
-    const candidates = moves.filter(tier)
+    const candidates = choices.filter(tier)
     if (candidates.length === 0) continue
     // Prefer not landing on a dangerous start; fall back to all if that empties.
     const safe = candidates.filter((m) => !landsOnDangerousStart(m))
@@ -186,7 +210,7 @@ export const greedyStrategy: Strategy = (state, moves) => {
   // track→track step (nest/lane/safety/capture cases all already returned). Take
   // the most-advanced piton first; if it's capturable next turn and its one move
   // this roll lands it where no rival can reach, escape there.
-  for (const move of [...moves].sort((a, b) => fromProgress(state, b) - fromProgress(state, a))) {
+  for (const move of [...choices].sort((a, b) => fromProgress(state, b) - fromProgress(state, a))) {
     if (move.from.kind !== 'track') continue // defensive; all are track here
     if (!capturableNextRoll(state, state.turn, move.pitonId)) continue
     const after = withPitonAt(state, move.pitonId, move.to)
@@ -194,8 +218,8 @@ export const greedyStrategy: Strategy = (state, moves) => {
   }
 
   // Tier 9 — ADVANCE THE LEADER (the default). Same dangerous-start avoidance.
-  const safe = moves.filter((m) => !landsOnDangerousStart(m))
-  return mostAdvanced(state, safe.length > 0 ? safe : moves)
+  const safe = choices.filter((m) => !landsOnDangerousStart(m))
+  return mostAdvanced(state, safe.length > 0 ? safe : choices)
 }
 
 /**

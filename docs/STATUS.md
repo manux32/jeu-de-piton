@@ -43,9 +43,10 @@ the candidate list below, in no particular order:
   cross-doc redundancy — a content-excavation task best started fresh, not bolted
   onto a session tail.
 - **New Game UI — tweaks + extensions.** The per-seat setup window ships (count,
-  human/AI, **colour dropdown**, **AI-difficulty dropdown**, Cancel/Start), reached
-  from the Options menu; seat rows are a left-packed 3-column grid and the colour
-  pills size via `SETUP_SWATCH_SIZE` / `SETUP_PALETTE_SWATCH_SIZE`. Remaining, all
+  **2v2 / 2v2-friendly mode pills**, human/AI, **colour dropdown**, **AI-difficulty
+  dropdown**, Cancel/Start), reached from the Options menu; seat rows are a
+  left-packed 3-column grid and the colour pills size via `SETUP_SWATCH_SIZE` /
+  `SETUP_PALETTE_SWATCH_SIZE`. Remaining, all
   optional: tune the look via `SETUP_WINDOW_SIZE` (overall size) and the `setup-*`
   styles; maybe label each seat with its **board corner** (deferred — corners shift
   with player count). The **ruleset picker** (per *Rule-variant layer* above) is the

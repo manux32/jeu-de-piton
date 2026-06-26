@@ -111,6 +111,11 @@ describe('createGame — opening state', () => {
     expect(state.teams).toEqual([0, 1, 0, 1])
   })
 
+  it('defaults partnersAreAllies to true (the friendly style) and carries an override', () => {
+    expect(createGame(JEU_DE_PITON, 4, undefined, [0, 1, 0, 1]).partnersAreAllies).toBe(true)
+    expect(createGame(JEU_DE_PITON, 4, undefined, [0, 1, 0, 1], false).partnersAreAllies).toBe(false)
+  })
+
   it('rejects a teams array whose length is not the player count', () => {
     expect(() => createGame(JEU_DE_PITON, 4, undefined, [0, 1, 0])).toThrow(/teams must have 4/)
   })

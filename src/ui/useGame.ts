@@ -142,7 +142,14 @@ export type GameAction =
   // Game setup window; its length is the player count. Omit it and `playerCount`
   // chooses the count with the default seat→colour order. `teams` (optional) sets
   // each seat's team id for 2v2 (`[0,1,0,1]`); omit it for a free-for-all.
-  | { type: 'newGame'; playerCount: number; colors?: PlayerColor[]; teams?: number[] }
+  // `partnersAreAllies` picks the 2v2 style (default friendly); ignored sans teams.
+  | {
+      type: 'newGame'
+      playerCount: number
+      colors?: PlayerColor[]
+      teams?: number[]
+      partnersAreAllies?: boolean
+    }
   // DEV-only: drop a fully-built view straight in (see src/ui/dev/).
   | { type: 'load'; view: GameView }
 
@@ -160,8 +167,13 @@ const bumpStat = (
   key: keyof PlayerStats,
 ): PlayerStats[] => setAt(stats, seat, { ...stats[seat], [key]: stats[seat][key] + 1 })
 
-function init(playerCount: number, colors?: PlayerColor[], teams?: number[]): GameView {
-  const game = createGame(JEU_DE_PITON, playerCount, colors, teams)
+function init(
+  playerCount: number,
+  colors?: PlayerColor[],
+  teams?: number[],
+  partnersAreAllies?: boolean,
+): GameView {
+  const game = createGame(JEU_DE_PITON, playerCount, colors, teams, partnersAreAllies)
   return {
     game,
     log: game.players.map(() => []),
@@ -214,7 +226,7 @@ function describeMove(move: Move, before: GameState, mover: number): Notice[] {
 function reducer(view: GameView, action: GameAction): GameView {
   switch (action.type) {
     case 'newGame':
-      return init(action.playerCount, action.colors, action.teams)
+      return init(action.playerCount, action.colors, action.teams, action.partnersAreAllies)
 
     case 'load':
       return action.view

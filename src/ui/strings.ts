@@ -105,8 +105,14 @@ export const SETUP = {
   title: 'New game',
   /** Label beside the 2/3/4 player-count picker. */
   players: 'Players',
-  /** The team-mode pill, right of the count pills — forces 4 seats in two teams. */
+  /** Label beside the two 2v2 mode pills (their own row, below the count). */
+  teamsLabel: 'Teams',
+  /** The official 2v2 pill — 4 seats in two teams; partners play a normal game
+   *  against each other until one finishes (then takes over the partner). */
   teams: '2v2',
+  /** The "friendly" 2v2 pill — same teams, but partners are full allies the whole
+   *  game (can't capture or pass each other). */
+  teamsFriendly: '2v2 friendly',
   /** The two states of a seat's type toggle. */
   human: 'Human',
   ai: 'AI',

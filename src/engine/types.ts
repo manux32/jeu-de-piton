@@ -161,6 +161,20 @@ export interface GameState {
    * pitons) degrades exactly to the solo rules. See `movingSeat` in moves.ts.
    */
   teams: number[]
+  /**
+   * The 2v2 partnership *style*. `true` (the "2v2 friendly" mode) makes a teammate
+   * a full ally for movement: you can't capture, pass through, or land on a
+   * partner's piton — it blocks you like your own. `false` (the official "2v2"
+   * mode) makes partners play a normal game against each other — captures and
+   * passing a teammate are allowed (a teammate on a safe square still blocks, like
+   * any enemy) — right up until one of them is all HOME, after which the
+   * finished-partner takeover and the team win condition still apply. It rides
+   * alongside `teams` because both come from the one New Game partnership choice;
+   * it only bites when two seats share a team, so a free-for-all ignores it
+   * entirely. The *movement* split is `movementAlly`; takeover and win stay on
+   * `sameTeam` (always team-aware). See moves.ts.
+   */
+  partnersAreAllies: boolean
   /** Index into `players` whose turn it is. */
   turn: number
   /** Result of the most recent die roll, if one is pending a move. */

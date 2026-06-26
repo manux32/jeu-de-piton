@@ -86,6 +86,7 @@ function App() {
             playerCount: setup.colors.length,
             colors: setup.colors,
             teams: setup.teams,
+            partnersAreAllies: setup.partnersAreAllies,
           })
         }}
         onRoll={roll}

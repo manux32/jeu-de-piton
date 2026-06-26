@@ -41,12 +41,18 @@ export const ALL_PLAYER_COLORS: PlayerColor[] = [...PLAYER_COLORS, 'orange', 'pu
  * `teams` sets each seat's team id (seats sharing an id are partners) — the 2v2
  * setup is `[0, 1, 0, 1]`. Omit it for a free-for-all, where every seat is its
  * own team and the team rules collapse to the solo ones (see `GameState.teams`).
+ *
+ * `partnersAreAllies` picks the 2v2 partnership style — `true` (default, the
+ * "2v2 friendly" mode) treats a teammate as a full ally for movement; `false`
+ * (the official "2v2" mode) lets partners capture and pass each other until one
+ * finishes (see `GameState.partnersAreAllies`). Irrelevant in a free-for-all.
  */
 export function createGame(
   ruleset: Ruleset,
   playerCount = ruleset.playerCount,
   colors: readonly PlayerColor[] = PLAYER_COLORS.slice(0, playerCount),
   teams: readonly number[] = Array.from({ length: playerCount }, (_, i) => i),
+  partnersAreAllies = true,
 ): GameState {
   if (playerCount < 2 || playerCount > 4) {
     throw new Error(`playerCount must be 2–4, got ${playerCount}`)
@@ -83,6 +89,7 @@ export function createGame(
     geometry,
     players,
     teams: [...teams],
+    partnersAreAllies,
     turn: 0,
     lastRoll: null,
     extraTurnStreak: 0,

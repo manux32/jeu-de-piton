@@ -445,8 +445,9 @@ describe('legalMoves — lane, exact HOME & win (rung 6)', () => {
   })
 })
 
-describe('2v2 teams', () => {
+describe('2v2 friendly (partners are allies for movement)', () => {
   // Seats 0 (green) & 2 (blue) are one team; 1 (red) & 3 (yellow) the other.
+  // The default `partnersAreAllies` (true) is the "2v2 friendly" mode.
   const team2v2 = () => createGame(JEU_DE_PITON, 4, undefined, [0, 1, 0, 1])
   const forPiton = (state: GameState, roll: number, id: string) =>
     legalMoves(state, roll).filter((m) => m.pitonId === id)
@@ -523,6 +524,54 @@ describe('2v2 teams', () => {
     let s = createGame(JEU_DE_PITON)
     for (const id of ['green-0', 'green-1', 'green-2', 'green-3']) s = place(s, id, { kind: 'finished' })
     expect(movingSeat(s)).toBe(0)
+  })
+})
+
+describe('2v2 official (partners are enemies for movement)', () => {
+  // Same seating, but partnersAreAllies = false: until a teammate finishes,
+  // partners play a normal game against each other — capture & pass allowed,
+  // a teammate on a safe square still blocks like any enemy.
+  const team2v2 = () => createGame(JEU_DE_PITON, 4, undefined, [0, 1, 0, 1], false)
+  const forPiton = (state: GameState, roll: number, id: string) =>
+    legalMoves(state, roll).filter((m) => m.pitonId === id)
+
+  it('captures a teammate on landing, like an enemy', () => {
+    // green-0 + 3 lands on partner blue-0 at square 3 → CAPTURE (the mirror of the
+    // friendly test, where the same landing is blocked).
+    let s = place(team2v2(), 'green-0', { kind: 'track', square: 0 })
+    s = place(s, 'blue-0', { kind: 'track', square: 3 })
+    expect(forPiton(s, 3, 'green-0')[0].captures).toBe('blue-0')
+  })
+
+  it('passes through a teammate on a non-safe square', () => {
+    // blue-0 (partner) sits mid-path on square 4 (non-safe); green-0 + 5 crosses it
+    // and lands on 5 — allowed, just like passing an enemy.
+    let s = place(team2v2(), 'green-0', { kind: 'track', square: 2 })
+    s = place(s, 'blue-0', { kind: 'track', square: 4 })
+    expect(forPiton(s, 5, 'green-0')[0].to).toEqual({ kind: 'track', square: 7 })
+  })
+
+  it('still cannot pass a teammate parked on a safe square', () => {
+    // blue-0 (partner) sits on safe square 7; green-0 + 5 would cross it → blocked,
+    // because an occupied safe square blocks everyone, teammate or enemy.
+    let s = place(team2v2(), 'green-0', { kind: 'track', square: 4 })
+    s = place(s, 'blue-0', { kind: 'track', square: 7 })
+    expect(forPiton(s, 5, 'green-0')).toEqual([])
+  })
+
+  it('still takes over a finished partner and wins on the whole team home', () => {
+    // Takeover and the win condition are team-aware regardless of the movement
+    // style: green all HOME hands the clock to blue's pitons; finishing blue wins.
+    let s = team2v2()
+    for (const id of ['green-0', 'green-1', 'green-2', 'green-3']) s = place(s, id, { kind: 'finished' })
+    expect(movingSeat(s)).toBe(2)
+    for (const id of ['blue-0', 'blue-1', 'blue-2']) s = place(s, id, { kind: 'finished' })
+    s = place(s, 'blue-3', { kind: 'lane', step: 6 })
+
+    const rolled = applyRoll(s, 1)
+    const next = applyMove(rolled, legalMoves(rolled, 1).find((m) => m.pitonId === 'blue-3')!)
+    expect(next.phase).toBe('game-over')
+    expect(next.winner).toBe('blue')
   })
 })
 

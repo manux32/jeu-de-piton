@@ -14,6 +14,31 @@
 > [cross-platform-ui.md](cross-platform-ui.md)) with this log holding only the dated
 > rationale. Prepend new entries (newest first).
 
+- **2026-06-25** — **A second 2v2 mode ("2v2" official vs "2v2 friendly"): the
+  partnership *style* rides on `GameState`, not the `Ruleset`.** The friend's family
+  plays 2v2 with partners as *enemies for movement* (capture/pass each other) until
+  one finishes; our original mode (partners full allies) becomes "2v2 friendly". *Key
+  realisation:* the official mode is the *simpler* of the two — treating a teammate
+  exactly like an enemy for movement makes the "can't pass a partner on a safe
+  square" clause **fall out for free** (an occupied safe square already blocks
+  everyone), so no special-casing. So the only genuinely team-aware rules left in
+  *both* modes are **takeover** and **win**; only *movement/capture* differs.
+  Implemented as one boolean `GameState.partnersAreAllies` + a `movementAlly`
+  predicate (movement only); `sameTeam` still governs takeover + win. *Rejected
+  alternative — make it a `Ruleset` variant* (the architecture's "rule variants are
+  Ruleset config" rule): the partnership style is **per-game setup coupled to
+  `teams`** (same New Game choice, only meaningful when seats share a team), and
+  `teams` already lives on `GameState` for exactly that reason — putting the flag
+  beside it keeps the whole partnership config in one place, vs. spawning a near-
+  duplicate ruleset that differs only in a team flag and is irrelevant to free-for-
+  all. *Consequence accepted (confirmed with the user):* the base **forced-move
+  rule** + capturable teammates means a player can be **forced to capture their own
+  partner** when it's their only legal move — identical for human and AI; the AI's
+  `greedyStrategy` avoids a teammate-capture whenever any other move exists, but
+  can't pass to dodge it. *UI gotcha:* the second pill went on its **own row** (not
+  added to the count row) precisely to avoid re-tripping the iOS `system-ui`
+  font-width overflow logged in [cross-platform-ui.md](cross-platform-ui.md) — "2v2
+  friendly" is long, and the count row was already at the 20em threshold.
 - **2026-06-25** — **Move→screen geometry follows the piton's OWNER seat, not the
   seat that played it** — a whole class of 2v2 bug, not just trajectories. When a
   finished 2v2 seat plays its partner's pitons, every render that maps a move to

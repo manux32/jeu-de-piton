@@ -69,6 +69,10 @@ Newest first. Each entry: symptom → cause → fix.
   on `.setup-panel`) so the row fits and the padding shows as the gap again.
   **Rule — widen, don't pad:** adding right padding shrinks the content box and makes
   the overflow *worse*; give fixed-width modals slack for iOS's wider font instead.
+  *Follow-up (2026-06-25):* when the second 2v2 mode shipped ("2v2 friendly", a much
+  longer pill), it went on its **own row** rather than joining the count row — adding
+  it there would have re-tripped exactly this overflow (the row was already at the
+  20em threshold). Cheaper to give long content its own line than to keep widening.
 - **Die-label text ("Roll", "!") looked centred on PC but off-centre on iPad**
   (fixed 2026-06-21). This is *not* a foreignObject bug — it's native SVG `<text>`.
   Two compounding causes, both rooted in **`system-ui` resolving to a different

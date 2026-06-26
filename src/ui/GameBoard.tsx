@@ -559,6 +559,7 @@ export function GameBoard({
           humanSeats={humanSeats}
           strategies={seatStrategies}
           teams={state.teams}
+          partnersAreAllies={state.partnersAreAllies}
           onCancel={() => setSetupOpen(false)}
           onStart={(setup) => {
             onNewGame(setup)
