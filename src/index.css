@@ -814,6 +814,18 @@ code {
 .stats-row-sub > .stats-cell {
   opacity: 0.85;
 }
+/* A deeper sub-row (regular-2v2 teammate cross-cut) — nudged further right and set
+   quieter still, reading as a subset of the sub-row above, not part of the section
+   sum. */
+.stats-row-sub2 > .stats-label {
+  padding-left: 2.4em;
+  font-weight: 500;
+  font-style: italic;
+  opacity: 0.55;
+}
+.stats-row-sub2 > .stats-cell {
+  opacity: 0.7;
+}
 /* The 2v2 divider: a vertical hairline down the column where the second team
    begins, fencing the two teams apart (mirrors the section rows' horizontal rule). */
 .stats-team-edge {
@@ -938,6 +950,16 @@ code {
   color: rgba(255, 255, 255, 0.55);
   font-weight: 600;
   margin-right: 0.4em;
+}
+/* The 2v2 "(playing for teammate)" suffix — sits to the right of the coloured
+   name, overriding its hue to a quiet neutral so it reads as an annotation, not
+   part of the name. Shown once a seat has all its own pitons home. */
+.log-playing-for {
+  color: rgba(255, 255, 255, 0.55);
+  font-weight: 500;
+  font-style: italic;
+  font-size: 0.78em;
+  margin-left: 0.5em;
 }
 /* The notice stack — reuses the board's .nest-notice-row atoms (via NoticeRow),
    listed oldest→newest top-down (no clip, unlike the nest's bottom-anchored box).

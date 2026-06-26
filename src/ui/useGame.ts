@@ -76,6 +76,14 @@ export interface CompletedTurn {
   seat: number
   /** Its finished sub-turns, oldest first — a copy of the seat's nest stack. */
   entries: TurnEntry[]
+  /**
+   * 2v2 only: this seat had ALL its own pitons home for the whole of this turn, so
+   * every piton it touched was its teammate's — the Game Log flags it. True only
+   * from the round AFTER it finished (the finishing turn still played an own piton,
+   * so it reads false). Always false in a free-for-all. Derived by observing the
+   * turn-end state, not a re-derived rule.
+   */
+  playedForPartner: boolean
 }
 
 /**
@@ -94,11 +102,19 @@ export interface CompletedTurn {
 export interface PlayerStats {
   /** Captures made on an ordinary track square (the common case). */
   regularCaptures: number
+  /** Regular-2v2 only: the subset of `regularCaptures` that were of this seat's OWN
+   *  teammate's pitons (friendly 2v2 can't capture a teammate). A start-square
+   *  capture can never be of a teammate — a teammate on a start square is a
+   *  safe-square block, not a target — so this only ever subdivides the track ones. */
+  teammateCaptures: number
   /** Captures made by leaving the nest onto your own start square, bumping an
    *  enemy sheltering there (the start-square exception). */
   startCaptures: number
   /** Own pitons sent back to the nest by an enemy's ordinary move. */
   lostToCapture: number
+  /** Regular-2v2 only: the subset of `lostToCapture` taken by this seat's OWN
+   *  teammate (mirror of `teammateCaptures`, from the victim's side). */
+  lostToTeammate: number
   /** Own pitons bumped because they sheltered on an enemy's start square and the
    *  owner came out of the nest onto them (mirror of `startCaptures`). */
   lostOnEnemyStart: number
@@ -113,8 +129,10 @@ export interface PlayerStats {
 /** A fresh, all-zero tally for one seat. */
 export const emptyStats = (): PlayerStats => ({
   regularCaptures: 0,
+  teammateCaptures: 0,
   startCaptures: 0,
   lostToCapture: 0,
+  lostToTeammate: 0,
   lostOnEnemyStart: 0,
   lostToThreeSixes: 0,
   sixesRolled: 0,
@@ -155,6 +173,13 @@ export type GameAction =
 
 const nestCount = (game: GameState, i: number) =>
   game.players[i].pitons.filter((p) => p.position.kind === 'nest').length
+
+/** Did `seat` spend this whole turn on its teammate's pitons? True when all its own
+ *  pitons are home at the turn's end AND it touched none of them this turn (so the
+ *  finishing turn, which played an own piton home, reads false). See CompletedTurn. */
+const playedForPartner = (game: GameState, seat: number, entries: TurnEntry[]) =>
+  game.players[seat].pitons.every((p) => p.position.kind === 'finished') &&
+  !entries.some((e) => e.move?.owner === seat)
 
 /** Immutably set one seat's slot in a per-seat array, leaving the rest as-is. */
 const setAt = <T>(arr: T[], i: number, value: T): T[] =>
@@ -305,6 +330,13 @@ function reducer(view: GameView, action: GameAction): GameView {
         stats = bumpStat(stats, mover, onStart ? 'startCaptures' : 'regularCaptures')
         if (victim >= 0) {
           stats = bumpStat(stats, victim, onStart ? 'lostOnEnemyStart' : 'lostToCapture')
+          // Regular-2v2 cross-cut: if the victim is the mover's own teammate, tally
+          // that subset too (only a track capture can hit a teammate — see the stat
+          // doc). Friendly 2v2 forbids the capture entirely, so it never gets here.
+          if (!onStart && victim !== mover && prev.teams[victim] === prev.teams[mover]) {
+            stats = bumpStat(stats, mover, 'teammateCaptures')
+            stats = bumpStat(stats, victim, 'lostToTeammate')
+          }
         }
       }
 
@@ -328,7 +360,17 @@ function reducer(view: GameView, action: GameAction): GameView {
       // win. Otherwise hand over if the turn moved on (a non-bonus move), wiping the
       // incoming seat's stale log (handover snapshots the outgoing turn).
       return next.phase === 'game-over'
-        ? { ...logged, history: [...logged.history, { seat: mover, entries: logged.log[mover] }] }
+        ? {
+            ...logged,
+            history: [
+              ...logged.history,
+              {
+                seat: mover,
+                entries: logged.log[mover],
+                playedForPartner: playedForPartner(next, mover, logged.log[mover]),
+              },
+            ],
+          }
         : handover(logged, next, mover)
     }
   }
@@ -351,7 +393,14 @@ function handover(view: GameView, next: GameState, actor: number): GameView {
   return {
     ...view,
     game: next,
-    history: [...view.history, { seat: actor, entries: view.log[actor] }],
+    history: [
+      ...view.history,
+      {
+        seat: actor,
+        entries: view.log[actor],
+        playedForPartner: playedForPartner(next, actor, view.log[actor]),
+      },
+    ],
     log: setAt(view.log, next.turn, []),
   }
 }

@@ -70,6 +70,9 @@ export function LogModal({ state, history, onClose }: Props) {
                         <span className="log-team-tag">{TEAM.tag(state.teams[turn.seat])}</span>
                       )}
                       {LOG.player(color)}
+                      {turn.playedForPartner && (
+                        <span className="log-playing-for">{LOG.playingForTeammate}</span>
+                      )}
                     </div>
                     <div className="log-notice">
                       {turn.entries.map((e, ei) => (

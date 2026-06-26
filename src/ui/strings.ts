@@ -70,10 +70,16 @@ export const STATS = {
   /** Section + its two sub-rows: captures this seat MADE. */
   captures: 'Captures',
   capturesRegular: 'Regular',
+  /** Deeper sub-row under "Regular": how many of those track captures were of the
+   *  seat's own teammate's pitons. Regular-2v2 only (friendly 2v2 can't). */
+  capturesTeammate: 'of teammate',
   capturesStart: 'On start square',
   /** Section + its three sub-rows: this seat's pitons sent back. */
   losses: 'Pitons lost',
   lostToCapture: 'Captured',
+  /** Deeper sub-row under "Captured": how many of those losses were to the seat's
+   *  own teammate. Mirror of `capturesTeammate`; regular-2v2 only. */
+  lostToTeammate: 'by teammate',
   lostOnEnemyStart: "On enemy's start",
   lostToThreeSixes: 'Triple-6 penalty',
   /** Row: total 6s this seat rolled. */
@@ -92,6 +98,9 @@ export const LOG = {
   round: (n: number) => `Round ${n}`,
   /** A player block's label — its capitalized colour name ("Red"). */
   player: (color: string) => `${color.charAt(0).toUpperCase()}${color.slice(1)}`,
+  /** Suffix on a player block's label, in a 2v2 game, once that seat has all its
+   *  own pitons home and is now spending its turns on its teammate's pitons. */
+  playingForTeammate: '(playing for teammate)',
   /** Shown before anyone has completed a turn (the log is empty at the deal). */
   empty: 'No turns played yet.',
   /** Bottom-bar button that closes the window. */

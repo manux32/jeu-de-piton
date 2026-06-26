@@ -27,7 +27,7 @@ interface Props {
  *  or a plain line), and the cell value for a given seat index. */
 type Row = {
   label: string
-  kind: 'plain' | 'section' | 'sub'
+  kind: 'plain' | 'section' | 'sub' | 'sub2'
   value: (seat: number) => string | number
 }
 
@@ -69,15 +69,27 @@ export function StatsModal({ state, stats, onClose }: Props) {
     teamSplit = groups[0].length
   }
 
+  // Regular 2v2 (`partnersAreAllies` false) is the only mode where a teammate can
+  // be captured, so the teammate cross-cut rows show only then. They're `sub2` —
+  // a deeper indent under "Regular" / "Captured" — flagging them as a subset OF
+  // that row, not another slice that sums into the section total.
+  const showTeammate = isTeamGame && !state.partnersAreAllies
+
   // The rows, top to bottom. The two `section` rows carry the running total of
   // the `sub` rows beneath them, so the breakdown reads at a glance.
   const rows: Row[] = [
     { label: STATS.pitonsHome, kind: 'plain', value: (i) => `${pitonsHome(i)} / ${total}` },
     { label: STATS.captures, kind: 'section', value: (i) => capturesTotal(stats[i]) },
     { label: STATS.capturesRegular, kind: 'sub', value: (i) => stats[i].regularCaptures },
+    ...(showTeammate
+      ? [{ label: STATS.capturesTeammate, kind: 'sub2', value: (i: number) => stats[i].teammateCaptures } as Row]
+      : []),
     { label: STATS.capturesStart, kind: 'sub', value: (i) => stats[i].startCaptures },
     { label: STATS.losses, kind: 'section', value: (i) => lossesTotal(stats[i]) },
     { label: STATS.lostToCapture, kind: 'sub', value: (i) => stats[i].lostToCapture },
+    ...(showTeammate
+      ? [{ label: STATS.lostToTeammate, kind: 'sub2', value: (i: number) => stats[i].lostToTeammate } as Row]
+      : []),
     { label: STATS.lostOnEnemyStart, kind: 'sub', value: (i) => stats[i].lostOnEnemyStart },
     { label: STATS.lostToThreeSixes, kind: 'sub', value: (i) => stats[i].lostToThreeSixes },
     { label: STATS.sixes, kind: 'plain', value: (i) => stats[i].sixesRolled },
