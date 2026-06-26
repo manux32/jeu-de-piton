@@ -71,18 +71,20 @@ export const STATS = {
   captures: 'Captures',
   capturesRegular: 'Regular',
   capturesStart: 'On start square',
-  /** Deeper cross-cut row closing the Captures section: how many of ALL this seat's
-   *  captures (track + start) were of its own ally's pitons. Regular-2v2 only
-   *  (friendly 2v2 can't capture an ally). "ally" not "teammate" to keep it short. */
-  capturesTeammate: 'of ally',
+  /** A deeper subset row under EITHER capture bucket (Regular / On start square):
+   *  how many of that bucket's captures were of this seat's own ally. Regular-2v2
+   *  only (friendly 2v2 can't capture an ally). "ally" not "teammate" to keep it
+   *  short. Reused for both buckets — the indent shows which one it subsets. */
+  capturesAlly: 'of ally',
   /** Section + its three sub-rows: this seat's pitons sent back. */
   losses: 'Pitons lost',
   lostToCapture: 'Captured',
   lostOnEnemyStart: "On enemy's start",
   lostToThreeSixes: 'Triple-6 penalty',
-  /** Deeper cross-cut row closing the Pitons-lost section: how many of ALL this
-   *  seat's losses were to its own ally. Mirror of `capturesTeammate`. */
-  lostToTeammate: 'by ally',
+  /** A deeper subset row under EITHER loss bucket (Captured / On enemy's start):
+   *  how many of that bucket's losses were to this seat's own ally. Mirror of
+   *  `capturesAlly`; reused for both buckets. */
+  lostToAlly: 'by ally',
   /** Row: total 6s this seat rolled. */
   sixes: '6s rolled',
   /** Bottom-bar button that closes the window. */
@@ -100,8 +102,8 @@ export const LOG = {
   /** A player block's label — its capitalized colour name ("Red"). */
   player: (color: string) => `${color.charAt(0).toUpperCase()}${color.slice(1)}`,
   /** Suffix on a player block's label, in a 2v2 game, once that seat has all its
-   *  own pitons home and is now spending its turns on its teammate's pitons. */
-  playingForTeammate: '(playing for teammate)',
+   *  own pitons home and is now spending its turns on its ally's pitons. */
+  playingForTeammate: '(playing for ally)',
   /** Shown before anyone has completed a turn (the log is empty at the deal). */
   empty: 'No turns played yet.',
   /** Bottom-bar button that closes the window. */

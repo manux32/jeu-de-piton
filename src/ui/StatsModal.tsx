@@ -70,11 +70,13 @@ export function StatsModal({ state, stats, onClose }: Props) {
   }
 
   // Regular 2v2 (`partnersAreAllies` false) is the only mode where an ally can be
-  // captured, so the ally cross-cut rows show only then. Each closes its section as
-  // a deeper-indented (`sub2`) line: it cross-cuts BOTH sub-rows above it (an ally
-  // can be captured on the track or on a start square), so it's a subset of the
-  // section total, not a slice that sums with the other sub-rows.
-  const showTeammate = isTeamGame && !state.partnersAreAllies
+  // captured, so the ally subset rows show only then. Each is a deeper-indented
+  // (`sub2`) line sitting directly under ITS bucket — a true subset of the `sub`
+  // above it, since Regular / On-start (and Captured / On-enemy's-start) are
+  // disjoint, so an ally capture falls in exactly one bucket.
+  const showAlly = isTeamGame && !state.partnersAreAllies
+  const allyRow = (label: string, value: (s: PlayerStats) => number): Row[] =>
+    showAlly ? [{ label, kind: 'sub2', value: (i) => value(stats[i]) }] : []
 
   // The rows, top to bottom. The two `section` rows carry the running total of
   // the `sub` rows beneath them, so the breakdown reads at a glance.
@@ -82,17 +84,15 @@ export function StatsModal({ state, stats, onClose }: Props) {
     { label: STATS.pitonsHome, kind: 'plain', value: (i) => `${pitonsHome(i)} / ${total}` },
     { label: STATS.captures, kind: 'section', value: (i) => capturesTotal(stats[i]) },
     { label: STATS.capturesRegular, kind: 'sub', value: (i) => stats[i].regularCaptures },
+    ...allyRow(STATS.capturesAlly, (s) => s.regularCapturesAlly),
     { label: STATS.capturesStart, kind: 'sub', value: (i) => stats[i].startCaptures },
-    ...(showTeammate
-      ? [{ label: STATS.capturesTeammate, kind: 'sub2', value: (i: number) => stats[i].teammateCaptures } as Row]
-      : []),
+    ...allyRow(STATS.capturesAlly, (s) => s.startCapturesAlly),
     { label: STATS.losses, kind: 'section', value: (i) => lossesTotal(stats[i]) },
     { label: STATS.lostToCapture, kind: 'sub', value: (i) => stats[i].lostToCapture },
+    ...allyRow(STATS.lostToAlly, (s) => s.lostToCaptureAlly),
     { label: STATS.lostOnEnemyStart, kind: 'sub', value: (i) => stats[i].lostOnEnemyStart },
+    ...allyRow(STATS.lostToAlly, (s) => s.lostOnEnemyStartAlly),
     { label: STATS.lostToThreeSixes, kind: 'sub', value: (i) => stats[i].lostToThreeSixes },
-    ...(showTeammate
-      ? [{ label: STATS.lostToTeammate, kind: 'sub2', value: (i: number) => stats[i].lostToTeammate } as Row]
-      : []),
     { label: STATS.sixes, kind: 'plain', value: (i) => stats[i].sixesRolled },
   ]
 
@@ -121,8 +121,10 @@ export function StatsModal({ state, stats, onClose }: Props) {
           </tr>
         </thead>
         <tbody>
-          {rows.map((row) => (
-            <tr key={row.label} className={`stats-row stats-row-${row.kind}`}>
+          {rows.map((row, ri) => (
+            // Index key: the "of ally" / "by ally" labels repeat across buckets, so
+            // the label isn't unique; the row order is static, so the index is stable.
+            <tr key={ri} className={`stats-row stats-row-${row.kind}`}>
               <th scope="row" className="stats-label">
                 {row.label}
               </th>

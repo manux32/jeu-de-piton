@@ -97,28 +97,33 @@ export interface CompletedTurn {
  * start square, so every movement capture is `regularCaptures`; the only capture
  * that lands on a start square is leaving the nest straight onto your OWN start
  * and bumping a squatting enemy (`startCaptures`). The two loss fields are the
- * mirror of those, from the victim's side.
+ * mirror of those, from the victim's side. Each of these four buckets carries an
+ * `*Ally` subset counting the regular-2v2 case where the bumped piton is the
+ * mover's own ally (0 in every other mode — only official 2v2 lets it happen).
  */
 export interface PlayerStats {
   /** Captures made on an ordinary track square (the common case). */
   regularCaptures: number
-  /** Regular-2v2 only: how many of this seat's captures (track OR start-square)
-   *  were of its OWN teammate's pitons — a cross-cut of `regularCaptures` +
-   *  `startCaptures`, not a slice of either alone. Friendly 2v2 can't capture a
-   *  teammate at all, so it stays 0 there. */
-  teammateCaptures: number
+  /** Regular-2v2 only: the subset of `regularCaptures` that were of this seat's OWN
+   *  ally's pitons (friendly 2v2 can't capture an ally, so it stays 0 there). */
+  regularCapturesAlly: number
   /** Captures made by leaving the nest onto your own start square, bumping an
    *  enemy sheltering there (the start-square exception). */
   startCaptures: number
+  /** Regular-2v2 only: the subset of `startCaptures` that were of this seat's OWN
+   *  ally (an ally squatting on this seat's start square — rare). */
+  startCapturesAlly: number
   /** Own pitons sent back to the nest by an enemy's ordinary move. */
   lostToCapture: number
-  /** Regular-2v2 only: how many of this seat's losses (track OR start-square) were
-   *  to its OWN teammate — a cross-cut of `lostToCapture` + `lostOnEnemyStart`,
-   *  the mirror of `teammateCaptures` from the victim's side. */
-  lostToTeammate: number
+  /** Regular-2v2 only: the subset of `lostToCapture` taken by this seat's OWN ally
+   *  (mirror of `regularCapturesAlly`, from the victim's side). */
+  lostToCaptureAlly: number
   /** Own pitons bumped because they sheltered on an enemy's start square and the
    *  owner came out of the nest onto them (mirror of `startCaptures`). */
   lostOnEnemyStart: number
+  /** Regular-2v2 only: the subset of `lostOnEnemyStart` taken by this seat's OWN
+   *  ally (mirror of `startCapturesAlly`). */
+  lostOnEnemyStartAlly: number
   /** Own pitons sent home by the triple-6 penalty — counted only when a piton was
    *  actually lost (none if the player had nothing on the track to lose). */
   lostToThreeSixes: number
@@ -130,11 +135,13 @@ export interface PlayerStats {
 /** A fresh, all-zero tally for one seat. */
 export const emptyStats = (): PlayerStats => ({
   regularCaptures: 0,
-  teammateCaptures: 0,
+  regularCapturesAlly: 0,
   startCaptures: 0,
+  startCapturesAlly: 0,
   lostToCapture: 0,
-  lostToTeammate: 0,
+  lostToCaptureAlly: 0,
   lostOnEnemyStart: 0,
+  lostOnEnemyStartAlly: 0,
   lostToThreeSixes: 0,
   sixesRolled: 0,
 })
@@ -331,13 +338,14 @@ function reducer(view: GameView, action: GameAction): GameView {
         stats = bumpStat(stats, mover, onStart ? 'startCaptures' : 'regularCaptures')
         if (victim >= 0) {
           stats = bumpStat(stats, victim, onStart ? 'lostOnEnemyStart' : 'lostToCapture')
-          // Regular-2v2 cross-cut: if the victim is the mover's own teammate, tally
-          // that too — on a track square OR the mover's own start (a teammate can be
-          // captured there exactly as an enemy). Friendly 2v2 forbids the capture
-          // entirely, so this never fires there.
+          // Regular-2v2: if the captured piton is the mover's own ally, tally that
+          // subset under the SAME where-bucket (track vs start) as the parent above,
+          // so each ally row stays a true subset of its bucket. An ally can be
+          // captured on the track or on the mover's own start (the start-square
+          // exception). Friendly 2v2 forbids the capture, so this never fires there.
           if (victim !== mover && prev.teams[victim] === prev.teams[mover]) {
-            stats = bumpStat(stats, mover, 'teammateCaptures')
-            stats = bumpStat(stats, victim, 'lostToTeammate')
+            stats = bumpStat(stats, mover, onStart ? 'startCapturesAlly' : 'regularCapturesAlly')
+            stats = bumpStat(stats, victim, onStart ? 'lostOnEnemyStartAlly' : 'lostToCaptureAlly')
           }
         }
       }
