@@ -462,10 +462,13 @@ export function GameBoard({
         <div
           className="win-panel"
           onClick={() => setDismissedWin(state)}
-          // The panel now wears the generic window look (no winner-hue tint); only
-          // the team members' names below carry colour.
+          // Two looks, by game type: a free-for-all tints the panel (border, headline,
+          // stats button) in the winner's hue via --win-color; a 2v2 leaves --win-color
+          // unset so the CSS falls back to the neutral window palette, and only the two
+          // team members' names below carry colour.
           style={
             {
+              ...(isTeamGame ? {} : { '--win-color': PLAYER_HEX[state.winner] }),
               '--win-bg': WIN_PANEL_BG,
               fontSize: `${WIN_WINDOW_SIZE}vmin`,
             } as CSSProperties

@@ -334,10 +334,10 @@ code {
   align-items: center;
   gap: 0.2em;
   padding: 0.55em 1.1em;
-  border: 0.06em solid rgba(255, 255, 255, 0.22);
+  border: 0.06em solid var(--win-color, rgba(255, 255, 255, 0.22));
   border-radius: 0.32em;
   background: var(--win-bg, rgba(18, 16, 26, 0.84));
-  color: #f3f1f6;
+  color: var(--win-color, #f3f1f6);
   font-family: var(--heading);
   font-weight: 800;
   line-height: 1.1;
@@ -357,8 +357,9 @@ code {
 }
 /* "Game stats" button on the win panel — opens the stats window without
    dismissing the popup (its click is stopped from bubbling to the panel). Sized in
-   em so it scales with the headline; a quiet outlined pill in the generic window
-   palette (matches the Options/Stats windows, not the winner's hue). */
+   em so it scales with the headline; a quiet outlined pill that follows the panel:
+   the winner's hue in a free-for-all (--win-color), the neutral window palette in a
+   2v2 (the fallbacks, matching the Options/Stats windows). */
 .win-stats {
   font: inherit;
   cursor: pointer;
@@ -368,13 +369,13 @@ code {
   font-size: 0.34em;
   font-weight: 700;
   padding: 0.55em 1.1em;
-  color: #f3f1f6;
-  border: 0.12em solid rgba(255, 255, 255, 0.4);
+  color: var(--win-color, #f3f1f6);
+  border: 0.12em solid var(--win-color, rgba(255, 255, 255, 0.4));
   border-radius: 999px;
   background: transparent;
 }
 .win-stats:hover {
-  background: rgba(255, 255, 255, 0.14);
+  background: color-mix(in srgb, var(--win-color, #fff) 18%, transparent);
 }
 /* The quiet "tap to dismiss" hint under the headline — half size, dimmed. */
 .win-hint {
