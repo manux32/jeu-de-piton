@@ -202,7 +202,11 @@ Partners play an **almost-normal game against each other** until one finishes:
   it** and **may pass through it**, exactly as with an opponent.
 - The one exception is the universal safe-square rule: a teammate parked **on a
   safe square** blocks you (and is immune), the same as any enemy there — so "you
-  can't pass a partner on a safe square" falls out for free.
+  can't pass a partner on a safe square" falls out for free. **But the start-square
+  exception still bites:** a teammate squatting on **your own** start square is
+  *not* immune to you (your start is safe to everyone *but* you), so you capture it
+  by exiting the nest onto it, exactly as you would an enemy. ("2v2 friendly"
+  shields it, since there a partner blocks like your own piton.)
 - This lasts until a partner gets all their own pitons HOME; from then the
   takeover rule above applies and the two cooperate (the surviving player moves the
   finished one's turns on the team's behalf).
