@@ -52,9 +52,11 @@ home work-tree but ignored by the parent allowlist repo.
 ## Dev server (session-start policy)
 The Vite dev server (`npm run dev`, port 5173) may outlive a session as an OS
 process — but a new session loses the background-task handle to it. So at session
-start: **check whether something is already serving on :5173; if so, restart it**
-(kill the stale process and relaunch via the Bash tool so this session owns a
-managed handle + fresh state). **If nothing is running, leave it down** — don't
+start: **check whether something is already serving on :5173** (on Windows:
+`netstat -ano | grep ':5173 '` — the port precedes `LISTENING`/PID on the line, so
+*don't* grep `LISTENING.*:5173`, which never matches and falsely reads as down);
+**if so, restart it** (kill the stale process and relaunch via the Bash tool so
+this session owns a managed handle + fresh state). **If nothing is running, leave it down** — don't
 start it until the user asks or until you actually need it to do work this
 session. (Launch with `NODE_OPTIONS=--use-system-ca npm run dev`, backgrounded.)
 
