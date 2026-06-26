@@ -409,7 +409,7 @@ export const WIN_WINDOW_SIZE = 7        // OVERALL size of the win popup, in vmi
 //    in [vmin] and the ONE overall-size knob: the whole panel (width, padding,
 //    pills, swatches) is sized in `em` off this in index.css, so bumping it grows
 //    the window proportionally. Colour the backdrop with SETUP_PANEL_BG above.
-export const SETUP_WINDOW_SIZE = 3.5    // OVERALL size of the New Game window, in vmin
+export const SETUP_WINDOW_SIZE = 3.4    // OVERALL size of the New Game window, in vmin
 // Two independent colour-pill sizes, both in em of the window's base font (so
 // they scale with the window). Neither resizes its widget — the picker button
 // keeps the standard control height like its siblings; these only size the pill
