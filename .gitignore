@@ -29,3 +29,6 @@ prompt-draft.md
 # Scratch PNG renders of the board SVG (regenerate with `npm run render:board`)
 references/board-render.png
 references/*-render.png
+
+# Generated VS Code workspace file (produced by the meta-repo scripts/gen-workspaces.mjs).
+*.code-workspace
