@@ -49,10 +49,16 @@ function saveScenarioPlugin(): Plugin {
 }
 
 // https://vite.dev/config/
-export default defineConfig({
-  // Served from a GitHub Pages project site (manux32.github.io/jeu-de-piton/), so
-  // assets must resolve under that sub-path. This also scopes the service worker.
-  base: '/jeu-de-piton/',
+export default defineConfig(({ mode }) => ({
+  // Production build is served from a GitHub Pages project site
+  // (manux32.github.io/jeu-de-piton/), so its assets must resolve under that
+  // sub-path — this also scopes the service worker. Dev serves at bare '/' so it
+  // shares one identical localhost URL with the other game mockups; the PWA is
+  // inert in dev, so nothing there depends on the base.
+  base: mode === 'production' ? '/jeu-de-piton/' : '/',
+  // Shared dev port across all game mockups; strictPort makes a busy port fail
+  // loudly instead of silently drifting to 5174 (the start script frees it first).
+  server: { port: 5173, strictPort: true },
   plugins: [
     react(),
     saveScenarioPlugin(),
@@ -88,4 +94,4 @@ export default defineConfig({
       },
     }),
   ],
-})
+}))
