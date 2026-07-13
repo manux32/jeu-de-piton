@@ -1,8 +1,8 @@
 @echo off
 REM Start the Jeu de piton dev server on http://localhost:5173/
 REM Frees port 5173 first (evicting any other game's server), then launches Vite
-REM and opens the browser once the server is ready. Close this window (or Ctrl+C)
-REM to stop the server.
+REM (it does not open a browser -- open or refresh http://localhost:5173/
+REM yourself). Close this window (or Ctrl+C) to stop the server.
 REM
 REM NODE_OPTIONS=--use-system-ca: this network does corporate TLS interception, so
 REM Node must trust the system cert store (see the project's this-machine note).
@@ -19,4 +19,4 @@ set NODE_OPTIONS=--use-system-ca
 if not exist node_modules ( echo Installing dependencies... & call npm install )
 
 echo Starting dev server...
-call npm run dev -- --open
+call npm run dev
