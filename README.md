@@ -23,7 +23,7 @@ offline hot-seat game (use the device rotation lock to keep it portrait). Pushin
 
 ```bash
 npm install
-npm run dev        # local dev server (serves at /jeu-de-piton/ — see vite base)
+npm run dev        # local dev server at http://localhost:5173/ (prod build alone uses the /jeu-de-piton/ base)
 npm run build      # type-check + production build (+ PWA service worker/manifest)
 npm test           # engine unit tests (Vitest)
 npm run make:icons # regenerate PWA icons from public/favicon.svg
